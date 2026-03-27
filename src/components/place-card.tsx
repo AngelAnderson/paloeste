@@ -95,15 +95,16 @@ export function PlaceCardCompact({ place }: { place: Place }) {
           {place.category} · {place.address || "Cabo Rojo"}
         </p>
       </div>
-      {isFounder ? (
+      {isFounder && (
         <Badge className="bg-amber-100 text-amber-700 text-[10px] shrink-0">
           🏅 Fundador
         </Badge>
-      ) : place.is_featured ? (
+      )}
+      {!isFounder && place.is_featured && (
         <Badge className="bg-red-50 text-red-600 text-[10px] shrink-0">
           ⭐
         </Badge>
-      ) : null}
+      )}
     </Link>
   );
 }

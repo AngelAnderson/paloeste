@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { SITE_URL } from "@/lib/constants";
 
 // Simple QR code SVG generator (no external dependencies)
@@ -18,7 +18,7 @@ function generateQrSvg(url: string, size: number = 200): string {
 }
 
 export async function GET(
-  request: NextRequest,
+  _request: Request,
   { params }: { params: Promise<{ slug: string }> }
 ) {
   const { slug } = await params;

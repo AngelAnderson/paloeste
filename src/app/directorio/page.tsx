@@ -3,6 +3,7 @@ import { SearchInput } from "@/components/search-input";
 import { CategoryPills } from "@/components/category-pills";
 import { PlaceCard } from "@/components/place-card";
 import { getPlaces } from "@/lib/supabase";
+import type { Place } from "@/lib/types";
 
 export const revalidate = 3600;
 
@@ -13,7 +14,7 @@ export const metadata: Metadata = {
 };
 
 export default async function DirectorioPage() {
-  let places: Awaited<ReturnType<typeof getPlaces>> = [];
+  let places: Place[] = [];
   try {
     places = await getPlaces();
   } catch {

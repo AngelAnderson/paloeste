@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { getFeaturedPlaces, getPlaces, getUpcomingEvents } from "@/lib/supabase";
 import { BOT_PHONE, BOT_WHATSAPP_URL } from "@/lib/constants";
-import type { Event } from "@/lib/types";
+import type { Event, Place } from "@/lib/types";
 
 export const revalidate = 3600;
 
@@ -27,8 +27,8 @@ const ROUTES = [
 ];
 
 export default async function HomePage() {
-  let featured: Awaited<ReturnType<typeof getFeaturedPlaces>> = [];
-  let restaurants: Awaited<ReturnType<typeof getPlaces>> = [];
+  let featured: Place[] = [];
+  let restaurants: Place[] = [];
   let events: Event[] = [];
   try {
     featured = await getFeaturedPlaces();

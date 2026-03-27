@@ -1,7 +1,7 @@
 import { Metadata } from "next";
-import Link from "next/link";
 import { PlaceCard } from "@/components/place-card";
 import { getPlaces } from "@/lib/supabase";
+import type { Place } from "@/lib/types";
 
 export const revalidate = 3600;
 
@@ -30,7 +30,7 @@ const ZONES = [
 ];
 
 export default async function DondeComerPage() {
-  let restaurants: Awaited<ReturnType<typeof getPlaces>> = [];
+  let restaurants: Place[] = [];
   try {
     restaurants = await getPlaces("FOOD");
   } catch {

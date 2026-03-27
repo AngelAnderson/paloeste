@@ -4,13 +4,8 @@ import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { SearchInput } from "@/components/search-input";
 import { PlaceCardCompact } from "@/components/place-card";
-import { createClient } from "@supabase/supabase-js";
+import { supabase } from "@/lib/supabase";
 import type { Place } from "@/lib/types";
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
 
 function SearchResults() {
   const searchParams = useSearchParams();

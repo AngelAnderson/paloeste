@@ -3,6 +3,7 @@ import { CategoryPills } from "@/components/category-pills";
 import { PlaceCard } from "@/components/place-card";
 import { getPlaces } from "@/lib/supabase";
 import { CATEGORIES } from "@/lib/constants";
+import type { Place } from "@/lib/types";
 
 export const revalidate = 3600;
 
@@ -37,7 +38,7 @@ export default async function CategoryPage({
     (c) => c.id.toLowerCase() === category.toLowerCase()
   );
 
-  let places: Awaited<ReturnType<typeof getPlaces>> = [];
+  let places: Place[] = [];
   try {
     places = await getPlaces(category.toUpperCase());
   } catch {

@@ -1,6 +1,5 @@
 import { Metadata } from "next";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
 import { CONTACT_WHATSAPP } from "@/lib/constants";
 import { getAllEvents } from "@/lib/supabase";
 import type { Event } from "@/lib/types";
@@ -13,16 +12,6 @@ export const metadata: Metadata = {
   description:
     "Calendario de eventos, festivales, ferias y actividades culturales en el oeste de Puerto Rico.",
 };
-
-function formatDate(dateStr: string) {
-  const d = new Date(dateStr);
-  return d.toLocaleDateString("es-PR", {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  });
-}
 
 function formatTime(dateStr: string) {
   const d = new Date(dateStr);
@@ -140,8 +129,12 @@ export default async function EventosPage() {
     pastByMonth[key].push(e);
   }
 
-  // Stats
-  const categories = [...new Set(allEvents.map((e) => e.category))];
+  // Count events per category in a single pass
+  const categoryCounts = new Map<string, number>();
+  for (const e of allEvents) {
+    categoryCounts.set(e.category, (categoryCounts.get(e.category) ?? 0) + 1);
+  }
+  const categories = [...categoryCounts.keys()];
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-12 space-y-12">
@@ -159,7 +152,7 @@ export default async function EventosPage() {
       <div className="flex flex-wrap gap-2 justify-center">
         {categories.map((cat) => {
           const colors = getCatColor(cat);
-          const count = allEvents.filter((e) => e.category === cat).length;
+          const count = categoryCounts.get(cat) ?? 0;
           return (
             <span key={cat} className={`${colors.bg} ${colors.text} ${colors.border} border px-3 py-1 rounded-full text-xs font-medium`}>
               {cat} ({count})
