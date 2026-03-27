@@ -81,21 +81,23 @@ export async function searchNearby(
   return (data as Place[]) || [];
 }
 
-export async function getUpcomingEvents(
-  daysAhead: number = 7
-): Promise<Event[]> {
-  const now = new Date().toISOString();
-  const future = new Date(
-    Date.now() + daysAhead * 24 * 60 * 60 * 1000
-  ).toISOString();
-
+export async function getUpcomingEvents(): Promise<Event[]> {
   const { data, error } = await supabase
     .from("events")
     .select("*")
-    .eq("status", "approved")
-    .gte("start_time", now)
-    .lte("start_time", future)
-    .order("start_time");
+    .in("status", ["active", "approved", "published"])
+    .order("start_time", { ascending: true });
+
+  if (error) throw error;
+  return (data as Event[]) || [];
+}
+
+export async function getAllEvents(): Promise<Event[]> {
+  const { data, error } = await supabase
+    .from("events")
+    .select("*")
+    .in("status", ["active", "approved", "published", "archived"])
+    .order("start_time", { ascending: false });
 
   if (error) throw error;
   return (data as Event[]) || [];

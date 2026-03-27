@@ -5,8 +5,9 @@ import { CategoryPills } from "@/components/category-pills";
 import { PlaceCard } from "@/components/place-card";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { getFeaturedPlaces, getPlaces } from "@/lib/supabase";
+import { getFeaturedPlaces, getPlaces, getUpcomingEvents } from "@/lib/supabase";
 import { BOT_PHONE, BOT_WHATSAPP_URL } from "@/lib/constants";
+import type { Event } from "@/lib/types";
 
 export const revalidate = 3600;
 
@@ -19,12 +20,6 @@ const MUSICIANS = [
   { name: "Las Juanas del Merengue", genre: "Merengue", phone: "787-517-2865" },
 ];
 
-const EVENTS = [
-  { name: "Mangata De Bomba", location: "Puesta Del Sol, Joyuda", type: "Bomba · Gratis" },
-  { name: "Mercado de Artesanos", location: "Plaza Colón, Mayagüez", type: "1er Domingo de cada mes" },
-  { name: "Noche de Salsa", location: "Boquerón Boardwalk", type: "Último viernes del mes" },
-];
-
 const ROUTES = [
   { name: "Ruta Playera", stops: "Cabo Rojo → Joyuda → Boquerón → Lajas", icon: "🏖️" },
   { name: "Ruta del Café", stops: "Las Marías → Maricao → San Sebastián", icon: "☕" },
@@ -34,9 +29,11 @@ const ROUTES = [
 export default async function HomePage() {
   let featured: Awaited<ReturnType<typeof getFeaturedPlaces>> = [];
   let restaurants: Awaited<ReturnType<typeof getPlaces>> = [];
+  let events: Event[] = [];
   try {
     featured = await getFeaturedPlaces();
     restaurants = (await getPlaces("FOOD")).slice(0, 6);
+    events = (await getUpcomingEvents()).slice(0, 3);
   } catch {
     // Empty state if Supabase not configured
   }
@@ -156,22 +153,37 @@ export default async function HomePage() {
       </section>
 
       {/* Eventos */}
-      <section className="max-w-6xl mx-auto px-4 space-y-4">
-        <h2 className="text-2xl font-bold text-zinc-900">📅 Próximos Eventos</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {EVENTS.map((e) => (
-            <Card key={e.name} className="bg-white border-zinc-200 shadow-sm">
-              <CardContent className="p-5 space-y-2">
-                <Badge className="bg-red-50 text-red-600 border-red-200 text-xs">
-                  {e.type}
-                </Badge>
-                <h3 className="text-lg font-bold text-zinc-900">{e.name}</h3>
-                <p className="text-sm text-zinc-500">📍 {e.location}</p>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </section>
+      {events.length > 0 && (
+        <section className="max-w-6xl mx-auto px-4 space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-bold text-zinc-900">📅 Próximos Eventos</h2>
+            <Link href="/eventos" className="text-sm text-red-600 hover:text-red-700">
+              Ver todos →
+            </Link>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {events.map((e) => (
+              <Card key={e.id} className="bg-white border-zinc-200 shadow-sm">
+                <CardContent className="p-5 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Badge className="bg-red-50 text-red-600 border-red-200 text-xs">
+                      {e.category}
+                    </Badge>
+                    {e.family_friendly && (
+                      <Badge className="bg-green-50 text-green-600 border-green-200 text-xs">
+                        Familiar
+                      </Badge>
+                    )}
+                  </div>
+                  <h3 className="text-lg font-bold text-zinc-900">{e.title}</h3>
+                  <p className="text-sm text-zinc-500 line-clamp-2">{e.description}</p>
+                  <p className="text-xs text-zinc-400">📍 {e.location_name}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Featured / Sponsors */}
       {featured.length > 0 && (
