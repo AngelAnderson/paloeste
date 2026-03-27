@@ -21,15 +21,33 @@ function SearchResults() {
       setLoading(true);
       setSearched(true);
 
-      // Text search across name, description, tags, category, subcategory, address
+      // Synonym expansion (same as bot *7711)
+      const synonyms: Record<string, string> = {
+        plomero: "plumber", plumber: "plomero",
+        electricista: "electrician", electrician: "electricista",
+        mariscos: "seafood", seafood: "mariscos",
+        grua: "tow", tow: "grua",
+        carniceria: "butcher", butcher: "carniceria",
+        restaurante: "FOOD", comida: "FOOD",
+        hotel: "LODGING", hospedaje: "LODGING",
+        playa: "BEACH", beach: "BEACH",
+        cafe: "café", coffee: "café",
+      };
+
+      const terms = [query, synonyms[query.toLowerCase()]].filter(Boolean);
       const searchTerm = `%${query}%`;
+
+      // Text search across name, description, category, subcategory, address, one_liner
       const { data, error } = await supabase
         .from("places")
         .select("*")
         .eq("visibility", "published")
         .neq("quality_tier", "hidden")
         .or(
-          `name.ilike.${searchTerm},description.ilike.${searchTerm},category.ilike.${searchTerm},subcategory.ilike.${searchTerm},address.ilike.${searchTerm},one_liner.ilike.${searchTerm}`
+          terms.map(t => {
+            const term = `%${t}%`;
+            return `name.ilike.${term},description.ilike.${term},category.ilike.${term},subcategory.ilike.${term},address.ilike.${term},one_liner.ilike.${term}`;
+          }).join(",")
         )
         .order("sponsor_weight", { ascending: false })
         .order("name")
