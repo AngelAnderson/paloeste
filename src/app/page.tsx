@@ -1,65 +1,119 @@
-import Image from "next/image";
+import Link from "next/link";
+import { SearchInput } from "@/components/search-input";
+import { CategoryPills } from "@/components/category-pills";
+import { PlaceCard } from "@/components/place-card";
+import { Badge } from "@/components/ui/badge";
+import { getFeaturedPlaces } from "@/lib/supabase";
+import { BOT_PHONE, BOT_WHATSAPP_URL } from "@/lib/constants";
 
-export default function Home() {
+export const revalidate = 3600;
+
+export default async function HomePage() {
+  let featured: Awaited<ReturnType<typeof getFeaturedPlaces>> = [];
+  try {
+    featured = await getFeaturedPlaces();
+  } catch {
+    // Will show empty state if Supabase not configured yet
+  }
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
+    <div className="space-y-16">
+      {/* Hero */}
+      <section className="relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-b from-orange-950/20 via-zinc-950 to-zinc-950" />
+        <div className="relative max-w-4xl mx-auto px-4 pt-20 pb-16 text-center space-y-6">
+          <Badge className="bg-orange-500/20 text-orange-400 border-orange-500/30 text-sm px-4 py-1">
+            🌴 El Oeste de Puerto Rico
+          </Badge>
+          <h1 className="text-4xl md:text-6xl font-black tracking-tight">
+            Encuentra lo mejor del{" "}
+            <span className="text-orange-500">Oeste</span>
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+          <p className="text-lg text-zinc-400 max-w-2xl mx-auto">
+            Negocios, restaurantes, playas, músicos y cultura. Pregunta como si
+            le hablaras a un pana — nuestra AI te conecta.
+          </p>
+          <div className="max-w-xl mx-auto">
+            <SearchInput size="large" />
+          </div>
+          <p className="text-sm text-zinc-600">
+            También por WhatsApp:{" "}
+            <Link
+              href={BOT_WHATSAPP_URL}
+              target="_blank"
+              className="text-orange-400 hover:text-orange-300 font-medium"
             >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+              *{BOT_PHONE}
+            </Link>
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
+      </section>
+
+      {/* Categories */}
+      <section className="max-w-6xl mx-auto px-4 space-y-4">
+        <h2 className="text-2xl font-bold">Explora por categoría</h2>
+        <CategoryPills />
+      </section>
+
+      {/* Featured / Sponsors */}
+      {featured.length > 0 && (
+        <section className="max-w-6xl mx-auto px-4 space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-bold">Negocios Destacados</h2>
+            <Link
+              href="/directorio"
+              className="text-sm text-orange-400 hover:text-orange-300"
+            >
+              Ver todos →
+            </Link>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {featured.map((place) => (
+              <PlaceCard key={place.id} place={place} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Bot CTA */}
+      <section className="max-w-4xl mx-auto px-4">
+        <div className="bg-gradient-to-br from-zinc-900 to-zinc-800 border border-zinc-700 rounded-2xl p-8 md:p-12 text-center space-y-4">
+          <h2 className="text-3xl font-black">
+            📱 ¿Prefieres por WhatsApp?
+          </h2>
+          <p className="text-zinc-400 max-w-lg mx-auto">
+            Manda un mensaje a <strong className="text-orange-400">*{BOT_PHONE}</strong> y
+            nuestro bot AI te encuentra lo que necesitas — restaurante, plomero,
+            electricista, lo que sea.
+          </p>
+          <Link
+            href={BOT_WHATSAPP_URL}
             target="_blank"
-            rel="noopener noreferrer"
+            className="inline-block bg-green-600 hover:bg-green-700 text-white font-bold px-8 py-3 rounded-full transition-colors"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+            Abrir WhatsApp →
+          </Link>
         </div>
-      </main>
+      </section>
+
+      {/* Sponsor CTA */}
+      <section className="max-w-4xl mx-auto px-4 pb-16">
+        <div className="bg-orange-500/10 border border-orange-500/20 rounded-2xl p-8 md:p-12 text-center space-y-4">
+          <h2 className="text-2xl font-bold text-orange-400">
+            ¿Tienes un negocio en el oeste?
+          </h2>
+          <p className="text-zinc-400 max-w-lg mx-auto">
+            Aparece en nuestro directorio, en el bot *{BOT_PHONE}, en Facebook, y
+            en el newsletter. Paquetes desde $299/año.
+          </p>
+          <Link
+            href="/anuncia"
+            className="inline-block bg-orange-500 hover:bg-orange-600 text-white font-bold px-8 py-3 rounded-full transition-colors"
+          >
+            Anuncia tu Negocio →
+          </Link>
+        </div>
+      </section>
     </div>
   );
 }
