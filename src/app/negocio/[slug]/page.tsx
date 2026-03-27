@@ -85,13 +85,13 @@ export default async function BusinessPage({
               alt={place.name}
               className="w-full h-full object-cover"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-transparent to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-white/60 via-transparent to-transparent" />
           </div>
         )}
 
         <div className="space-y-3">
           <div className="flex flex-wrap items-center gap-2">
-            <Badge className="bg-zinc-800 text-zinc-300 uppercase text-xs">
+            <Badge className="bg-zinc-100 text-zinc-700 border border-zinc-200 uppercase text-xs">
               {place.category}
             </Badge>
             {isSponsor && (
@@ -100,48 +100,48 @@ export default async function BusinessPage({
               </Badge>
             )}
             {place.is_verified && (
-              <Badge variant="outline" className="text-blue-400 border-blue-700">
+              <Badge variant="outline" className="text-blue-600 border-blue-300">
                 ✓ Verificado
               </Badge>
             )}
             {place.status === "open" ? (
-              <Badge variant="outline" className="text-green-400 border-green-700">
+              <Badge variant="outline" className="text-green-600 border-green-300">
                 Abierto
               </Badge>
             ) : (
-              <Badge variant="outline" className="text-red-400 border-red-700">
+              <Badge variant="outline" className="text-red-600 border-red-300">
                 Cerrado
               </Badge>
             )}
           </div>
-          <h1 className="text-3xl md:text-4xl font-black">{place.name}</h1>
+          <h1 className="text-3xl md:text-4xl font-black text-zinc-900">{place.name}</h1>
           {place.one_liner && (
-            <p className="text-lg text-zinc-400">{place.one_liner}</p>
+            <p className="text-lg text-zinc-500">{place.one_liner}</p>
           )}
         </div>
 
-        <Separator className="bg-zinc-800" />
+        <Separator className="bg-zinc-200" />
 
         {/* Description */}
         <section className="space-y-2">
           <h2 className="text-sm font-bold text-zinc-500 uppercase tracking-wider">
             Sobre el negocio
           </h2>
-          <p className="text-zinc-300 leading-relaxed">{place.description}</p>
+          <p className="text-zinc-700 leading-relaxed">{place.description}</p>
         </section>
 
         {/* Local Tip */}
         {place.local_tip && (
-          <section className="bg-orange-500/10 border border-orange-500/20 rounded-xl p-5 space-y-2">
-            <h3 className="text-sm font-bold text-orange-400 uppercase tracking-wider">
+          <section className="bg-red-50 border border-red-100 rounded-xl p-5 space-y-2">
+            <h3 className="text-sm font-bold text-red-600 uppercase tracking-wider">
               💡 Tip Local
             </h3>
-            <p className="text-zinc-300">{place.local_tip}</p>
+            <p className="text-zinc-700">{place.local_tip}</p>
           </section>
         )}
 
         {/* Contact Info */}
-        <section className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 space-y-4">
+        <section className="bg-zinc-50 border border-zinc-200 rounded-xl p-5 space-y-4">
           <h2 className="text-sm font-bold text-zinc-500 uppercase tracking-wider">
             Contacto
           </h2>
@@ -152,7 +152,7 @@ export default async function BusinessPage({
                 <p className="text-xs text-zinc-500 uppercase font-medium">Teléfono</p>
                 <a
                   href={`tel:${place.phone}`}
-                  className="text-orange-400 font-bold hover:text-orange-300"
+                  className="text-red-600 font-bold hover:text-red-700"
                 >
                   {place.phone}
                 </a>
@@ -164,7 +164,7 @@ export default async function BusinessPage({
               <span className="text-xl">📍</span>
               <div>
                 <p className="text-xs text-zinc-500 uppercase font-medium">Dirección</p>
-                <p className="text-zinc-300">{place.address}</p>
+                <p className="text-zinc-700">{place.address}</p>
               </div>
             </div>
           )}
@@ -172,7 +172,7 @@ export default async function BusinessPage({
             <Link
               href={place.gmaps_url}
               target="_blank"
-              className="inline-block text-sm text-blue-400 hover:text-blue-300"
+              className="inline-block text-sm text-blue-600 hover:text-blue-700"
             >
               Abrir en Google Maps →
             </Link>
@@ -181,11 +181,11 @@ export default async function BusinessPage({
 
         {/* Hours */}
         {place.opening_hours?.formatted && (
-          <section className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 space-y-2">
+          <section className="bg-zinc-50 border border-zinc-200 rounded-xl p-5 space-y-2">
             <h2 className="text-sm font-bold text-zinc-500 uppercase tracking-wider">
               Horario
             </h2>
-            <p className="text-zinc-300 whitespace-pre-line">
+            <p className="text-zinc-700 whitespace-pre-line">
               {place.opening_hours.formatted}
             </p>
           </section>
@@ -198,7 +198,7 @@ export default async function BusinessPage({
               <Badge
                 key={tag}
                 variant="outline"
-                className="text-zinc-400 border-zinc-700 text-xs"
+                className="text-zinc-600 border-zinc-300 text-xs"
               >
                 {tag}
               </Badge>
@@ -207,8 +207,8 @@ export default async function BusinessPage({
         )}
 
         {/* Bot CTA */}
-        <section className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 text-center space-y-3">
-          <p className="text-zinc-400 text-sm">
+        <section className="bg-zinc-50 border border-zinc-200 rounded-xl p-5 text-center space-y-3">
+          <p className="text-zinc-500 text-sm">
             También puedes preguntar por este negocio por WhatsApp:
           </p>
           <Link

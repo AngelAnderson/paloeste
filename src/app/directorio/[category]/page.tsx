@@ -47,10 +47,10 @@ export default async function CategoryPage({
   return (
     <div className="max-w-6xl mx-auto px-4 py-8 space-y-8">
       <div className="space-y-2">
-        <h1 className="text-3xl font-black">
+        <h1 className="text-3xl font-black text-zinc-900">
           {cat ? `${cat.icon} ${cat.label_es}` : category}
         </h1>
-        <p className="text-zinc-400">
+        <p className="text-zinc-500">
           {places.length} resultados en el oeste de Puerto Rico
         </p>
       </div>

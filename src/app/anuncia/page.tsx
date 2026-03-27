@@ -21,7 +21,7 @@ const tiers = [
       "Visible en búsquedas",
     ],
     cta: "Ya estás incluido",
-    ctaStyle: "bg-zinc-700 text-zinc-300 cursor-default",
+    ctaStyle: "bg-zinc-200 text-zinc-500 cursor-default",
   },
   {
     name: "Básico",
@@ -34,7 +34,7 @@ const tiers = [
       "Badge de verificado",
     ],
     cta: "Empezar",
-    ctaStyle: "bg-zinc-100 text-zinc-900 hover:bg-white",
+    ctaStyle: "bg-zinc-900 text-white hover:bg-zinc-700",
   },
   {
     name: "Pro",
@@ -50,7 +50,7 @@ const tiers = [
       "Recomendado por bot *7711",
     ],
     cta: "Elegir Pro",
-    ctaStyle: "bg-orange-500 text-white hover:bg-orange-600",
+    ctaStyle: "bg-red-600 text-white hover:bg-red-700",
   },
   {
     name: "Enterprise",
@@ -65,7 +65,7 @@ const tiers = [
       "Reporte mensual PDF",
     ],
     cta: "Contactar",
-    ctaStyle: "bg-zinc-100 text-zinc-900 hover:bg-white",
+    ctaStyle: "bg-zinc-900 text-white hover:bg-zinc-700",
   },
 ];
 
@@ -74,14 +74,14 @@ export default function AnunciaPage() {
     <div className="max-w-6xl mx-auto px-4 py-12 space-y-12">
       {/* Header */}
       <div className="text-center space-y-4 max-w-2xl mx-auto">
-        <Badge className="bg-orange-500/20 text-orange-400 border-orange-500/30">
+        <Badge className="bg-red-100 text-red-600 border-red-200">
           Para Negocios del Oeste
         </Badge>
-        <h1 className="text-4xl font-black">
+        <h1 className="text-4xl font-black text-zinc-900">
           Haz que tu negocio sea{" "}
-          <span className="text-orange-500">imposible de ignorar</span>
+          <span className="text-red-600">imposible de ignorar</span>
         </h1>
-        <p className="text-lg text-zinc-400">
+        <p className="text-lg text-zinc-500">
           Directorio web + bot WhatsApp *{BOT_PHONE} + Facebook + newsletter.
           Todo conectado. Un precio.
         </p>
@@ -92,21 +92,21 @@ export default function AnunciaPage() {
         {tiers.map((tier) => (
           <Card
             key={tier.name}
-            className={`relative bg-zinc-900 border-zinc-800 ${
-              tier.popular ? "border-orange-500 ring-1 ring-orange-500" : ""
+            className={`relative bg-zinc-50 border border-zinc-200 ${
+              tier.popular ? "border-red-600 ring-1 ring-red-600" : ""
             }`}
           >
             {tier.popular && (
               <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                <Badge className="bg-orange-500 text-white font-bold">
+                <Badge className="bg-red-600 text-white font-bold">
                   Más Popular
                 </Badge>
               </div>
             )}
             <CardContent className="p-6 space-y-4">
-              <h3 className="text-xl font-bold text-zinc-100">{tier.name}</h3>
+              <h3 className="text-xl font-bold text-zinc-900">{tier.name}</h3>
               <div>
-                <span className="text-3xl font-black text-zinc-100">
+                <span className="text-3xl font-black text-zinc-900">
                   {tier.price}
                 </span>
                 <span className="text-zinc-500">{tier.period}</span>
@@ -115,9 +115,9 @@ export default function AnunciaPage() {
                 {tier.features.map((f) => (
                   <li
                     key={f}
-                    className="text-sm text-zinc-400 flex items-start gap-2"
+                    className="text-sm text-zinc-600 flex items-start gap-2"
                   >
-                    <span className="text-green-500 mt-0.5">✓</span>
+                    <span className="text-green-600 mt-0.5">✓</span>
                     {f}
                   </li>
                 ))}
@@ -136,7 +136,7 @@ export default function AnunciaPage() {
 
       {/* Social Proof */}
       <div className="text-center space-y-4 py-8">
-        <h2 className="text-2xl font-bold text-zinc-300">
+        <h2 className="text-2xl font-bold text-zinc-700">
           25+ negocios ya confían en Pal Oeste
         </h2>
         <p className="text-zinc-500 max-w-lg mx-auto">
@@ -146,15 +146,15 @@ export default function AnunciaPage() {
       </div>
 
       {/* Contact */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-8 text-center space-y-4 max-w-xl mx-auto">
-        <h3 className="text-xl font-bold">¿Preguntas? Hablemos.</h3>
-        <div className="space-y-2 text-zinc-400">
+      <div className="bg-zinc-50 border border-zinc-200 rounded-2xl p-8 text-center space-y-4 max-w-xl mx-auto">
+        <h3 className="text-xl font-bold text-zinc-900">¿Preguntas? Hablemos.</h3>
+        <div className="space-y-2 text-zinc-600">
           <p>
             📱{" "}
             <Link
               href={CONTACT_WHATSAPP}
               target="_blank"
-              className="text-orange-400 hover:text-orange-300"
+              className="text-red-600 hover:text-red-700"
             >
               WhatsApp Directo
             </Link>
@@ -163,7 +163,7 @@ export default function AnunciaPage() {
             📧{" "}
             <Link
               href={`mailto:${CONTACT_EMAIL}`}
-              className="text-orange-400 hover:text-orange-300"
+              className="text-red-600 hover:text-red-700"
             >
               {CONTACT_EMAIL}
             </Link>

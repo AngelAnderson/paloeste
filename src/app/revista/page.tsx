@@ -48,26 +48,26 @@ export default function RevistaPage() {
   return (
     <div className="max-w-6xl mx-auto px-4 py-12 space-y-12">
       <div className="text-center space-y-4 max-w-2xl mx-auto">
-        <h1 className="text-4xl font-black">📕 Tienda Pal&apos; Oeste</h1>
-        <p className="text-lg text-blue-200/60">
+        <h1 className="text-4xl font-black text-zinc-900">📕 Tienda Pal&apos; Oeste</h1>
+        <p className="text-lg text-zinc-500">
           Guías del oeste de Puerto Rico. PDF digital con descarga inmediata o versión física en Amazon.
         </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {products.map((product) => (
-          <Card key={product.name} className="bg-blue-950/50 border-blue-800/30 flex flex-col">
+          <Card key={product.name} className="bg-white border border-zinc-200 flex flex-col">
             <CardContent className="p-6 space-y-4 flex-1 flex flex-col">
               <Badge className={`${product.badgeColor} w-fit`}>
                 {product.badge}
               </Badge>
-              <h2 className="text-xl font-bold text-white">{product.name}</h2>
-              <p className="text-sm text-blue-200/60 flex-1">{product.description}</p>
+              <h2 className="text-xl font-bold text-zinc-900">{product.name}</h2>
+              <p className="text-sm text-zinc-500 flex-1">{product.description}</p>
 
               <ul className="space-y-1.5">
                 {product.features.map((f) => (
-                  <li key={f} className="text-sm text-blue-300/60 flex items-start gap-2">
-                    <span className="text-green-400 mt-0.5">✓</span> {f}
+                  <li key={f} className="text-sm text-zinc-600 flex items-start gap-2">
+                    <span className="text-green-600 mt-0.5">✓</span> {f}
                   </li>
                 ))}
               </ul>
@@ -83,7 +83,7 @@ export default function RevistaPage() {
                   <Link
                     href={product.amazonUrl}
                     target="_blank"
-                    className="block text-center bg-white/10 hover:bg-white/20 text-white font-medium py-3 rounded-lg transition-colors text-sm"
+                    className="block text-center bg-zinc-100 hover:bg-zinc-200 text-zinc-700 font-medium py-3 rounded-lg transition-colors text-sm border border-zinc-200"
                   >
                     📦 Compra en Amazon — Versión Física
                   </Link>
@@ -94,7 +94,7 @@ export default function RevistaPage() {
         ))}
       </div>
 
-      <div className="text-center text-sm text-blue-300/40 max-w-lg mx-auto">
+      <div className="text-center text-sm text-zinc-400 max-w-lg mx-auto">
         <p>Los PDFs se entregan inmediatamente después de la compra. La versión física se envía a través de Amazon.</p>
       </div>
     </div>
