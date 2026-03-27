@@ -47,7 +47,7 @@ export default async function HomePage() {
       <section className="relative overflow-hidden bg-zinc-50">
         <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-red-600 via-white to-blue-600" />
         <div className="max-w-4xl mx-auto px-4 pt-16 pb-20 text-center space-y-6">
-          <Image src="/logo-black.png" alt="Pal Oeste" width={200} height={66} className="mx-auto h-16 w-auto" />
+          <Image src="/logo-dark-text.png" alt="Pal Oeste" width={200} height={66} className="mx-auto h-16 w-auto" />
           <h1 className="text-4xl md:text-6xl font-black tracking-tight text-zinc-900">
             Lo mejor del{" "}
             <span className="text-red-600">Oeste</span>

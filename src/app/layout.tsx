@@ -34,7 +34,7 @@ function Header() {
     <header className="sticky top-0 z-50 border-b border-zinc-200 bg-white/90 backdrop-blur-lg">
       <nav className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2">
-          <Image src="/logo-black.png" alt="Pal Oeste" width={120} height={40} className="h-9 w-auto" />
+          <Image src="/logo-dark-text.png" alt="Pal Oeste" width={120} height={40} className="h-9 w-auto" />
         </Link>
         <div className="hidden md:flex items-center gap-6 text-sm text-zinc-500">
           <Link href="/directorio" className="hover:text-zinc-900 transition-colors">
@@ -76,7 +76,7 @@ function Footer() {
     <footer className="border-t border-zinc-200 bg-zinc-50 mt-auto">
       <div className="max-w-6xl mx-auto px-4 py-12 grid grid-cols-1 md:grid-cols-3 gap-8">
         <div>
-          <Image src="/logo-black.png" alt="Pal Oeste" width={100} height={33} className="h-8 w-auto mb-3" />
+          <Image src="/logo-dark-text.png" alt="Pal Oeste" width={100} height={33} className="h-8 w-auto mb-3" />
           <p className="text-sm text-zinc-500">
             Tu guía real del oeste de Puerto Rico. Negocios, cultura, música y turismo.
           </p>
