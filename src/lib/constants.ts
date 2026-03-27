@@ -25,3 +25,23 @@ export const BOT_PHONE = "787-417-7711";
 export const BOT_WHATSAPP_URL = "https://wa.me/17874177711";
 export const CONTACT_EMAIL = "angel@angelanderson.com";
 export const CONTACT_WHATSAPP = "https://wa.me/17872225803";
+
+// Anunciantes fundadores de la Revista Pal' Oeste 2025 — Edición No. 1
+// Este badge es EXCLUSIVO y PERMANENTE. Nunca se otorga a nuevos sponsors.
+export const FOUNDER_SLUGS = [
+  "marina-puerto-real",
+  "antares-caribbean-cuisine",
+  "concierge-308",
+  "scout-boats-puerto-rico",
+  "la-cajita-bento",
+  "puesta-de-sol-restaurant",
+  "o-positivo-cafe",
+  "todo-por-un-cafe",
+  "dfantasy-salon",
+  "regss-reel-e-good-sea-service",
+  "farmacia-encarnacion",
+  "performance-auto-parts",
+  "rg-generator-service",
+  "finca-monte-de-sol",
+  "hotel-perichis",
+];

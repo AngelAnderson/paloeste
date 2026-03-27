@@ -49,6 +49,9 @@ function Header() {
           <Link href="/eventos" className="hover:text-zinc-900 transition-colors">
             Eventos
           </Link>
+          <Link href="/sponsors" className="hover:text-zinc-900 transition-colors">
+            Sponsors
+          </Link>
           <Link href="/revista" className="hover:text-zinc-900 transition-colors">
             Tienda
           </Link>

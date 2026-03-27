@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { getPlaceBySlug, getAllSlugs } from "@/lib/supabase";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { BOT_PHONE, BOT_WHATSAPP_URL, SITE_URL } from "@/lib/constants";
+import { BOT_PHONE, BOT_WHATSAPP_URL, SITE_URL, FOUNDER_SLUGS } from "@/lib/constants";
 
 export const revalidate = 3600;
 
@@ -72,6 +72,7 @@ export default async function BusinessPage({
   if (!place) notFound();
 
   const isSponsor = place.is_featured || place.plan !== "free";
+  const isFounder = FOUNDER_SLUGS.includes(place.slug);
 
   return (
     <>
@@ -94,8 +95,13 @@ export default async function BusinessPage({
             <Badge className="bg-zinc-100 text-zinc-700 border border-zinc-200 uppercase text-xs">
               {place.category}
             </Badge>
-            {isSponsor && (
+            {isFounder && (
               <Badge className="bg-amber-500 text-black font-bold">
+                🏅 Anunciante Fundador — Revista 2025
+              </Badge>
+            )}
+            {!isFounder && isSponsor && (
+              <Badge className="bg-red-600 text-white font-bold">
                 ⭐ Sponsor
               </Badge>
             )}
@@ -206,8 +212,32 @@ export default async function BusinessPage({
           </div>
         )}
 
+        {/* Founder QR Code */}
+        {(isFounder || isSponsor) && (
+          <section className="bg-amber-50 border border-amber-200 rounded-xl p-5 space-y-3">
+            <h2 className="text-sm font-bold text-amber-700 uppercase tracking-wider">
+              📎 Material para tu negocio
+            </h2>
+            <p className="text-sm text-zinc-600">
+              Descarga tu QR code para poner en tu local. Tus clientes escanean y llegan directo a tu perfil.
+            </p>
+            <Link
+              href={`/negocio/${place.slug}/qr`}
+              target="_blank"
+              className="inline-block bg-amber-500 hover:bg-amber-600 text-black font-bold px-5 py-2 rounded-lg transition-colors text-sm"
+            >
+              Descargar QR Code →
+            </Link>
+          </section>
+        )}
+
         {/* Bot CTA */}
         <section className="bg-zinc-50 border border-zinc-200 rounded-xl p-5 text-center space-y-3">
+          {(isFounder || isSponsor) && (
+            <Badge className="bg-green-50 text-green-700 border-green-200 text-xs">
+              ✓ Recomendado por Bot *{BOT_PHONE}
+            </Badge>
+          )}
           <p className="text-zinc-500 text-sm">
             También puedes preguntar por este negocio por WhatsApp:
           </p>

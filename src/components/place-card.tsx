@@ -2,11 +2,12 @@ import Link from "next/link";
 import { Place } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { BOT_PHONE } from "@/lib/constants";
+import { FOUNDER_SLUGS } from "@/lib/constants";
 
 export function PlaceCard({ place }: { place: Place }) {
   const isOpen = place.status === "open";
   const isSponsor = place.is_featured || place.plan !== "free";
+  const isFounder = FOUNDER_SLUGS.includes(place.slug);
 
   return (
     <Link href={`/negocio/${place.slug}`}>
@@ -18,24 +19,29 @@ export function PlaceCard({ place }: { place: Place }) {
               alt={place.name}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
             />
-            {isSponsor && (
-              <Badge className="absolute top-2 right-2 bg-amber-500 text-black font-bold">
-                Sponsor
+            {isFounder && (
+              <Badge className="absolute top-2 right-2 bg-amber-500 text-black font-bold text-[10px]">
+                🏅 Fundador
+              </Badge>
+            )}
+            {!isFounder && isSponsor && (
+              <Badge className="absolute top-2 right-2 bg-red-600 text-white font-bold text-[10px]">
+                ⭐ Sponsor
               </Badge>
             )}
           </div>
         )}
         <CardContent className="p-4 space-y-2">
           <div className="flex items-start justify-between gap-2">
-            <h3 className="font-bold text-lg text-zinc-900 group-hover:text-red-400 transition-colors line-clamp-1">
+            <h3 className="font-bold text-lg text-zinc-900 group-hover:text-red-600 transition-colors line-clamp-1">
               {place.name}
             </h3>
             {isOpen ? (
-              <Badge variant="outline" className="text-green-400 border-green-700 shrink-0 text-xs">
+              <Badge variant="outline" className="text-green-600 border-green-300 shrink-0 text-xs">
                 Abierto
               </Badge>
             ) : (
-              <Badge variant="outline" className="text-red-400 border-red-700 shrink-0 text-xs">
+              <Badge variant="outline" className="text-red-600 border-red-300 shrink-0 text-xs">
                 Cerrado
               </Badge>
             )}
@@ -56,7 +62,7 @@ export function PlaceCard({ place }: { place: Place }) {
           </div>
 
           {place.phone && (
-            <div className="text-sm text-red-400 font-medium">
+            <div className="text-sm text-red-600 font-medium">
               📞 {place.phone}
             </div>
           )}
@@ -67,10 +73,12 @@ export function PlaceCard({ place }: { place: Place }) {
 }
 
 export function PlaceCardCompact({ place }: { place: Place }) {
+  const isFounder = FOUNDER_SLUGS.includes(place.slug);
+
   return (
     <Link
       href={`/negocio/${place.slug}`}
-      className="flex items-center gap-3 p-3 rounded-lg bg-blue-950/50 border border-blue-800/30 hover:border-red-300 transition-colors group"
+      className="flex items-center gap-3 p-3 rounded-lg bg-white border border-zinc-200 hover:border-red-300 transition-colors group shadow-sm"
     >
       {place.hero_image_url && (
         <img
@@ -80,18 +88,22 @@ export function PlaceCardCompact({ place }: { place: Place }) {
         />
       )}
       <div className="flex-1 min-w-0">
-        <h4 className="font-semibold text-zinc-900 text-sm group-hover:text-red-400 transition-colors truncate">
+        <h4 className="font-semibold text-zinc-900 text-sm group-hover:text-red-600 transition-colors truncate">
           {place.name}
         </h4>
         <p className="text-xs text-zinc-400 truncate">
           {place.category} · {place.address || "Cabo Rojo"}
         </p>
       </div>
-      {place.is_featured && (
-        <Badge className="bg-amber-500/20 text-amber-400 text-[10px] shrink-0">
+      {isFounder ? (
+        <Badge className="bg-amber-100 text-amber-700 text-[10px] shrink-0">
+          🏅 Fundador
+        </Badge>
+      ) : place.is_featured ? (
+        <Badge className="bg-red-50 text-red-600 text-[10px] shrink-0">
           ⭐
         </Badge>
-      )}
+      ) : null}
     </Link>
   );
 }
