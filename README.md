@@ -1,36 +1,45 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# PalOeste.com
 
-## Getting Started
+**The digital magazine and business directory for western Puerto Rico.**
 
-First, run the development server:
+Find local businesses, discover events, and support your community — all in one place. Built and run by one person, powered by AI.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## What's Included
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- **162+ local businesses** across 11 categories (restaurants, services, health, retail, and more)
+- **WhatsApp bot** — text [\*787-417-7711](https://wa.me/17874177711) and get instant business recommendations
+- **Digital magazine** with local stories, cultural routes, and a musicians directory
+- **Events calendar** — what's happening this week in the west
+- **Physical + digital editions** distributed across Cabo Rojo and surrounding towns
+- **15 active sponsors** supporting local journalism and discovery
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## For Business Owners
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Get your business in front of thousands of locals and visitors.
 
-## Learn More
+| Tier | Price | What You Get |
+|------|-------|-------------|
+| Free | $0 | Basic listing in the directory and bot |
+| Basico | $299/yr | Enhanced profile + priority in bot results |
+| Pro | $699/yr | Featured placement + magazine content + analytics |
+| Enterprise | $1,200/yr | Full partnership — magazine, bot, social, events |
 
-To learn more about Next.js, take a look at the following resources:
+**Ready to get listed?** Message us on WhatsApp: [wa.me/17874177711](https://wa.me/17874177711)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## For Entrepreneurs
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Want a system like this for YOUR town? The entire platform — directory, magazine, WhatsApp bot, sponsor tiers — was built and deployed by one person using AI.
 
-## Deploy on Vercel
+If you're interested in licensing or building something similar, reach out: [wa.me/17874177711](https://wa.me/17874177711)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Live
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+**[paloeste.com](https://paloeste.com)**
+
+## Tech Stack
+
+Next.js 16 / Supabase / Stripe / Shadcn/ui / Vercel / Twilio WhatsApp API
+
+## Built By
+
+[Angel Anderson](https://github.com/angelfanderson) — Cabo Rojo, Puerto Rico
