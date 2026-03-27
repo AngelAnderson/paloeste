@@ -24,13 +24,13 @@ export function SearchInput({ size = "default" }: { size?: "default" | "large" }
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         placeholder="¿Qué buscas? — plomero, restaurante, playa..."
-        className={`bg-zinc-900 border-zinc-700 text-zinc-100 placeholder:text-zinc-500 focus-visible:ring-orange-500 ${
+        className={`bg-blue-950/50 border-blue-800/30 text-white placeholder:text-blue-300/40 focus-visible:ring-red-500 ${
           isLarge ? "h-14 text-lg px-5" : "h-10"
         }`}
       />
       <Button
         type="submit"
-        className={`bg-orange-500 hover:bg-orange-600 text-white font-bold shrink-0 ${
+        className={`bg-red-600 hover:bg-red-700 text-white font-bold shrink-0 ${
           isLarge ? "h-14 px-8 text-lg" : "h-10"
         }`}
       >

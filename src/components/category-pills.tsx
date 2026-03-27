@@ -10,8 +10,8 @@ export function CategoryPills({ active }: { active?: string }) {
         href="/directorio"
         className={`shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-colors ${
           !active
-            ? "bg-orange-500 text-white"
-            : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700"
+            ? "bg-red-600 text-white"
+            : "bg-blue-950/50 text-blue-200/60 hover:bg-blue-900/50"
         }`}
       >
         Todos
@@ -22,8 +22,8 @@ export function CategoryPills({ active }: { active?: string }) {
           href={`/directorio/${cat.id.toLowerCase()}`}
           className={`shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-colors flex items-center gap-1.5 ${
             active?.toUpperCase() === cat.id
-              ? "bg-orange-500 text-white"
-              : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700"
+              ? "bg-red-600 text-white"
+              : "bg-blue-950/50 text-blue-200/60 hover:bg-blue-900/50"
           }`}
         >
           <span>{cat.icon}</span>

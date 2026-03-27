@@ -10,7 +10,7 @@ export function PlaceCard({ place }: { place: Place }) {
 
   return (
     <Link href={`/negocio/${place.slug}`}>
-      <Card className="group overflow-hidden hover:shadow-lg transition-all duration-200 border-zinc-800 bg-zinc-900">
+      <Card className="group overflow-hidden hover:shadow-lg transition-all duration-200 border-blue-800/30 bg-blue-950/50">
         {place.hero_image_url && (
           <div className="relative h-40 overflow-hidden">
             <img
@@ -27,7 +27,7 @@ export function PlaceCard({ place }: { place: Place }) {
         )}
         <CardContent className="p-4 space-y-2">
           <div className="flex items-start justify-between gap-2">
-            <h3 className="font-bold text-lg text-zinc-100 group-hover:text-orange-400 transition-colors line-clamp-1">
+            <h3 className="font-bold text-lg text-white group-hover:text-red-400 transition-colors line-clamp-1">
               {place.name}
             </h3>
             {isOpen ? (
@@ -41,11 +41,11 @@ export function PlaceCard({ place }: { place: Place }) {
             )}
           </div>
 
-          <p className="text-sm text-zinc-400 line-clamp-2">
+          <p className="text-sm text-blue-200/60 line-clamp-2">
             {place.one_liner || place.description}
           </p>
 
-          <div className="flex items-center gap-3 text-xs text-zinc-500">
+          <div className="flex items-center gap-3 text-xs text-blue-300/50">
             <span className="uppercase font-medium">{place.category}</span>
             {place.address && (
               <>
@@ -56,7 +56,7 @@ export function PlaceCard({ place }: { place: Place }) {
           </div>
 
           {place.phone && (
-            <div className="text-sm text-orange-400 font-medium">
+            <div className="text-sm text-red-400 font-medium">
               📞 {place.phone}
             </div>
           )}
@@ -70,7 +70,7 @@ export function PlaceCardCompact({ place }: { place: Place }) {
   return (
     <Link
       href={`/negocio/${place.slug}`}
-      className="flex items-center gap-3 p-3 rounded-lg bg-zinc-900 border border-zinc-800 hover:border-orange-600/50 transition-colors group"
+      className="flex items-center gap-3 p-3 rounded-lg bg-blue-950/50 border border-blue-800/30 hover:border-red-600/50 transition-colors group"
     >
       {place.hero_image_url && (
         <img
@@ -80,10 +80,10 @@ export function PlaceCardCompact({ place }: { place: Place }) {
         />
       )}
       <div className="flex-1 min-w-0">
-        <h4 className="font-semibold text-zinc-100 text-sm group-hover:text-orange-400 transition-colors truncate">
+        <h4 className="font-semibold text-white text-sm group-hover:text-red-400 transition-colors truncate">
           {place.name}
         </h4>
-        <p className="text-xs text-zinc-500 truncate">
+        <p className="text-xs text-blue-300/50 truncate">
           {place.category} · {place.address || "Cabo Rojo"}
         </p>
       </div>
