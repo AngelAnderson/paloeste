@@ -5,9 +5,9 @@ import { CategoryPills } from "@/components/category-pills";
 import { PlaceCard } from "@/components/place-card";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { getFeaturedPlaces, getPlaces, getUpcomingEvents, supabase } from "@/lib/supabase";
-import { BOT_PHONE, BOT_WHATSAPP_URL, FOUNDER_SLUGS } from "@/lib/constants";
-import type { Event, Place } from "@/lib/types";
+import { getFeaturedPlaces, getPlaces, getUpcomingEvents } from "@/lib/supabase";
+import { BOT_PHONE, BOT_WHATSAPP_URL } from "@/lib/constants";
+import type { Event } from "@/lib/types";
 
 export const revalidate = 3600;
 
@@ -30,27 +30,10 @@ export default async function HomePage() {
   let featured: Awaited<ReturnType<typeof getFeaturedPlaces>> = [];
   let restaurants: Awaited<ReturnType<typeof getPlaces>> = [];
   let events: Event[] = [];
-  let spotlightFounders: Place[] = [];
   try {
     featured = await getFeaturedPlaces();
     restaurants = (await getPlaces("FOOD")).slice(0, 6);
     events = (await getUpcomingEvents()).slice(0, 3);
-
-    // Spotlight: rotate 3 founders based on day of year
-    const { data: allFounders } = await supabase
-      .from("places")
-      .select("*")
-      .in("slug", FOUNDER_SLUGS)
-      .eq("visibility", "published");
-    if (allFounders && allFounders.length > 0) {
-      const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) / 86400000);
-      const start = (dayOfYear * 3) % allFounders.length;
-      spotlightFounders = [
-        allFounders[start % allFounders.length],
-        allFounders[(start + 1) % allFounders.length],
-        allFounders[(start + 2) % allFounders.length],
-      ] as Place[];
-    }
   } catch {
     // Empty state if Supabase not configured
   }
@@ -105,23 +88,6 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
-
-      {/* Sponsor Spotlight — Rotating founders */}
-      {spotlightFounders.length > 0 && (
-        <section className="max-w-6xl mx-auto px-4 space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold text-zinc-900">🏅 Sponsor Spotlight</h2>
-            <Link href="/sponsors" className="text-sm text-red-600 hover:text-red-700">
-              Ver todos los fundadores →
-            </Link>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {spotlightFounders.map((place) => (
-              <PlaceCard key={place.id} place={place} />
-            ))}
-          </div>
-        </section>
-      )}
 
       {/* Categories */}
       <section className="max-w-6xl mx-auto px-4 space-y-4">

@@ -1,18 +1,31 @@
 import { Metadata } from "next";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
-import { PlaceCard } from "@/components/place-card";
-import { FOUNDER_SLUGS, BOT_PHONE, CONTACT_WHATSAPP } from "@/lib/constants";
-import { supabase } from "@/lib/supabase";
-import type { Place } from "@/lib/types";
-
-export const revalidate = 3600;
+import { BOT_PHONE, CONTACT_WHATSAPP } from "@/lib/constants";
 
 export const metadata: Metadata = {
   title: "Nuestros Sponsors — Anunciantes Fundadores",
   description:
     "Los 25 negocios que confiaron en Pal Oeste desde la primera edición. Anunciantes fundadores de la Revista 2025.",
 };
+
+const FOUNDERS = [
+  { name: "Marina Puerto Real", location: "Cabo Rojo", phone: "787-827-6300", type: "Marina · Náutica", presenting: true },
+  { name: "Antares Caribbean Cuisine", location: "Marina Puerto Real, Cabo Rojo", phone: "", type: "Restaurante" },
+  { name: "Concierge 308", location: "Cabo Rojo", phone: "787-513-2783", type: "Bienes Raíces" },
+  { name: "Scout Boats", location: "PR-100, Boquerón", phone: "787-725-5946", type: "Botes" },
+  { name: "La Cajita Bento", location: "Lighthouse Plaza, Cabo Rojo", phone: "939-400-0026", type: "Restaurante" },
+  { name: "Puesta de Sol Restaurant", location: "Joyuda, Cabo Rojo", phone: "787-254-5756", type: "Restaurante" },
+  { name: "O Positivo Café", location: "San Sebastián", phone: "787-589-7370", type: "Café" },
+  { name: "Todo Por Un Café", location: "Quebradillas", phone: "787-895-7921", type: "Café" },
+  { name: "D'Fantasy Salon", location: "Cabo Rojo", phone: "787-851-6503", type: "Salón de Belleza" },
+  { name: "REGSS – Reel E Good Sea Service", location: "Marina Puerto Real", phone: "787-244-3355", type: "Servicios Marinos" },
+  { name: "Farmacia Encarnación", location: "Cabo Rojo", phone: "787-851-1250", type: "Farmacia" },
+  { name: "Performance Auto Parts", location: "Carr 308, Cabo Rojo", phone: "787-851-4770", type: "Auto Partes" },
+  { name: "RG Generator Service", location: "Cabo Rojo", phone: "787-310-1730", type: "Generadores" },
+  { name: "Finca Monte de Sol", location: "San Sebastián", phone: "939-248-6337", type: "Agroturismo" },
+  { name: "Hotel Perichi's", location: "Joyuda, Cabo Rojo", phone: "787-313-0038", type: "Hotel" },
+];
 
 const BENEFITS = [
   { icon: "🌐", title: "Listing destacado en paloeste.com", desc: "Tu negocio con foto, contacto, y badge exclusivo" },
@@ -23,16 +36,7 @@ const BENEFITS = [
   { icon: "📕", title: "Presencia en la Revista", desc: "Edición impresa y digital distribuida en el oeste" },
 ];
 
-export default async function SponsorsPage() {
-  const { data } = await supabase
-    .from("places")
-    .select("*")
-    .in("slug", FOUNDER_SLUGS)
-    .eq("visibility", "published")
-    .order("name");
-
-  const founders = (data as Place[]) || [];
-
+export default function SponsorsPage() {
   return (
     <div className="max-w-6xl mx-auto px-4 py-12 space-y-16">
       {/* Header */}
@@ -44,7 +48,7 @@ export default async function SponsorsPage() {
           Los negocios que creyeron primero
         </h1>
         <p className="text-lg text-zinc-500">
-          Estos {founders.length} negocios confiaron en Pal&apos; Oeste desde la primera edición
+          Estos 15 negocios confiaron en Pal&apos; Oeste desde la primera edición
           de la revista. Su badge de Anunciante Fundador es exclusivo y permanente — nunca
           se otorga a nuevos sponsors.
         </p>
@@ -53,7 +57,7 @@ export default async function SponsorsPage() {
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto">
         {[
-          { num: "25", label: "Fundadores" },
+          { num: "15", label: "Fundadores" },
           { num: "162+", label: "Negocios en directorio" },
           { num: "15K+", label: "Seguidores FB" },
           { num: "2,400+", label: "Suscriptores newsletter" },
@@ -69,8 +73,27 @@ export default async function SponsorsPage() {
       <section className="space-y-4">
         <h2 className="text-2xl font-bold text-zinc-900">🏅 Anunciantes Fundadores</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {founders.map((place) => (
-            <PlaceCard key={place.id} place={place} />
+          {FOUNDERS.map((f) => (
+            <div key={f.name} className="p-5 rounded-xl bg-white border border-zinc-200 shadow-sm space-y-3">
+              <div className="flex items-center gap-2">
+                <Badge className="bg-amber-100 text-amber-700 border-amber-300 text-[10px]">
+                  🏅 Fundador
+                </Badge>
+                {f.presenting && (
+                  <Badge className="bg-red-600 text-white text-[10px]">
+                    🏆 Presenting Sponsor
+                  </Badge>
+                )}
+              </div>
+              <h3 className="text-lg font-bold text-zinc-900">{f.name}</h3>
+              <p className="text-sm text-zinc-500">{f.type}</p>
+              <p className="text-xs text-zinc-400">📍 {f.location}</p>
+              {f.phone && (
+                <a href={`tel:${f.phone}`} className="text-sm text-red-600 font-medium block">
+                  📞 {f.phone}
+                </a>
+              )}
+            </div>
           ))}
         </div>
       </section>
