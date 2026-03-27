@@ -17,8 +17,8 @@ const products = [
     badge: "🆕 Nueva Edición",
     badgeColor: "bg-red-600 text-white",
     features: ["15 negocios destacados", "10 músicos y grupos", "Perfiles culturales", "Guía de destinos turísticos"],
-    stripePdfUrl: "#", // Angel: agregar Stripe payment link
-    amazonUrl: "#", // Angel: agregar Amazon KDP link
+    stripePdfUrl: "https://buy.stripe.com/6oUbJ01Fy2xV5YJ48j0co0n",
+    amazonUrl: "#", // Angel: agregar Amazon KDP link cuando esté listo
   },
   {
     name: "Descubre Cabo Rojo",
@@ -28,7 +28,7 @@ const products = [
     badge: "Edición Digital",
     badgeColor: "bg-blue-600 text-white",
     features: ["Guía completa de Cabo Rojo", "Playas y restaurantes", "Historia y cultura", "Mapa de referencia"],
-    stripePdfUrl: "#", // Angel: agregar Stripe payment link
+    stripePdfUrl: "https://buy.stripe.com/5kQ9ASckcgoL1It5cn0co0o",
     amazonUrl: null,
   },
   {
@@ -39,7 +39,7 @@ const products = [
     badge: "💰 Ahorra $2",
     badgeColor: "bg-green-600 text-white",
     features: ["Revista Pal' Oeste 2025 (58 págs)", "Descubre Cabo Rojo", "Descarga inmediata", "2 PDFs por el precio de 1.5"],
-    stripePdfUrl: "#", // Angel: agregar Stripe payment link
+    stripePdfUrl: "https://buy.stripe.com/bJecN483WegD5YJfR10co0p",
     amazonUrl: null,
   },
 ];
