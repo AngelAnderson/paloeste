@@ -26,14 +26,14 @@ export default function MusicosPage() {
   return (
     <div className="max-w-4xl mx-auto px-4 py-12 space-y-8">
       <div className="text-center space-y-3">
-        <h1 className="text-4xl font-black text-zinc-900">
+        <h1 className="text-4xl font-display font-black text-stone-900">
           🎵 Músicos del Oeste de Puerto Rico
         </h1>
-        <p className="text-lg text-zinc-500 max-w-2xl mx-auto">
+        <p className="text-lg text-stone-500 max-w-2xl mx-auto">
           Los artistas y grupos que mantienen viva la tradición musical del oeste.
           Bomba, plena, salsa, merengue — aquí los encuentras.
         </p>
-        <p className="text-sm text-zinc-400 italic">
+        <p className="text-sm text-stone-400 italic">
           Publicado en la Revista Pal&apos; Oeste, Edición No. 1 (Enero 2026)
         </p>
       </div>
@@ -42,14 +42,14 @@ export default function MusicosPage() {
         {MUSICIANS.map((m) => (
           <div
             key={m.name}
-            className="flex items-center gap-4 p-5 rounded-xl bg-white border border-zinc-200 shadow-sm hover:shadow-md transition-shadow"
+            className="flex items-center gap-4 p-5 rounded-xl bg-[#FAFAF7] border border-po-border shadow-sm hover:shadow-md transition-shadow"
           >
             <div className="w-14 h-14 rounded-full bg-red-50 flex items-center justify-center text-2xl shrink-0">
               🎶
             </div>
             <div className="flex-1 min-w-0">
-              <h2 className="font-bold text-zinc-900 text-lg">{m.name}</h2>
-              <p className="text-sm text-zinc-500">{m.genre}</p>
+              <h2 className="font-bold text-stone-900 text-lg">{m.name}</h2>
+              <p className="text-sm text-stone-500">{m.genre}</p>
             </div>
             <a
               href={`tel:${m.phone}`}
@@ -61,11 +61,11 @@ export default function MusicosPage() {
         ))}
       </div>
 
-      <div className="bg-zinc-50 border border-zinc-200 rounded-2xl p-8 text-center space-y-3">
-        <h3 className="text-xl font-bold text-zinc-900">
+      <div className="bg-po-surface border border-po-border rounded-2xl p-8 text-center space-y-3">
+        <h3 className="text-xl font-bold text-stone-900">
           ¿Eres músico del oeste de Puerto Rico?
         </h3>
-        <p className="text-zinc-500">
+        <p className="text-stone-500">
           Aparece en nuestro directorio. Contáctanos para incluir tu perfil.
         </p>
         <Link

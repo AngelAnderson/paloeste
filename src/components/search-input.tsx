@@ -24,7 +24,7 @@ export function SearchInput({ size = "default" }: { size?: "default" | "large" }
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         placeholder="¿Qué buscas? — plomero, restaurante, playa..."
-        className={`bg-white border-zinc-300 text-zinc-900 placeholder:text-zinc-400 focus-visible:ring-red-500 ${
+        className={`bg-[#FAFAF7] border-po-border text-stone-900 placeholder:text-stone-400 focus-visible:ring-red-500 ${
           isLarge ? "h-14 text-lg px-5" : "h-10"
         }`}
       />

@@ -21,7 +21,7 @@ const tiers = [
       "Visible en búsquedas",
     ],
     cta: "Ya estás incluido",
-    ctaStyle: "bg-zinc-200 text-zinc-500 cursor-default",
+    ctaStyle: "bg-po-surface text-stone-500 cursor-default",
   },
   {
     name: "Básico",
@@ -34,7 +34,7 @@ const tiers = [
       "Badge de verificado",
     ],
     cta: "Empezar",
-    ctaStyle: "bg-zinc-900 text-white hover:bg-zinc-700",
+    ctaStyle: "bg-stone-900 text-white hover:bg-stone-700",
   },
   {
     name: "Pro",
@@ -65,7 +65,7 @@ const tiers = [
       "Reporte mensual PDF",
     ],
     cta: "Contactar",
-    ctaStyle: "bg-zinc-900 text-white hover:bg-zinc-700",
+    ctaStyle: "bg-stone-900 text-white hover:bg-stone-700",
   },
 ];
 
@@ -77,11 +77,11 @@ export default function AnunciaPage() {
         <Badge className="bg-red-100 text-red-600 border-red-200">
           Para Negocios del Oeste
         </Badge>
-        <h1 className="text-4xl font-black text-zinc-900">
+        <h1 className="text-4xl font-display font-black text-stone-900">
           Haz que tu negocio sea{" "}
           <span className="text-red-600">imposible de ignorar</span>
         </h1>
-        <p className="text-lg text-zinc-500">
+        <p className="text-lg text-stone-500">
           Directorio web + bot WhatsApp *{BOT_PHONE} + Facebook + newsletter.
           Todo conectado. Un precio.
         </p>
@@ -92,7 +92,7 @@ export default function AnunciaPage() {
         {tiers.map((tier) => (
           <Card
             key={tier.name}
-            className={`relative bg-zinc-50 border border-zinc-200 ${
+            className={`relative bg-po-surface border border-po-border ${
               tier.popular ? "border-red-600 ring-1 ring-red-600" : ""
             }`}
           >
@@ -104,18 +104,18 @@ export default function AnunciaPage() {
               </div>
             )}
             <CardContent className="p-6 space-y-4">
-              <h3 className="text-xl font-bold text-zinc-900">{tier.name}</h3>
+              <h3 className="text-xl font-bold text-stone-900">{tier.name}</h3>
               <div>
-                <span className="text-3xl font-black text-zinc-900">
+                <span className="text-3xl font-black text-stone-900">
                   {tier.price}
                 </span>
-                <span className="text-zinc-500">{tier.period}</span>
+                <span className="text-stone-500">{tier.period}</span>
               </div>
               <ul className="space-y-2">
                 {tier.features.map((f) => (
                   <li
                     key={f}
-                    className="text-sm text-zinc-600 flex items-start gap-2"
+                    className="text-sm text-stone-600 flex items-start gap-2"
                   >
                     <span className="text-green-600 mt-0.5">✓</span>
                     {f}
@@ -136,19 +136,19 @@ export default function AnunciaPage() {
 
       {/* Social Proof */}
       <div className="text-center space-y-4 py-8">
-        <h2 className="text-2xl font-bold text-zinc-700">
+        <h2 className="text-2xl font-display font-bold text-stone-700">
           25+ negocios ya confían en Pal Oeste
         </h2>
-        <p className="text-zinc-500 max-w-lg mx-auto">
+        <p className="text-stone-500 max-w-lg mx-auto">
           Marina Puerto Real · La Cajita Bento · Hotel Perichi&apos;s · Finca Monte
           de Sol · O Positivo Café · y más...
         </p>
       </div>
 
       {/* Contact */}
-      <div className="bg-zinc-50 border border-zinc-200 rounded-2xl p-8 text-center space-y-4 max-w-xl mx-auto">
-        <h3 className="text-xl font-bold text-zinc-900">¿Preguntas? Hablemos.</h3>
-        <div className="space-y-2 text-zinc-600">
+      <div className="bg-po-surface border border-po-border rounded-2xl p-8 text-center space-y-4 max-w-xl mx-auto">
+        <h3 className="text-xl font-bold text-stone-900">¿Preguntas? Hablemos.</h3>
+        <div className="space-y-2 text-stone-600">
           <p>
             📱{" "}
             <Link

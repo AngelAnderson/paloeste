@@ -44,10 +44,10 @@ export default function SponsorsPage() {
         <Badge className="bg-amber-100 text-amber-700 border-amber-300 text-sm px-4 py-1">
           🏅 Edición Fundadores — Solo 25 negocios
         </Badge>
-        <h1 className="text-4xl font-black text-zinc-900">
+        <h1 className="text-4xl font-display font-black text-stone-900">
           Los negocios que creyeron primero
         </h1>
-        <p className="text-lg text-zinc-500">
+        <p className="text-lg text-stone-500">
           Estos 15 negocios confiaron en Pal&apos; Oeste desde la primera edición
           de la revista. Su badge de Anunciante Fundador es exclusivo y permanente — nunca
           se otorga a nuevos sponsors.
@@ -62,19 +62,19 @@ export default function SponsorsPage() {
           { num: "15K+", label: "Seguidores FB" },
           { num: "2,400+", label: "Suscriptores newsletter" },
         ].map((s) => (
-          <div key={s.label} className="text-center p-4 bg-zinc-50 rounded-xl border border-zinc-200">
+          <div key={s.label} className="text-center p-4 bg-po-surface rounded-xl border border-po-border">
             <div className="text-2xl font-black text-red-600">{s.num}</div>
-            <div className="text-xs text-zinc-500 mt-1">{s.label}</div>
+            <div className="text-xs text-stone-500 mt-1">{s.label}</div>
           </div>
         ))}
       </div>
 
       {/* Founders Grid */}
       <section className="space-y-4">
-        <h2 className="text-2xl font-bold text-zinc-900">🏅 Anunciantes Fundadores</h2>
+        <h2 className="text-2xl font-display font-bold text-stone-900">🏅 Anunciantes Fundadores</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {FOUNDERS.map((f) => (
-            <div key={f.name} className="p-5 rounded-xl bg-white border border-zinc-200 shadow-sm space-y-3">
+            <div key={f.name} className="p-5 rounded-xl bg-[#FAFAF7] border border-po-border shadow-sm space-y-3">
               <div className="flex items-center gap-2">
                 <Badge className="bg-amber-100 text-amber-700 border-amber-300 text-[10px]">
                   🏅 Fundador
@@ -85,9 +85,9 @@ export default function SponsorsPage() {
                   </Badge>
                 )}
               </div>
-              <h3 className="text-lg font-bold text-zinc-900">{f.name}</h3>
-              <p className="text-sm text-zinc-500">{f.type}</p>
-              <p className="text-xs text-zinc-400">📍 {f.location}</p>
+              <h3 className="text-lg font-bold text-stone-900">{f.name}</h3>
+              <p className="text-sm text-stone-500">{f.type}</p>
+              <p className="text-xs text-stone-400">📍 {f.location}</p>
               {f.phone && (
                 <a href={`tel:${f.phone}`} className="text-sm text-red-600 font-medium block">
                   📞 {f.phone}
@@ -100,16 +100,16 @@ export default function SponsorsPage() {
 
       {/* Benefits */}
       <section className="space-y-6 max-w-3xl mx-auto">
-        <h2 className="text-2xl font-bold text-zinc-900 text-center">
+        <h2 className="text-2xl font-display font-bold text-stone-900 text-center">
           Lo que reciben nuestros sponsors
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {BENEFITS.map((b) => (
-            <div key={b.title} className="flex gap-3 p-4 bg-white border border-zinc-200 rounded-xl shadow-sm">
+            <div key={b.title} className="flex gap-3 p-4 bg-[#FAFAF7] border border-po-border rounded-xl shadow-sm">
               <span className="text-2xl shrink-0">{b.icon}</span>
               <div>
-                <h3 className="font-bold text-zinc-900 text-sm">{b.title}</h3>
-                <p className="text-xs text-zinc-500 mt-0.5">{b.desc}</p>
+                <h3 className="font-bold text-stone-900 text-sm">{b.title}</h3>
+                <p className="text-xs text-stone-500 mt-0.5">{b.desc}</p>
               </div>
             </div>
           ))}
@@ -121,7 +121,7 @@ export default function SponsorsPage() {
         <h2 className="text-2xl font-bold text-red-700">
           ¿Quieres ser el próximo?
         </h2>
-        <p className="text-zinc-600">
+        <p className="text-stone-600">
           Los badges de Fundador están cerrados, pero los paquetes Sponsor están abiertos.
           Directorio + bot *{BOT_PHONE} + Facebook + newsletter. Desde $299/año.
         </p>

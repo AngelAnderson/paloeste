@@ -48,10 +48,10 @@ export default async function CategoryPage({
   return (
     <div className="max-w-6xl mx-auto px-4 py-8 space-y-8">
       <div className="space-y-2">
-        <h1 className="text-3xl font-black text-zinc-900">
+        <h1 className="text-3xl font-display font-black text-stone-900">
           {cat ? `${cat.icon} ${cat.label_es}` : category}
         </h1>
-        <p className="text-zinc-500">
+        <p className="text-stone-500">
           {places.length} resultados en el oeste de Puerto Rico
         </p>
       </div>
@@ -65,7 +65,7 @@ export default async function CategoryPage({
       </div>
 
       {places.length === 0 && (
-        <div className="text-center py-16 text-zinc-500">
+        <div className="text-center py-16 text-stone-500">
           <p>No hay negocios en esta categoría todavía.</p>
         </div>
       )}

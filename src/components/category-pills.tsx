@@ -11,7 +11,7 @@ export function CategoryPills({ active }: { active?: string }) {
         className={`shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-colors ${
           !active
             ? "bg-red-600 text-white"
-            : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200"
+            : "bg-po-surface text-stone-600 hover:bg-po-border"
         }`}
       >
         Todos
@@ -23,7 +23,7 @@ export function CategoryPills({ active }: { active?: string }) {
           className={`shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-colors flex items-center gap-1.5 ${
             active?.toUpperCase() === cat.id
               ? "bg-red-600 text-white"
-              : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200"
+              : "bg-po-surface text-stone-600 hover:bg-po-border"
           }`}
         >
           <span>{cat.icon}</span>

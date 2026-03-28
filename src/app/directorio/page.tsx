@@ -24,8 +24,8 @@ export default async function DirectorioPage() {
   return (
     <div className="max-w-6xl mx-auto px-4 py-8 space-y-8">
       <div className="space-y-2">
-        <h1 className="text-3xl font-black text-zinc-900">Directorio del Oeste</h1>
-        <p className="text-zinc-500">
+        <h1 className="text-3xl font-display font-black text-stone-900">Directorio del Oeste</h1>
+        <p className="text-stone-500">
           {places.length} negocios y servicios en el oeste de Puerto Rico
         </p>
       </div>
@@ -40,7 +40,7 @@ export default async function DirectorioPage() {
       </div>
 
       {places.length === 0 && (
-        <div className="text-center py-16 text-zinc-500">
+        <div className="text-center py-16 text-stone-500">
           <p className="text-lg">No hay negocios disponibles aún.</p>
           <p className="text-sm mt-2">
             Configura las variables de Supabase para ver los datos.

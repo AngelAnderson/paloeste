@@ -41,7 +41,7 @@ const CATEGORY_COLORS: Record<string, { bg: string; text: string; border: string
   Cultura: { bg: "bg-purple-50", text: "text-purple-600", border: "border-purple-200" },
   Comunidad: { bg: "bg-green-50", text: "text-green-600", border: "border-green-200" },
   Música: { bg: "bg-amber-50", text: "text-amber-600", border: "border-amber-200" },
-  default: { bg: "bg-zinc-50", text: "text-zinc-600", border: "border-zinc-200" },
+  default: { bg: "bg-po-surface", text: "text-stone-600", border: "border-po-border" },
 };
 
 function getCatColor(cat: string) {
@@ -52,14 +52,14 @@ function EventCard({ event, isPast }: { event: Event; isPast: boolean }) {
   const colors = getCatColor(event.category);
 
   return (
-    <div className={`flex gap-4 p-4 rounded-xl bg-white border border-zinc-200 shadow-sm ${isPast ? "opacity-60" : ""}`}>
+    <div className={`flex gap-4 p-4 rounded-xl bg-[#FAFAF7] border border-po-border shadow-sm ${isPast ? "opacity-60" : ""}`}>
       {/* Date block */}
       <div className="shrink-0 w-16 text-center">
         <div className="bg-red-600 text-white text-[10px] font-bold uppercase rounded-t-lg py-0.5">
           {getMonthShort(event.start_time)}
         </div>
-        <div className="bg-zinc-50 border border-t-0 border-zinc-200 rounded-b-lg py-1.5">
-          <span className="text-2xl font-black text-zinc-900">{getDayNum(event.start_time)}</span>
+        <div className="bg-po-surface border border-t-0 border-po-border rounded-b-lg py-1.5">
+          <span className="text-2xl font-black text-stone-900">{getDayNum(event.start_time)}</span>
         </div>
       </div>
 
@@ -80,14 +80,14 @@ function EventCard({ event, isPast }: { event: Event; isPast: boolean }) {
             </Badge>
           )}
           {isPast && (
-            <Badge variant="outline" className="text-zinc-400 border-zinc-300 text-[10px]">
+            <Badge variant="outline" className="text-stone-400 border-po-border text-[10px]">
               Pasado
             </Badge>
           )}
         </div>
-        <h3 className="font-bold text-zinc-900 leading-tight">{event.title}</h3>
-        <p className="text-sm text-zinc-500 line-clamp-2">{event.description}</p>
-        <div className="flex flex-wrap gap-3 text-xs text-zinc-400">
+        <h3 className="font-bold text-stone-900 leading-tight">{event.title}</h3>
+        <p className="text-sm text-stone-500 line-clamp-2">{event.description}</p>
+        <div className="flex flex-wrap gap-3 text-xs text-stone-400">
           <span>🕐 {formatTime(event.start_time)}</span>
           <span>📍 {event.location_name}</span>
         </div>
@@ -140,10 +140,10 @@ export default async function EventosPage() {
     <div className="max-w-4xl mx-auto px-4 py-12 space-y-12">
       {/* Header */}
       <div className="text-center space-y-3">
-        <h1 className="text-4xl font-black text-zinc-900">
+        <h1 className="text-4xl font-display font-black text-stone-900">
           📅 Eventos en el Oeste
         </h1>
-        <p className="text-lg text-zinc-500 max-w-2xl mx-auto">
+        <p className="text-lg text-stone-500 max-w-2xl mx-auto">
           {allEvents.length} eventos registrados · {upcoming.length} próximos · {categories.length} categorías
         </p>
       </div>
@@ -164,10 +164,10 @@ export default async function EventosPage() {
       {/* Upcoming */}
       {upcoming.length > 0 ? (
         <section className="space-y-6">
-          <h2 className="text-2xl font-bold text-zinc-900">Próximos Eventos</h2>
+          <h2 className="text-2xl font-display font-bold text-stone-900">Próximos Eventos</h2>
           {Object.entries(upcomingByMonth).map(([month, events]) => (
             <div key={month} className="space-y-3">
-              <h3 className="text-sm font-bold text-red-600 uppercase tracking-wider border-b border-zinc-200 pb-1">
+              <h3 className="text-sm font-bold text-red-600 uppercase tracking-wider border-b border-po-border pb-1">
                 {month}
               </h3>
               <div className="space-y-3">
@@ -179,19 +179,19 @@ export default async function EventosPage() {
           ))}
         </section>
       ) : (
-        <div className="text-center py-8 bg-zinc-50 border border-zinc-200 rounded-xl p-6">
-          <p className="text-lg font-medium text-zinc-700">No hay eventos próximos registrados.</p>
-          <p className="text-sm text-zinc-500 mt-1">¿Tienes un evento? Envíanoslo para publicarlo.</p>
+        <div className="text-center py-8 bg-po-surface border border-po-border rounded-xl p-6">
+          <p className="text-lg font-medium text-stone-700">No hay eventos próximos registrados.</p>
+          <p className="text-sm text-stone-500 mt-1">¿Tienes un evento? Envíanoslo para publicarlo.</p>
         </div>
       )}
 
       {/* Past events */}
       {Object.keys(pastByMonth).length > 0 && (
         <section className="space-y-6">
-          <h2 className="text-2xl font-bold text-zinc-900">Eventos Pasados</h2>
+          <h2 className="text-2xl font-display font-bold text-stone-900">Eventos Pasados</h2>
           {Object.entries(pastByMonth).map(([month, events]) => (
             <div key={month} className="space-y-3">
-              <h3 className="text-sm font-bold text-zinc-400 uppercase tracking-wider border-b border-zinc-100 pb-1">
+              <h3 className="text-sm font-bold text-stone-400 uppercase tracking-wider border-b border-po-border pb-1">
                 {month}
               </h3>
               <div className="space-y-2">
@@ -205,11 +205,11 @@ export default async function EventosPage() {
       )}
 
       {/* Submit Event */}
-      <div className="bg-zinc-50 border border-zinc-200 rounded-2xl p-8 text-center space-y-3">
-        <h3 className="text-xl font-bold text-zinc-900">
+      <div className="bg-po-surface border border-po-border rounded-2xl p-8 text-center space-y-3">
+        <h3 className="text-xl font-bold text-stone-900">
           ¿Tienes un evento en el oeste?
         </h3>
-        <p className="text-zinc-500">
+        <p className="text-stone-500">
           Publícalo gratis en nuestro calendario.
         </p>
         <Link

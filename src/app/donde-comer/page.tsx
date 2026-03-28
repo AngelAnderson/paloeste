@@ -40,10 +40,10 @@ export default async function DondeComerPage() {
   return (
     <div className="max-w-6xl mx-auto px-4 py-12 space-y-12">
       <div className="space-y-3">
-        <h1 className="text-4xl font-black text-zinc-900">
+        <h1 className="text-4xl font-display font-black text-stone-900">
           🍽️ Dónde Comer en el Oeste
         </h1>
-        <p className="text-lg text-zinc-500">
+        <p className="text-lg text-stone-500">
           {restaurants.length} restaurantes, cafés y chinchorros en el oeste de Puerto Rico.
         </p>
       </div>
@@ -53,10 +53,10 @@ export default async function DondeComerPage() {
         {ZONES.map((zone) => (
           <div
             key={zone.name}
-            className="p-5 rounded-xl bg-white border border-zinc-200 shadow-sm space-y-2"
+            className="p-5 rounded-xl bg-[#FAFAF7] border border-po-border shadow-sm space-y-2"
           >
-            <h3 className="font-bold text-zinc-900">{zone.name}</h3>
-            <p className="text-sm text-zinc-500">{zone.description}</p>
+            <h3 className="font-bold text-stone-900">{zone.name}</h3>
+            <p className="text-sm text-stone-500">{zone.description}</p>
             <p className="text-xs text-red-600 font-medium">{zone.highlights}</p>
           </div>
         ))}
@@ -70,7 +70,7 @@ export default async function DondeComerPage() {
           ))}
         </div>
       ) : (
-        <div className="text-center py-16 text-zinc-500">
+        <div className="text-center py-16 text-stone-500">
           <p>No hay restaurantes disponibles aún.</p>
         </div>
       )}
