@@ -239,7 +239,7 @@ export default async function BusinessPage({
             </Badge>
           )}
           <p className="text-stone-500 text-sm">
-            También puedes preguntar por este negocio por WhatsApp:
+            Pregunta a El Veci por este negocio:
           </p>
           <Link
             href={`${BOT_WHATSAPP_URL}?text=${encodeURIComponent(`info ${place.name}`)}`}

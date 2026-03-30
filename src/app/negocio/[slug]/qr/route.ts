@@ -13,7 +13,7 @@ function generateQrSvg(url: string, size: number = 200): string {
     <text x="${(size + 40) / 2}" y="${size / 2 + 30}" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#71717a">${url}</text>
     <text x="${(size + 40) / 2}" y="${size + 55}" text-anchor="middle" font-family="system-ui, sans-serif" font-size="13" font-weight="900" fill="#dc2626">PAL' OESTE</text>
     <text x="${(size + 40) / 2}" y="${size + 72}" text-anchor="middle" font-family="system-ui, sans-serif" font-size="9" fill="#71717a">Búscanos en paloeste.com</text>
-    <text x="${(size + 40) / 2}" y="${size + 88}" text-anchor="middle" font-family="system-ui, sans-serif" font-size="9" fill="#71717a">Bot WhatsApp: *787-417-7711</text>
+    <text x="${(size + 40) / 2}" y="${size + 88}" text-anchor="middle" font-family="system-ui, sans-serif" font-size="9" fill="#71717a">El Veci *787-417-7711</text>
   </svg>`;
 }
 

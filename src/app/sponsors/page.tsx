@@ -29,7 +29,7 @@ const FOUNDERS = [
 
 const BENEFITS = [
   { icon: "🌐", title: "Listing destacado en paloeste.com", desc: "Tu negocio con foto, contacto, y badge exclusivo" },
-  { icon: "🤖", title: "Recomendado por Bot *7711", desc: "El asistente AI te menciona cuando la gente busca" },
+  { icon: "🤖", title: "Recomendado por El Veci *7711", desc: "El Vecino Digital te menciona cuando la gente busca" },
   { icon: "📱", title: "Mención en Facebook", desc: "Posts de Orgullo Local en CaboRojo.com (15K+ seguidores)" },
   { icon: "📧", title: "Inclusión en Newsletter", desc: "2,400+ suscriptores reciben tu nombre cada semana" },
   { icon: "📊", title: "Dashboard de Analytics", desc: "Vistas, clicks, búsquedas — datos reales de tu negocio" },
@@ -123,7 +123,7 @@ export default function SponsorsPage() {
         </h2>
         <p className="text-stone-600">
           Los badges de Fundador están cerrados, pero los paquetes Sponsor están abiertos.
-          Directorio + bot *{BOT_PHONE} + Facebook + newsletter. Desde $299/año.
+          Directorio + El Veci *{BOT_PHONE} + Facebook + newsletter. Desde $299/año.
         </p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <Link

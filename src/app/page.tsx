@@ -56,9 +56,9 @@ export default async function HomePage() {
             <SearchInput size="large" />
           </div>
           <p className="text-sm text-stone-400">
-            También por WhatsApp:{" "}
+            O pregunta a{" "}
             <Link href={BOT_WHATSAPP_URL} target="_blank" className="text-red-600 hover:text-red-700 font-medium">
-              *{BOT_PHONE}
+              El Veci por WhatsApp *{BOT_PHONE}
             </Link>
           </p>
         </div>
@@ -218,17 +218,16 @@ export default async function HomePage() {
       {/* Bot CTA */}
       <section className="max-w-4xl mx-auto px-4">
         <div className="bg-po-ocean rounded-2xl p-8 md:p-12 text-center space-y-4 shadow-lg">
-          <h2 className="font-display text-3xl font-black text-white">📱 ¿Prefieres por WhatsApp?</h2>
+          <h2 className="font-display text-3xl font-black text-white">📱 El Veci te responde por WhatsApp</h2>
           <p className="text-blue-200/80 max-w-lg mx-auto">
-            Manda un mensaje a <strong className="text-white">*{BOT_PHONE}</strong> y
-            nuestro bot AI te encuentra lo que necesitas.
+            Escribe a <strong className="text-white">*{BOT_PHONE}</strong> — El Vecino Digital de Cabo Rojo te encuentra lo que necesitas.
           </p>
           <Link
             href={BOT_WHATSAPP_URL}
             target="_blank"
             className="inline-block bg-green-600 hover:bg-green-700 text-white font-bold px-8 py-3 rounded-full transition-colors"
           >
-            Abrir WhatsApp →
+            Hablar con El Veci →
           </Link>
         </div>
       </section>
@@ -240,7 +239,7 @@ export default async function HomePage() {
             ¿Tienes un negocio en el oeste?
           </h2>
           <p className="text-stone-600 max-w-lg mx-auto">
-            Aparece en nuestro directorio, en el bot *{BOT_PHONE}, en Facebook, y
+            Aparece en nuestro directorio, en El Veci *{BOT_PHONE}, en Facebook, y
             en el newsletter. Paquetes desde $299/año.
           </p>
           <Link

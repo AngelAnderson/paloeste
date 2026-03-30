@@ -107,7 +107,7 @@ function Footer() {
         <div>
           <h4 className="text-sm font-bold text-stone-900 mb-3">Búscanos</h4>
           <div className="space-y-2 text-sm text-stone-500">
-            <p>📱 Bot WhatsApp: <span className="text-red-600 font-medium">*{BOT_PHONE}</span></p>
+            <p>📱 El Veci: <span className="text-red-600 font-medium">*{BOT_PHONE}</span></p>
             <p>📧 angel@angelanderson.com</p>
             <Link href={CONTACT_WHATSAPP} target="_blank" className="block text-red-600 hover:text-red-700">
               WhatsApp Directo →

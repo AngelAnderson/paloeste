@@ -7,7 +7,7 @@ import { BOT_PHONE, CONTACT_WHATSAPP, CONTACT_EMAIL } from "@/lib/constants";
 export const metadata: Metadata = {
   title: "Anuncia tu Negocio",
   description:
-    "Aparece en el directorio, el bot *7711, Facebook y el newsletter. Paquetes desde $299/año.",
+    "Aparece en el directorio, El Veci *7711, Facebook y el newsletter. Paquetes desde $299/año.",
 };
 
 const tiers = [
@@ -30,7 +30,7 @@ const tiers = [
     features: [
       "Listing mejorado con foto",
       "Tracking de clicks y vistas",
-      "Aparece en el bot *7711",
+      "Aparece en El Veci *7711",
       "Badge de verificado",
     ],
     cta: "Empezar",
@@ -47,7 +47,7 @@ const tiers = [
       "Dashboard de analytics",
       "Mención semanal en Facebook",
       "Inclusión en newsletter",
-      "Recomendado por bot *7711",
+      "Recomendado por El Veci *7711",
     ],
     cta: "Elegir Pro",
     ctaStyle: "bg-red-600 text-white hover:bg-red-700",
@@ -82,7 +82,7 @@ export default function AnunciaPage() {
           <span className="text-red-600">imposible de ignorar</span>
         </h1>
         <p className="text-lg text-stone-500">
-          Directorio web + bot WhatsApp *{BOT_PHONE} + Facebook + newsletter.
+          Directorio web + El Veci *{BOT_PHONE} + Facebook + newsletter.
           Todo conectado. Un precio.
         </p>
       </div>
