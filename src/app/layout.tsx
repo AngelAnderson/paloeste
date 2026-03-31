@@ -122,20 +122,24 @@ function Footer() {
   );
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const { headers } = await import("next/headers");
+  const headersList = await headers();
+  const isAdmin = headersList.get("x-is-admin") === "1";
+
   return (
     <html
       lang="es"
       className={`${cabinetGrotesk.variable} ${dmSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-[#FAFAF7] text-stone-900">
-        <Header />
-        <main className="flex-1">{children}</main>
-        <Footer />
+      <body className={isAdmin ? "min-h-full" : "min-h-full flex flex-col bg-[#FAFAF7] text-stone-900"}>
+        {!isAdmin && <Header />}
+        {isAdmin ? children : <main className="flex-1">{children}</main>}
+        {!isAdmin && <Footer />}
       </body>
     </html>
   );
