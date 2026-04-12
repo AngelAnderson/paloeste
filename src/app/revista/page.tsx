@@ -2,6 +2,7 @@ import { Metadata } from "next";
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { CONTACT_EMAIL } from "@/lib/constants";
 
 export const metadata: Metadata = {
   title: "Tienda — Revistas del Oeste",
@@ -10,15 +11,15 @@ export const metadata: Metadata = {
 
 const products = [
   {
-    name: "Revista Pal' Oeste 2025",
-    description: "58 páginas dedicadas a lo mejor del oeste de Puerto Rico. Perfiles de 25 negocios locales, artistas, músicos, y destinos turísticos.",
+    name: "Revista Pal' Oeste — Enero 2026",
+    description: "58 páginas dedicadas a lo mejor del oeste de Puerto Rico. Perfiles de 25 negocios locales, artistas, músicos, y destinos turísticos. Edición No. 1.",
     pricePdf: "$9.99",
     pricePhysical: "En Amazon",
-    badge: "🆕 Nueva Edición",
+    badge: "🆕 Edición No. 1",
     badgeColor: "bg-red-600 text-white",
-    features: ["15 negocios destacados", "10 músicos y grupos", "Perfiles culturales", "Guía de destinos turísticos"],
+    features: ["15 negocios destacados", "10 músicos y grupos", "Guía de 4 días por pueblo", "Directorio de negocios del oeste"],
     stripePdfUrl: "https://buy.stripe.com/6oUbJ01Fy2xV5YJ48j0co0n",
-    amazonUrl: "#", // Angel: agregar Amazon KDP link cuando esté listo
+    amazonUrl: "#", // TODO: agregar Amazon KDP link
   },
   {
     name: "Descubre Cabo Rojo",
@@ -38,7 +39,7 @@ const products = [
     pricePhysical: null,
     badge: "💰 Ahorra $2",
     badgeColor: "bg-green-600 text-white",
-    features: ["Revista Pal' Oeste 2025 (58 págs)", "Descubre Cabo Rojo", "Descarga inmediata", "2 PDFs por el precio de 1.5"],
+    features: ["Revista Pal' Oeste Enero 2026 (58 págs)", "Descubre Cabo Rojo", "Descarga inmediata", "2 PDFs por el precio de 1.5"],
     stripePdfUrl: "https://buy.stripe.com/bJecN483WegD5YJfR10co0p",
     amazonUrl: null,
   },
@@ -94,8 +95,14 @@ export default function RevistaPage() {
         ))}
       </div>
 
-      <div className="text-center text-sm text-stone-400 max-w-lg mx-auto">
+      <div className="text-center text-sm text-stone-400 max-w-lg mx-auto space-y-2">
         <p>Los PDFs se entregan inmediatamente después de la compra. La versión física se envía a través de Amazon.</p>
+        <p>
+          ¿Preguntas? Escríbenos a{" "}
+          <Link href={`mailto:${CONTACT_EMAIL}`} className="text-red-600 hover:underline">
+            {CONTACT_EMAIL}
+          </Link>
+        </p>
       </div>
     </div>
   );

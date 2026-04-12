@@ -174,3 +174,49 @@ export interface SponsorROI {
   last_spotlight: string | null
   profile_completeness: number
 }
+
+// === Inbox / CRM Types ===
+
+export interface InboxConversation {
+  id: string
+  contact: string
+  channel: string
+  line: string
+  status: string | null
+  needs_human: boolean
+  message_count: number
+  last_message_at: string
+  last_inbound_body: string | null
+  intent: string | null
+  last_intent: string | null
+  internal_note: string | null
+  display_name: string | null
+  contact_id: string | null
+}
+
+export interface InboxMessage {
+  id: number
+  conversation_id: string
+  direction: string
+  body: string | null
+  intent: string | null
+  source: string | null
+  channel: string
+  from: string | null
+  to: string | null
+  created_at: string
+}
+
+export interface InboxContact {
+  id: string
+  phone_e164: string
+  display_name: string | null
+  language: string | null
+  tags: string[] | null
+  notes_internal: string | null
+  notes: string | null
+  qualified: boolean | null
+  business_type: string | null
+  last_seen_at: string | null
+  created_at: string
+}

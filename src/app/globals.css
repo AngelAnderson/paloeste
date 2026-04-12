@@ -139,3 +139,18 @@
 .font-display {
   font-family: var(--font-display), system-ui, sans-serif;
 }
+
+/* Admin docs content styling */
+.doc-content h1 { font-size: 1.5rem; font-weight: 700; margin: 1.5rem 0 0.75rem; color: #fff; }
+.doc-content h2 { font-size: 1.25rem; font-weight: 600; margin: 1.25rem 0 0.5rem; color: #fff; }
+.doc-content h3 { font-size: 1rem; font-weight: 600; margin: 1rem 0 0.5rem; color: #fff; }
+.doc-content p { margin: 0.75rem 0; line-height: 1.6; color: #cbd5e1; }
+.doc-content ul, .doc-content ol { margin: 0.75rem 0; padding-left: 1.5rem; color: #cbd5e1; }
+.doc-content li { margin: 0.25rem 0; line-height: 1.6; }
+.doc-content li strong { color: #fff; }
+.doc-content strong { color: #fff; font-weight: 600; }
+.doc-content code { background: #0f172a; padding: 0.125rem 0.375rem; border-radius: 0.25rem; font-size: 0.875em; color: #38bdf8; }
+.doc-content hr { border-color: #334155; margin: 1.5rem 0; }
+.doc-content a { color: #38bdf8; text-decoration: underline; }
+.doc-content blockquote { border-left: 3px solid #38bdf8; padding-left: 1rem; margin: 1rem 0; color: #94a3b8; }
+.doc-content h1:first-child { margin-top: 0; }

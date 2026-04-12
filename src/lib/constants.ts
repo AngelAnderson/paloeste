@@ -23,7 +23,7 @@ export const CATEGORIES: CategoryInfo[] = [
 
 export const BOT_PHONE = "787-417-7711";
 export const BOT_WHATSAPP_URL = "https://wa.me/17874177711";
-export const CONTACT_EMAIL = "angel@angelanderson.com";
+export const CONTACT_EMAIL = "ventas@caborojo.com";
 export const CONTACT_WHATSAPP = "https://wa.me/17872225803";
 
 // Anunciantes fundadores de la Revista Pal' Oeste 2025 — Edición No. 1
