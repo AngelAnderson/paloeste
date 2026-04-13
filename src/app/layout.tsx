@@ -122,6 +122,55 @@ function Footer() {
   );
 }
 
+
+function JsonLd() {
+  const schema = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebSite",
+        "@id": "https://paloeste.com/#website",
+        url: "https://paloeste.com",
+        name: "Pal Oeste",
+        description: "Tu guia real del oeste de Puerto Rico. Negocios, cultura, musica y turismo.",
+        inLanguage: "es-PR",
+        potentialAction: {
+          "@type": "SearchAction",
+          target: {
+            "@type": "EntryPoint",
+            urlTemplate: "https://paloeste.com/directorio?q={search_term_string}",
+          },
+          "query-input": "required name=search_term_string",
+        },
+      },
+      {
+        "@type": "Organization",
+        "@id": "https://paloeste.com/#organization",
+        name: "PalOeste / CaboRojo.com",
+        url: "https://paloeste.com",
+        logo: {
+          "@type": "ImageObject",
+          url: "https://paloeste.com/logo-dark-text.png",
+        },
+        sameAs: ["https://caborojo.com"],
+        contactPoint: {
+          "@type": "ContactPoint",
+          telephone: "+1-787-417-7711",
+          contactType: "customer service",
+          availableLanguage: ["Spanish"],
+        },
+        areaServed: {
+          "@type": "Place",
+          name: "Cabo Rojo, Puerto Rico",
+        },
+      },
+    ],
+  };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const safeJson = JSON.stringify(schema);
+  return <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJson }} />;
+}
+
 export default async function RootLayout({
   children,
 }: Readonly<{
@@ -136,6 +185,7 @@ export default async function RootLayout({
       lang="es"
       className={`${cabinetGrotesk.variable} ${dmSans.variable} ${geistMono.variable} h-full antialiased`}
     >
+      <JsonLd />
       <body className={isAdmin ? "min-h-full" : "min-h-full flex flex-col bg-[#FAFAF7] text-stone-900"}>
         {!isAdmin && <Header />}
         {isAdmin ? children : <main className="flex-1">{children}</main>}

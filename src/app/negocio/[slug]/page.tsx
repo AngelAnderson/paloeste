@@ -47,7 +47,14 @@ function JsonLd({ place }: { place: { name: string; description: string; phone: 
     name: place.name,
     description: place.description,
     telephone: place.phone,
-    address: place.address,
+    address: place.address
+      ? {
+          "@type": "PostalAddress",
+          streetAddress: place.address,
+          addressRegion: "PR",
+          addressCountry: "US",
+        }
+      : undefined,
     ...(place.hero_image_url ? { image: place.hero_image_url } : {}),
     ...(place.lat && place.lon
       ? { geo: { "@type": "GeoCoordinates", latitude: place.lat, longitude: place.lon } }

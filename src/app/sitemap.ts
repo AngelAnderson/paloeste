@@ -8,9 +8,11 @@ export const dynamic = 'force-dynamic'
 const BASE_URL = 'https://paloeste.com'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  // Use service role key to bypass RLS and get all published places.
+  // Falls back to anon key if service role key is not set (e.g. local dev).
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   )
 
   const { data: places } = await supabase
@@ -18,7 +20,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     .select('slug, updated_at')
     .eq('visibility', 'published')
     .eq('status', 'open')
+    .not('slug', 'is', null)
+    .neq('slug', '')
     .order('updated_at', { ascending: false })
+    .limit(5000)
 
   const businessPages: MetadataRoute.Sitemap = (places ?? []).map((place) => ({
     url: `${BASE_URL}/negocio/${place.slug}`,
