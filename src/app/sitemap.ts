@@ -1,6 +1,10 @@
 import { MetadataRoute } from 'next'
 import { createClient } from '@supabase/supabase-js'
 
+// Force dynamic so sitemap always fetches live data from Supabase at request time
+// (not frozen at build time when the query may return 0 results)
+export const dynamic = 'force-dynamic'
+
 const BASE_URL = 'https://paloeste.com'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
