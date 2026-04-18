@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <rect width="1200" height="630" fill="#1c1917"/>
+  <rect width="1200" height="630" fill="url(#grad)" opacity="0.4"/>
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#dc2626;stop-opacity:0.3"/>
+      <stop offset="100%" style="stop-color:#1c1917;stop-opacity:0"/>
+    </linearGradient>
+  </defs>
+  <text x="600" y="260" text-anchor="middle" fill="#ffffff" font-family="system-ui, sans-serif" font-size="96" font-weight="900">Pal&apos; Oeste</text>
+  <text x="600" y="340" text-anchor="middle" fill="#d4c4a8" font-family="system-ui, sans-serif" font-size="30">El directorio del oeste de Puerto Rico</text>
+  <text x="600" y="560" text-anchor="middle" fill="rgba(255,255,255,0.4)" font-family="system-ui, sans-serif" font-size="18">CaboRojo.com · Angel Anderson · 787-417-7711</text>
+</svg>

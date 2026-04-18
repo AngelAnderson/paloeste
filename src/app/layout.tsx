@@ -35,6 +35,13 @@ export const metadata: Metadata = {
     type: "website",
     locale: "es_PR",
     siteName: SITE_NAME,
+    images: [{ url: "/og-image.svg", width: 1200, height: 630, alt: "Pal' Oeste — El directorio del oeste de Puerto Rico" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Pal' Oeste — Lo Mejor del Oeste de Puerto Rico",
+    description: "Tu guía real del oeste de Puerto Rico. Negocios, cultura, música y turismo.",
+    images: ["/og-image.svg"],
   },
 };
 
