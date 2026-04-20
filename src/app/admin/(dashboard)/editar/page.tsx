@@ -71,7 +71,7 @@ export default function AdminEditarPage() {
     let list = places
     if (search) {
       const q = search.toLowerCase()
-      list = list.filter((p) => p.name.toLowerCase().includes(q))
+      list = list.filter((p) => p.name.toLowerCase().includes(q) || p.category.toLowerCase().includes(q))
     }
     if (filterCategory) {
       list = list.filter((p) => p.category === filterCategory)
