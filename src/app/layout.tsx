@@ -35,13 +35,11 @@ export const metadata: Metadata = {
     type: "website",
     locale: "es_PR",
     siteName: SITE_NAME,
-    images: [{ url: "/og-image.svg", width: 1200, height: 630, alt: "Pal' Oeste — El directorio del oeste de Puerto Rico" }],
   },
   twitter: {
     card: "summary_large_image",
     title: "Pal' Oeste — Lo Mejor del Oeste de Puerto Rico",
     description: "Tu guía real del oeste de Puerto Rico. Negocios, cultura, música y turismo.",
-    images: ["/og-image.svg"],
   },
 };
 
@@ -119,6 +117,9 @@ function Footer() {
             <Link href={CONTACT_WHATSAPP} target="_blank" className="block text-red-600 hover:text-red-700">
               WhatsApp Directo →
             </Link>
+            <a href="sms:7874177711?body=HOLA" className="block text-stone-700 hover:text-red-600 transition-colors">
+              ¿Buscas un negocio? Textea al 787-417-7711 →
+            </a>
           </div>
         </div>
       </div>
