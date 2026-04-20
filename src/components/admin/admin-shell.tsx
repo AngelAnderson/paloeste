@@ -14,8 +14,10 @@ const NAV = [
   { href: '/admin/sponsors', label: 'Sponsors', icon: '\u2B50' },
   { href: '/admin/bot', label: 'Bot Health', icon: '\uD83E\uDD16' },
   { href: '/admin/places', label: 'Places', icon: '\uD83D\uDCCD' },
+  { href: '/admin/editar', label: 'Editar', icon: '\u270F\uFE0F' },
   { href: '/admin/content', label: 'Content', icon: '\uD83D\uDCDD' },
   { href: '/admin/pipeline', label: 'Pipeline', icon: '\uD83C\uDFAF' },
+  { href: '/admin/vitrina', label: 'Vitrina', icon: '\uD83D\uDCA1' },
 ]
 
 export function AdminShell({ children }: { children: React.ReactNode }) {

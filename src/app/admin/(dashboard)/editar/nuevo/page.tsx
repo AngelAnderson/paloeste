@@ -1,21 +1,19 @@
 'use client'
 
-import { useEffect, useState, useMemo, useCallback } from 'react'
+import { useState, useMemo, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createSupabaseBrowserClient } from '@/lib/supabase-browser'
 import { uploadPlaceImage } from '@/lib/image-upload'
 
-export default function NuevoNegocioPage() {
+export default function AdminNuevoNegocioPage() {
   const router = useRouter()
   const supabase = useMemo(() => createSupabaseBrowserClient(), [])
 
-  const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
 
-  // Form
   const [name, setName] = useState('')
   const [address, setAddress] = useState('')
   const [gmapsUrl, setGmapsUrl] = useState('')
@@ -26,27 +24,6 @@ export default function NuevoNegocioPage() {
   const [category, setCategory] = useState('')
   const [tags, setTags] = useState('')
   const [description, setDescription] = useState('')
-
-  // Auth — admin only for creating new
-  useEffect(() => {
-    async function check() {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) { router.push('/editar/login'); return }
-
-      const { data: editor } = await supabase
-        .from('editors')
-        .select('role')
-        .eq('email', user.email)
-        .single()
-
-      if (editor?.role !== 'admin') {
-        router.push('/editar')
-        return
-      }
-      setLoading(false)
-    }
-    check()
-  }, [supabase, router])
 
   const handlePhotoUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -98,48 +75,32 @@ export default function NuevoNegocioPage() {
       setSaving(false)
     } else if (data) {
       setToast('Negocio creado ✓')
-      setTimeout(() => router.push(`/editar/${data.id}`), 1000)
+      setTimeout(() => router.push(`/admin/editar/${data.id}`), 1000)
     }
   }
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-stone-400 text-sm">Cargando...</div>
-      </div>
-    )
-  }
-
   return (
-    <div className="max-w-lg mx-auto px-4 py-6 pb-24">
+    <div className="max-w-2xl">
       <div className="flex items-center gap-3 mb-6">
-        <Link href="/editar" className="text-stone-400 hover:text-stone-600 text-lg">←</Link>
-        <h1 className="text-lg font-bold text-stone-900">Agregar negocio</h1>
+        <Link href="/admin/editar" className="text-[#64748b] hover:text-white text-lg">←</Link>
+        <h1 className="text-xl font-bold">Agregar negocio</h1>
       </div>
 
       <div className="space-y-5">
-        {/* Photo */}
         <div>
-          <label className="block text-xs text-stone-500 uppercase tracking-wider mb-1.5">Foto</label>
+          <Label>Foto</Label>
           {imageUrl && (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={imageUrl} alt={name} className="w-full h-48 object-cover rounded-xl mb-2" />
+            <img src={imageUrl} alt={name} className="w-full max-w-md h-48 object-cover rounded-xl mb-2" />
           )}
-          <label className="inline-flex items-center gap-2 bg-white border border-stone-200 rounded-lg px-4 py-2.5 text-sm cursor-pointer hover:border-stone-300 transition-colors">
+          <label className="inline-flex items-center gap-2 bg-[#1e293b] border border-[#334155] rounded-lg px-4 py-2.5 text-sm cursor-pointer hover:border-[#475569] transition-colors">
             <span>{uploading ? 'Subiendo...' : '📸 Agregar foto'}</span>
-            <input
-              type="file"
-              accept="image/*"
-              capture="environment"
-              onChange={handlePhotoUpload}
-              disabled={uploading}
-              className="hidden"
-            />
+            <input type="file" accept="image/*" capture="environment" onChange={handlePhotoUpload} disabled={uploading} className="hidden" />
           </label>
         </div>
 
-        <Field label="Nombre *" value={name} onChange={setName} required />
-        <Field label="Categoría *" value={category} onChange={setCategory} required />
+        <Field label="Nombre *" value={name} onChange={setName} />
+        <Field label="Categoría *" value={category} onChange={setCategory} />
         <Field label="Dirección" value={address} onChange={setAddress} />
         <Field label="Google Maps Link" value={gmapsUrl} onChange={setGmapsUrl} type="url" placeholder="https://maps.google.com/..." />
         <Field label="Teléfono" value={phone} onChange={setPhone} type="tel" />
@@ -147,53 +108,54 @@ export default function NuevoNegocioPage() {
         <Field label="Horario" value={hours} onChange={setHours} placeholder="Lun-Vie 8am-5pm" />
         <Field label="Tags (separados por coma)" value={tags} onChange={setTags} />
         <div>
-          <label className="block text-xs text-stone-500 uppercase tracking-wider mb-1.5">Descripción</label>
+          <Label>Descripción</Label>
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             rows={3}
-            className="w-full bg-white border border-stone-200 rounded-lg px-3 py-2.5 text-sm focus:border-red-500 focus:outline-none resize-none"
+            className="w-full bg-[#1e293b] border border-[#334155] rounded-lg px-3 py-2.5 text-sm text-white focus:border-[#38bdf8] focus:outline-none resize-none"
           />
         </div>
       </div>
 
       {toast && (
-        <div className="fixed top-4 left-1/2 -translate-x-1/2 bg-stone-900 text-white text-sm px-4 py-2 rounded-full shadow-lg z-50">
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 bg-white text-[#0f172a] text-sm px-4 py-2 rounded-full shadow-lg z-50 font-medium">
           {toast}
         </div>
       )}
 
-      <div className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur border-t border-stone-200 p-4 z-40">
-        <div className="max-w-lg mx-auto">
-          <button
-            onClick={handleCreate}
-            disabled={saving}
-            className="w-full bg-red-600 text-white font-semibold rounded-lg py-3 text-sm hover:bg-red-700 disabled:opacity-50 transition-colors"
-          >
-            {saving ? 'Creando...' : 'Crear negocio'}
-          </button>
-        </div>
+      <div className="mt-6">
+        <button
+          onClick={handleCreate}
+          disabled={saving}
+          className="bg-[#38bdf8] text-[#0f172a] font-semibold rounded-lg px-6 py-2.5 text-sm hover:bg-[#7dd3fc] disabled:opacity-50 transition-colors"
+        >
+          {saving ? 'Creando...' : 'Crear negocio'}
+        </button>
       </div>
     </div>
   )
 }
 
+function Label({ children }: { children: React.ReactNode }) {
+  return <label className="block text-xs text-[#64748b] uppercase tracking-wider mb-1.5">{children}</label>
+}
+
 function Field({
-  label, value, onChange, type = 'text', placeholder, required,
+  label, value, onChange, type = 'text', placeholder,
 }: {
   label: string; value: string; onChange: (v: string) => void
-  type?: string; placeholder?: string; required?: boolean
+  type?: string; placeholder?: string
 }) {
   return (
     <div>
-      <label className="block text-xs text-stone-500 uppercase tracking-wider mb-1.5">{label}</label>
+      <Label>{label}</Label>
       <input
         type={type}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        required={required}
-        className="w-full bg-white border border-stone-200 rounded-lg px-3 py-2.5 text-sm focus:border-red-500 focus:outline-none"
+        className="w-full bg-[#1e293b] border border-[#334155] rounded-lg px-3 py-2.5 text-sm text-white focus:border-[#38bdf8] focus:outline-none"
       />
     </div>
   )
