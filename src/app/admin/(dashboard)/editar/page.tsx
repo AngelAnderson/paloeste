@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState, useMemo, useCallback } from 'react'
 import Link from 'next/link'
 import { createSupabaseBrowserClient } from '@/lib/supabase-browser'
 
@@ -42,48 +42,81 @@ const BADGE: Record<Completeness, { icon: string; cls: string }> = {
   complete: { icon: '🟢', cls: 'bg-green-500/10 text-green-400' },
 }
 
+const PAGE_SIZE = 100
+
 export default function AdminEditarPage() {
   const [places, setPlaces] = useState<PlaceRow[]>([])
+  const [totalCount, setTotalCount] = useState(0)
   const [search, setSearch] = useState('')
+  const [debouncedSearch, setDebouncedSearch] = useState('')
   const [filterCategory, setFilterCategory] = useState('')
   const [loading, setLoading] = useState(true)
+  const [loadingMore, setLoadingMore] = useState(false)
+  const [categories, setCategories] = useState<string[]>([])
   const supabase = useMemo(() => createSupabaseBrowserClient(), [])
-
+  // Debounce search
   useEffect(() => {
-    async function load() {
+    const t = window.setTimeout(() => setDebouncedSearch(search), 300)
+    return () => window.clearTimeout(t)
+  }, [search])
+
+  // Load categories once
+  useEffect(() => {
+    async function loadCats() {
       const { data } = await supabase
         .from('places')
-        .select('id, name, category, address, image_url, hero_image_url, gmaps_url, phone')
+        .select('category')
         .eq('status', 'open')
-        .order('name')
-      if (data) setPlaces(data)
-      setLoading(false)
+      if (data) {
+        const cats = [...new Set(data.map(d => d.category))].sort()
+        setCategories(cats)
+      }
     }
-    load()
+    loadCats()
   }, [supabase])
 
-  const categories = useMemo(() => {
-    const cats = new Set(places.map((p) => p.category))
-    return Array.from(cats).sort()
-  }, [places])
+  // Load places with server-side search
+  const loadPlaces = useCallback(async (offset = 0, append = false) => {
+    if (offset === 0) setLoading(true)
+    else setLoadingMore(true)
 
-  const filtered = useMemo(() => {
-    let list = places
-    if (search) {
-      const q = search.toLowerCase()
-      list = list.filter((p) => p.name.toLowerCase().includes(q) || p.category.toLowerCase().includes(q))
+    let query = supabase
+      .from('places')
+      .select('id, name, category, address, image_url, hero_image_url, gmaps_url, phone', { count: 'exact' })
+      .eq('status', 'open')
+      .order('name')
+      .range(offset, offset + PAGE_SIZE - 1)
+
+    if (debouncedSearch) {
+      query = query.or(`name.ilike.%${debouncedSearch}%,category.ilike.%${debouncedSearch}%`)
     }
     if (filterCategory) {
-      list = list.filter((p) => p.category === filterCategory)
+      query = query.eq('category', filterCategory)
     }
-    return list.sort((a, b) => {
+
+    const { data, count } = await query
+    if (data) {
+      setPlaces(prev => append ? [...prev, ...data] : data)
+      setTotalCount(count ?? data.length)
+    }
+    setLoading(false)
+    setLoadingMore(false)
+  }, [supabase, debouncedSearch, filterCategory])
+
+  useEffect(() => {
+    loadPlaces(0, false)
+  }, [loadPlaces])
+
+  const sorted = useMemo(() => {
+    return [...places].sort((a, b) => {
       const order: Record<Completeness, number> = { missing: 0, partial: 1, complete: 2 }
       return order[getCompleteness(a)] - order[getCompleteness(b)]
     })
-  }, [places, search, filterCategory])
+  }, [places])
 
   const stats = {
-    total: places.length,
+    total: totalCount,
+    loaded: places.length,
     complete: places.filter((p) => getCompleteness(p) === 'complete').length,
     missing: places.filter((p) => getCompleteness(p) === 'missing').length,
   }
@@ -130,7 +163,7 @@ export default function AdminEditarPage() {
         <div className="text-[#64748b] text-sm py-12 text-center">Cargando...</div>
       ) : (
         <div className="space-y-1">
-          {filtered.map((place) => {
+          {sorted.map((place) => {
             const comp = getCompleteness(place)
             const badge = BADGE[comp]
             const missing = getMissing(place)
@@ -164,8 +197,17 @@ export default function AdminEditarPage() {
               </Link>
             )
           })}
-          {filtered.length === 0 && (
+          {sorted.length === 0 && (
             <div className="text-center text-[#64748b] py-12 text-sm">No se encontraron negocios</div>
+          )}
+          {places.length < totalCount && (
+            <button
+              onClick={() => loadPlaces(places.length, true)}
+              disabled={loadingMore}
+              className="w-full mt-3 bg-[#1e293b] border border-[#334155] rounded-xl p-3 text-sm text-[#94a3b8] hover:text-white hover:border-[#475569] transition-colors"
+            >
+              {loadingMore ? 'Cargando...' : `Cargar más (${places.length} de ${totalCount})`}
+            </button>
           )}
         </div>
       )}
