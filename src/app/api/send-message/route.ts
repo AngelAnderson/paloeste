@@ -50,15 +50,17 @@ export async function POST(req: NextRequest) {
   const twilioData = await twilioRes.json()
 
   // Log the outbound message in our messages table
+  // conversation_contact is a GENERATED column (= "to" for outbound)
+  // FK requires (conversation_contact, channel, conversation_line) to match conversations(contact, channel, line)
+  // So "to" must be the clean number (no whatsapp: prefix) and channel must match the conversation
   const { error: insertErr } = await supabase.from('messages').insert({
     conversation_id: conversationId,
-    conversation_contact: to,
     conversation_line: '7711',
     direction: 'outbound',
     body,
-    channel: isWhatsApp ? 'whatsapp' : 'sms',
-    from: fromNumber,
-    to: toNumber,
+    channel: channel || 'sms',
+    from: isWhatsApp ? botNumber : botNumber,
+    to,
     source: 'admin',
     intent: 'manual_reply',
     message_sid: twilioData.sid || null,
