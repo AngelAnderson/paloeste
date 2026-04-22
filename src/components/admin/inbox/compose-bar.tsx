@@ -4,16 +4,16 @@ import { useState, useRef, useCallback, useEffect } from 'react'
 
 const PITCH_TEMPLATES = [
   {
-    label: '📋 Pitch Corto (SMS)',
-    text: 'Solo hay [X] [categoría] en el directorio de Cabo Rojo y NINGUNO es sponsor. $799/año y cada vez que alguien busca "[categoría]" al 787-417-7711, TÚ sales primero. Un pago, todo el año. ¿Te interesa?',
+    label: '📋 Corto (SMS — 2 segmentos)',
+    text: 'Mijo, hay [X] [categoría] en Cabo Rojo y NINGUNO está en La Vitrina. $799 al año — un pago y cada vez que alguien textea "[categoría]" al 787-417-7711, TÚ sales primero. El que madruga, Dios lo ayuda. ¿Te interesa?',
   },
   {
-    label: '📋 Pitch Medio (WhatsApp)',
-    text: 'En Cabo Rojo solo hay [X] [categoría] en el directorio. Y ninguno es sponsor todavía.\n\nPor $799 al año recibes: prioridad en El Veci (787-417-7711), página dedicada en CaboRojo.com, mención semanal en Facebook, newsletter a 1,000+ suscriptores, y SEO en Google.\n\nLuis David Refrigeración ya está y le funciona. ¿Quieres ser el primero en [categoría]?',
+    label: '📋 Medio (WhatsApp)',
+    text: 'Bendición — te escribo porque hay [X] [categoría] en el directorio de Cabo Rojo y NINGUNO es sponsor todavía. Eso quiere decir que el primer negocio que entre, domina la categoría completa.\n\nPor $799 al año recibes: prioridad en El Veci (787-417-7711), tu página en CaboRojo.com, mención semanal en Facebook, newsletter a 1,000+ caborrojeños, y posicionamiento en Google.\n\nLuis David Refrigeración lleva meses y le funciona — cuando buscan "aire acondicionado", él sale primero.\n\nEl que llega primero, come caliente. ¿Quieres ser el primero en [categoría]?',
   },
   {
-    label: '📋 Pitch Completo',
-    text: 'En Cabo Rojo solo hay [X] [categoría] en el directorio. Y ninguno es sponsor todavía.\n\nPor $799 al año — un solo pago — esto es lo que recibes:\n\n✅ El Veci — Cuando alguien escribe "[categoría]" al 787-417-7711, TÚ sales primero. No el de al lado.\n✅ Página dedicada en CaboRojo.com y MapaDeCaboRojo.com — con tus fotos, horario, mapa, y teléfono\n✅ Facebook semanal — Te mencionamos en la página de CaboRojo.com cada semana usando lo que TÚ publiques\n✅ Newsletter — Sales en el email semanal que le llega a 1,000+ caborrojeños directo al inbox\n✅ Google SEO — Tu negocio indexado para que te encuentren buscando en Google también\n✅ Reporte — Data real de cuántas veces buscaron "[categoría]"\n\nLuis David Refrigeración ya está en esa misma área y le funciona.\n\n$799 al año. Un pago. Trabajando para ti 24/7 los 365 días. ¿Quieres ser el primero o esperar a que entre el otro?',
+    label: '📋 Completo (WhatsApp/Email)',
+    text: 'Saludos — te escribo del directorio de CaboRojo.com. Solo hay [X] [categoría] registrados en Cabo Rojo y NINGUNO tiene La Vitrina todavía.\n\nPor $799 al año — un solo pago — esto es lo que recibes:\n\n✅ El Veci — Cuando alguien textea "[categoría]" al 787-417-7711, TÚ sales primero. No el de al lado.\n✅ Página dedicada en CaboRojo.com y MapaDeCaboRojo.com — con tus fotos, horario, mapa y teléfono.\n✅ Facebook semanal — Te mencionamos en la página de CaboRojo.com usando lo que TÚ publiques.\n✅ Newsletter — Sales en el email semanal que le llega a 1,000+ caborrojeños directo al inbox.\n✅ Google SEO — Tu negocio indexado para que te encuentren en Google también.\n✅ Reporte — Data real de cuántas veces buscaron "[categoría]" en el directorio.\n\nLuis David Refrigeración ya está y le funciona — cuando se daña un aire, la gente no googlea, textea al 787-417-7711 y él sale primero.\n\n$799 al año. Un pago. Pa\'lante todo el año, 24/7. El que llega primero, come caliente — ¿va a ser tu negocio o el de enfrente?',
   },
 ]
 

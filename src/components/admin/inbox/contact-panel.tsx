@@ -3,15 +3,22 @@
 import { useState, useCallback, useEffect } from 'react'
 import type { InboxContact, InboxConversation } from '@/lib/types'
 
+interface DemandData {
+  total_queries: number
+  categories: string[]
+  recent_queries: string[]
+}
+
 interface ContactPanelProps {
   contact: InboxContact | null
   conversation: InboxConversation | null
+  demandData?: DemandData | null
   onSaveContact: (conversationId: string, data: { name: string; notes: string }) => Promise<void>
   onUpdateStatus: (conversationId: string, status: string) => Promise<void>
   onClose?: () => void
 }
 
-export function ContactPanel({ contact, conversation, onSaveContact, onUpdateStatus, onClose }: ContactPanelProps) {
+export function ContactPanel({ contact, conversation, demandData, onSaveContact, onUpdateStatus, onClose }: ContactPanelProps) {
   const [name, setName] = useState('')
   const [notes, setNotes] = useState('')
   const [saving, setSaving] = useState(false)
@@ -102,6 +109,34 @@ export function ContactPanel({ contact, conversation, onSaveContact, onUpdateSta
             <p className="text-white font-medium text-[11px]">{conversation.intent || conversation.last_intent || '-'}</p>
           </div>
         </div>
+
+        {/* Demand data */}
+        {demandData && demandData.total_queries > 0 && (
+          <div>
+            <p className="text-[10px] uppercase tracking-wider text-[#64748b] mb-1">Demanda (bot *7711)</p>
+            <div className="bg-[#1e293b] rounded-lg p-3 space-y-2">
+              <div className="flex justify-between text-xs">
+                <span className="text-[#64748b]">Busquedas</span>
+                <span className="text-[#38bdf8] font-bold">{demandData.total_queries}</span>
+              </div>
+              {demandData.categories.length > 0 && (
+                <div className="flex gap-1 flex-wrap">
+                  {demandData.categories.map(cat => (
+                    <span key={cat} className="px-1.5 py-0.5 bg-[#fbbf24]/10 text-[#fbbf24] rounded text-[10px]">{cat}</span>
+                  ))}
+                </div>
+              )}
+              {demandData.recent_queries.length > 0 && (
+                <div className="space-y-1">
+                  <p className="text-[10px] text-[#475569]">Busco:</p>
+                  {demandData.recent_queries.map(q => (
+                    <p key={q} className="text-[11px] text-[#94a3b8] italic">&ldquo;{q}&rdquo;</p>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Tags */}
         {contact?.tags && contact.tags.length > 0 && (
