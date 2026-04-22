@@ -52,6 +52,8 @@ export async function POST(req: NextRequest) {
   // Log the outbound message in our messages table
   const { error: insertErr } = await supabase.from('messages').insert({
     conversation_id: conversationId,
+    conversation_contact: to,
+    conversation_line: '7711',
     direction: 'outbound',
     body,
     channel: isWhatsApp ? 'whatsapp' : 'sms',
@@ -60,7 +62,6 @@ export async function POST(req: NextRequest) {
     source: 'admin',
     intent: 'manual_reply',
     message_sid: twilioData.sid || null,
-    conversation_line: '7711',
   })
 
   if (insertErr) {
