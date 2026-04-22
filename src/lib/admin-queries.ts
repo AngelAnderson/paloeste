@@ -59,24 +59,39 @@ export async function getAdminPlaces(): Promise<AdminPlace[]> {
   return (data || []) as AdminPlace[]
 }
 
-export async function getUnbilledLeadsByBusiness(): Promise<{ business_id: string; business_name: string; lead_count: number; total_cents: number; oldest: string; newest: string }[]> {
+export interface UnbilledBusiness {
+  business_id: string
+  business_name: string
+  lead_count: number
+  total_cents: number
+  oldest: string
+  newest: string
+  phone: string | null
+  slug: string | null
+  category: string | null
+  sponsor_weight: number
+  leads: { date: string; channel: string; amount_cents: number }[]
+}
+
+export async function getUnbilledLeadsByBusiness(): Promise<UnbilledBusiness[]> {
   const supabase = await createSupabaseAdminClient()
   const { data, error } = await supabase
     .from('bot_leads')
-    .select('business_id, business_name, amount_cents, created_at')
+    .select('business_id, business_name, amount_cents, created_at, channel')
     .eq('billed', false)
     .order('created_at', { ascending: false })
   if (error) throw error
 
-  // Aggregate in JS since we can't use get_unbilled_leads for all businesses at once
-  const map = new Map<string, { business_id: string; business_name: string; lead_count: number; total_cents: number; oldest: string; newest: string }>()
+  const map = new Map<string, UnbilledBusiness>()
   for (const row of (data || [])) {
     const existing = map.get(row.business_id)
+    const lead = { date: row.created_at, channel: row.channel || 'sms', amount_cents: row.amount_cents || 0 }
     if (existing) {
       existing.lead_count++
       existing.total_cents += row.amount_cents || 0
       if (row.created_at < existing.oldest) existing.oldest = row.created_at
       if (row.created_at > existing.newest) existing.newest = row.created_at
+      existing.leads.push(lead)
     } else {
       map.set(row.business_id, {
         business_id: row.business_id,
@@ -85,9 +100,33 @@ export async function getUnbilledLeadsByBusiness(): Promise<{ business_id: strin
         total_cents: row.amount_cents || 0,
         oldest: row.created_at,
         newest: row.created_at,
+        phone: null,
+        slug: null,
+        category: null,
+        sponsor_weight: 0,
+        leads: [lead],
       })
     }
   }
+
+  // Enrich with place data (phone, slug, category, sponsor_weight)
+  const ids = Array.from(map.keys())
+  if (ids.length > 0) {
+    const { data: places } = await supabase
+      .from('places')
+      .select('id, phone, slug, category, sponsor_weight')
+      .in('id', ids)
+    for (const p of places || []) {
+      const entry = map.get(p.id)
+      if (entry) {
+        entry.phone = p.phone
+        entry.slug = p.slug
+        entry.category = p.category
+        entry.sponsor_weight = p.sponsor_weight || 0
+      }
+    }
+  }
+
   return Array.from(map.values()).sort((a, b) => b.total_cents - a.total_cents)
 }
 
