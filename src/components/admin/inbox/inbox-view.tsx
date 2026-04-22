@@ -16,6 +16,7 @@ export function InboxView({ initialConversations }: InboxViewProps) {
   const [selected, setSelected] = useState<InboxConversation | null>(null)
   const [messages, setMessages] = useState<InboxMessage[]>([])
   const [contact, setContact] = useState<InboxContact | null>(null)
+  const [demandData, setDemandData] = useState<{ total_queries: number; categories: string[]; recent_queries: string[] } | null>(null)
   const [loadingMessages, setLoadingMessages] = useState(false)
   const [showContact, setShowContact] = useState(false)
   const [mobileView, setMobileView] = useState<'list' | 'thread'>('list')
@@ -27,12 +28,15 @@ export function InboxView({ initialConversations }: InboxViewProps) {
     setLoadingMessages(true)
     setMessages([])
     setContact(null)
+    setDemandData(null)
 
     try {
-      const res = await fetch(`/api/inbox/messages?conversationId=${conv.id}${conv.contact_id ? `&contactId=${conv.contact_id}` : ''}`)
+      const phone = conv.contact.replace('whatsapp:', '')
+      const res = await fetch(`/api/inbox/messages?conversationId=${conv.id}${conv.contact_id ? `&contactId=${conv.contact_id}` : ''}&phone=${encodeURIComponent(phone)}`)
       const data = await res.json()
       setMessages(data.messages || [])
       if (data.contact) setContact(data.contact)
+      if (data.demandData) setDemandData(data.demandData)
     } catch (e) {
       console.error('Failed to load messages:', e)
     } finally {
@@ -41,11 +45,11 @@ export function InboxView({ initialConversations }: InboxViewProps) {
   }, [])
 
   // Send message
-  const handleSend = useCallback(async (body: string) => {
+  const handleSend = useCallback(async (body: string, channel?: string) => {
     if (!selected) return
 
-    // Determine the "to" number from the conversation contact
     const to = selected.contact
+    const sendChannel = channel || 'sms'
 
     const res = await fetch('/api/send-message', {
       method: 'POST',
@@ -54,19 +58,19 @@ export function InboxView({ initialConversations }: InboxViewProps) {
         conversationId: selected.id,
         body,
         to,
-        channel: selected.channel,
+        channel: sendChannel,
       }),
     })
 
     if (!res.ok) {
       const err = await res.json().catch(() => ({}))
-      console.error('Send failed:', err)
-      return
+      throw new Error(err.error || err.details?.message || 'Error al enviar')
     }
+
+    const result = await res.json()
 
     // Optimistically add message to thread
     const now = new Date().toISOString()
-    const isWhatsApp = selected.channel === 'whatsapp'
     const botNumber = '+17874177711'
     setMessages(prev => [...prev, {
       id: Date.now(),
@@ -75,11 +79,18 @@ export function InboxView({ initialConversations }: InboxViewProps) {
       body,
       intent: 'manual_reply',
       source: 'admin',
-      channel: selected.channel,
-      from: isWhatsApp ? `whatsapp:${botNumber}` : botNumber,
+      channel: sendChannel,
+      from: botNumber,
       to,
       created_at: now,
+      status: 'sent',
+      error_code: null,
     }])
+
+    // Update conversation preview in list
+    setConversations(prev => prev.map(c =>
+      c.id === selected.id ? { ...c, last_body: body, last_direction: 'outbound', last_message_at: now } : c
+    ))
   }, [selected])
 
   // Save contact name + notes
@@ -140,7 +151,7 @@ export function InboxView({ initialConversations }: InboxViewProps) {
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'conversations' }, (payload) => {
         const updated = payload.new as any
         setConversations(prev => prev.map(c =>
-          c.id === updated.id ? { ...c, last_message_at: updated.last_message_at, last_inbound_body: updated.last_inbound_body, message_count: updated.message_count, needs_human: updated.needs_human } : c
+          c.id === updated.id ? { ...c, last_message_at: updated.last_message_at, last_inbound_body: updated.last_inbound_body, message_count: updated.message_count, needs_human: updated.needs_human, last_body: updated.last_inbound_body || c.last_body } : c
         ))
       })
       .subscribe()
@@ -173,7 +184,7 @@ export function InboxView({ initialConversations }: InboxViewProps) {
             messages={messages}
             loading={loadingMessages}
             onSend={handleSend}
-            contactName={selected.display_name}
+            contactName={selected.display_name || selected.place_name}
             contactPhone={contactPhone}
             conversationId={selected.id}
             onShowContact={() => setShowContact(true)}
@@ -191,6 +202,7 @@ export function InboxView({ initialConversations }: InboxViewProps) {
         <ContactPanel
           contact={contact}
           conversation={selected}
+          demandData={demandData}
           onSaveContact={handleSaveContact}
           onUpdateStatus={handleUpdateStatus}
         />
@@ -204,6 +216,7 @@ export function InboxView({ initialConversations }: InboxViewProps) {
             <ContactPanel
               contact={contact}
               conversation={selected}
+              demandData={demandData}
               onSaveContact={handleSaveContact}
               onUpdateStatus={handleUpdateStatus}
               onClose={() => setShowContact(false)}

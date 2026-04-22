@@ -104,7 +104,7 @@ export function ConversationList({ conversations, selectedId, onSelect, onFilter
         {conversations.map(conv => {
           const isSelected = conv.id === selectedId
           const phone = formatPhone(conv.contact)
-          const name = conv.display_name || phone
+          const name = conv.display_name || conv.place_name || phone
           return (
             <button
               key={conv.id}
@@ -122,7 +122,9 @@ export function ConversationList({ conversations, selectedId, onSelect, onFilter
                     )}
                   </div>
                   <p className="text-xs text-[#64748b] truncate mt-0.5">
-                    {conv.last_inbound_body || '(sin mensaje)'}
+                    {conv.last_body
+                      ? `${conv.last_direction === 'outbound' ? 'Tú: ' : ''}${conv.last_body}`
+                      : '(sin mensaje)'}
                   </p>
                 </div>
                 <div className="flex flex-col items-end gap-1 shrink-0">

@@ -8,7 +8,7 @@ import { FlagModal } from './flag-modal'
 interface MessageThreadProps {
   messages: InboxMessage[]
   loading: boolean
-  onSend: (message: string) => Promise<void>
+  onSend: (message: string, channel?: string) => Promise<void>
   contactName: string | null
   contactPhone: string
   conversationId?: string | null
@@ -94,6 +94,20 @@ export function MessageThread({ messages, loading, onSend, contactName, contactP
                   {msg.source === 'admin' && (
                     <span className="text-[10px] text-[#38bdf8]">manual</span>
                   )}
+                  {isOutbound && msg.status && (
+                    <span className={`text-[10px] ${
+                      msg.status === 'delivered' ? 'text-[#4ade80]'
+                        : msg.status === 'undelivered' || msg.status === 'failed' ? 'text-[#f87171]'
+                        : 'text-[#64748b]'
+                    }`}>
+                      {msg.status === 'delivered' ? '✓ entregado'
+                        : msg.status === 'undelivered' ? '✗ no entregado'
+                        : msg.status === 'failed' ? '✗ falló'
+                        : msg.status === 'sent' ? '↑ enviado'
+                        : msg.status}
+                      {msg.error_code ? ` (${msg.error_code})` : ''}
+                    </span>
+                  )}
                   {isFlagged && (
                     <span className="text-[10px] text-[#f87171]">marcada</span>
                   )}
@@ -115,7 +129,7 @@ export function MessageThread({ messages, loading, onSend, contactName, contactP
       </div>
 
       {/* Compose */}
-      <ComposeBar onSend={onSend} conversationId={conversationId} />
+      <ComposeBar onSend={onSend} conversationId={conversationId} defaultChannel="sms" />
 
       {/* Flag modal */}
       {flaggingMessage && conversationId && (

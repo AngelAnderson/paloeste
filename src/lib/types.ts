@@ -35,6 +35,8 @@ export interface Place {
   one_liner?: string;
   local_tip?: string;
   angel_rating?: number;
+  google_rating?: number;
+  google_review_count?: number;
   quality_tier?: string;
   opening_hours?: {
     type?: "fixed" | "24_7" | "sunrise_sunset";
@@ -187,10 +189,13 @@ export interface InboxConversation {
   message_count: number
   last_message_at: string
   last_inbound_body: string | null
+  last_body: string | null
+  last_direction: string | null
   intent: string | null
   last_intent: string | null
   internal_note: string | null
   display_name: string | null
+  place_name: string | null
   contact_id: string | null
 }
 
@@ -205,6 +210,8 @@ export interface InboxMessage {
   from: string | null
   to: string | null
   created_at: string
+  status: string | null
+  error_code: string | null
 }
 
 export interface InboxContact {

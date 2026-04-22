@@ -261,10 +261,49 @@ export async function getInboxConversations(filters?: {
     }
   }
 
-  return (convos || []).map(c => ({
-    ...c,
-    display_name: c.contact_id ? contactMap.get(c.contact_id) || null : null,
-  })) as InboxConversation[]
+  // Fetch last message (inbound OR outbound) for each conversation
+  const convoIds = (convos || []).map(c => c.id)
+  let lastMsgMap = new Map<string, { body: string; direction: string }>()
+  if (convoIds.length > 0) {
+    // Get last message per conversation using distinct on
+    const { data: lastMsgs } = await supabase
+      .from('messages')
+      .select('conversation_id, body, direction')
+      .in('conversation_id', convoIds)
+      .order('created_at', { ascending: false })
+      .limit(convoIds.length * 2)
+    // Take first (most recent) per conversation
+    for (const m of lastMsgs || []) {
+      if (!lastMsgMap.has(m.conversation_id) && m.body) {
+        lastMsgMap.set(m.conversation_id, { body: m.body, direction: m.direction })
+      }
+    }
+  }
+
+  // Match phone numbers to business names in places table
+  const phones = (convos || []).map(c => c.contact.replace('whatsapp:', ''))
+  let placeMap = new Map<string, string>()
+  if (phones.length > 0) {
+    const { data: places } = await supabase
+      .from('places')
+      .select('name, phone')
+      .in('phone', phones)
+    for (const p of places || []) {
+      if (p.phone && p.name) placeMap.set(p.phone, p.name)
+    }
+  }
+
+  return (convos || []).map(c => {
+    const phone = c.contact.replace('whatsapp:', '')
+    const lastMsg = lastMsgMap.get(c.id)
+    return {
+      ...c,
+      display_name: c.contact_id ? contactMap.get(c.contact_id) || null : null,
+      place_name: placeMap.get(phone) || null,
+      last_body: lastMsg?.body || c.last_inbound_body || null,
+      last_direction: lastMsg?.direction || null,
+    }
+  }) as InboxConversation[]
 }
 
 export async function getConversationMessages(conversationId: string): Promise<InboxMessage[]> {
@@ -272,7 +311,7 @@ export async function getConversationMessages(conversationId: string): Promise<I
   // Fetch the LAST 200 messages (most recent) — order DESC then reverse so UI shows oldest-first
   const { data, error } = await supabase
     .from('messages')
-    .select('id, conversation_id, direction, body, intent, source, channel, from, to, created_at')
+    .select('id, conversation_id, direction, body, intent, source, channel, from, to, created_at, status, error_code')
     .eq('conversation_id', conversationId)
     .order('created_at', { ascending: false })
     .limit(200)
