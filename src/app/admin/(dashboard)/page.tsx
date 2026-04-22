@@ -1,156 +1,198 @@
-import { getAdminOverview, getTrendingCategories, getSponsorPlaces, getProspects, getUnbilledLeadsByBusiness, getUpcomingEventsWithoutContent } from '@/lib/admin-queries'
+import { getUnbilledLeadsByBusiness, getConversionOpportunities, getSponsorROI, getPlacesMissingPhotos, getAdminOverview } from '@/lib/admin-queries'
+import { createSupabaseAdminClient } from '@/lib/supabase-server'
+import { CopyMessageButton } from '@/components/admin/copy-message-button'
+import { CopyVitrinaLink } from '@/components/admin/copy-vitrina-link'
 
 export const dynamic = 'force-dynamic'
 
+const COLLECT_TEMPLATE = 'Oye {name}, este mes El Veci te envió {lead_count} clientes buscando {category}. Son ${amount}. ¿Te paso el link de pago?'
+const PITCH_TEMPLATE = '{name}, el mes pasado {search_count} personas buscaron {category} en Cabo Rojo por El Veci. Tu negocio salió {match_count} veces. Con La Vitrina sales primero. Mira: chequeodenegocio.com'
+
 export default async function AdminDashboard() {
-  const [overview, trending, sponsors, prospects, unbilled, events] = await Promise.all([
-    getAdminOverview(),
-    getTrendingCategories(),
-    getSponsorPlaces(),
-    getProspects(),
+  const [unbilled, opportunities, sponsors, missingPhotos, overview] = await Promise.all([
     getUnbilledLeadsByBusiness(),
-    getUpcomingEventsWithoutContent(),
+    getConversionOpportunities(3),
+    getSponsorROI(),
+    getPlacesMissingPhotos(),
+    getAdminOverview(),
   ])
 
-  // Build action queue
-  const actions: { icon: string; text: string; badge: string; badgeColor: string }[] = []
-
-  // Sponsors without images
-  for (const s of sponsors) {
-    if (!s.hero_image_url) {
-      actions.push({ icon: '📷', text: `Upload photo for ${s.name}`, badge: '⭐ sponsor', badgeColor: '#fbbf24' })
-    }
-  }
-
-  // Prospects with next_action_date <= today
-  const today = new Date().toISOString().slice(0, 10)
-  for (const p of prospects) {
-    if (p.next_action_date && p.next_action_date <= today && p.stage !== 'won' && p.stage !== 'lost') {
-      actions.push({ icon: '🎯', text: `${p.next_action || 'Follow up'} for ${p.business_name}`, badge: '🎯 pipeline', badgeColor: '#a78bfa' })
-    }
-  }
-
-  // Stale prospects (no contact in 7+ days, not won/lost)
-  const sevenDaysAgo = new Date(Date.now() - 7 * 86400000).toISOString()
-  for (const p of prospects) {
-    if (p.stage !== 'won' && p.stage !== 'lost') {
-      const lastContact = p.last_contact_at || p.created_at
-      if (lastContact < sevenDaysAgo) {
-        // Skip if already added via next_action_date
-        if (!(p.next_action_date && p.next_action_date <= today)) {
-          actions.push({ icon: '🎯', text: `Follow up with ${p.business_name}`, badge: '🎯 pipeline', badgeColor: '#a78bfa' })
-        }
+  // Get vitrina tokens and slugs for sponsors
+  const sponsorMeta = new Map<string, { token: string; slug: string }>()
+  if (sponsors.length > 0) {
+    const supabase = await createSupabaseAdminClient()
+    const { data: sponsorRows } = await supabase
+      .from('places')
+      .select('id, slug, vitrina_token')
+      .in('id', sponsors.map(s => s.place_id))
+    for (const row of sponsorRows || []) {
+      if (row.vitrina_token && row.slug) {
+        sponsorMeta.set(row.id, { token: row.vitrina_token, slug: row.slug })
       }
     }
   }
 
-  // High unbilled leads
-  for (const u of unbilled.slice(0, 3)) {
-    if (u.lead_count >= 3) {
-      actions.push({ icon: '💰', text: `Invoice ${u.business_name} ($${(u.total_cents / 100).toFixed(0)}, ${u.lead_count} leads)`, badge: '💰 revenue', badgeColor: '#4ade80' })
-    }
-  }
-
-  // Events this week without posts
-  const oneWeek = new Date(Date.now() + 7 * 86400000).toISOString()
-  for (const e of events) {
-    if (e.start_time <= oneWeek) {
-      actions.push({ icon: '📝', text: `Create post for ${e.title}`, badge: '📷 content', badgeColor: '#38bdf8' })
-    }
-  }
-
-  const displayActions = actions.slice(0, 8)
+  const totalUnbilled = unbilled.reduce((sum, u) => sum + u.total_cents, 0)
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-6">Command Center</h1>
+      <h1 className="text-2xl font-bold mb-2">Revenue Co-Pilot</h1>
+      <p className="text-[#64748b] text-sm mb-6">Acciones que mueven dinero — hoy.</p>
 
-      {/* Action Queue */}
-      {displayActions.length > 0 && (
-        <div className="bg-[#f87171]/10 border border-[#f87171]/30 rounded-xl p-5 mb-6">
-          <h2 className="text-sm font-semibold text-[#f87171] uppercase tracking-wider mb-3">
-            Action Queue ({displayActions.length})
-          </h2>
-          <div className="space-y-2">
-            {displayActions.map((a, i) => (
-              <div key={i} className="flex items-center gap-3 text-sm">
-                <span className="text-lg">{a.icon}</span>
-                <span className="flex-1 font-medium">{a.text}</span>
-                <span
-                  className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full"
-                  style={{ backgroundColor: a.badgeColor + '22', color: a.badgeColor }}
-                >
-                  {a.badge}
-                </span>
+      {/* KPI Strip */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+        <KPI label="Sin cobrar" value={`$${(totalUnbilled / 100).toFixed(0)}`} color="red" sub={`${unbilled.length} negocios`} />
+        <KPI label="Sponsors" value={overview.active_sponsors} color="yellow" />
+        <KPI label="Leads (7d)" value={overview.total_leads_7d} color="green" />
+        <KPI label="Oportunidades" value={opportunities.length} color="sky" sub="free con demanda" />
+      </div>
+
+      {/* Block 1 — COBRA HOY */}
+      <section className="bg-[#1e293b] rounded-xl border border-[#334155] p-5 mb-6">
+        <div className="flex items-center gap-2 mb-4">
+          <span className="text-lg">💰</span>
+          <h2 className="text-sm font-semibold text-[#f87171] uppercase tracking-wider">Cobra Hoy</h2>
+          {totalUnbilled > 0 && (
+            <span className="ml-auto text-lg font-bold text-[#f87171]">${(totalUnbilled / 100).toFixed(0)} sin cobrar</span>
+          )}
+        </div>
+        {unbilled.length === 0 ? (
+          <p className="text-[#64748b] text-sm">Todo cobrado. 🎉</p>
+        ) : (
+          <div className="space-y-3">
+            {unbilled.slice(0, 8).map((u) => {
+              const daysSince = Math.floor((Date.now() - new Date(u.newest).getTime()) / 86400000)
+              return (
+                <div key={u.business_id} className="flex items-center gap-3 flex-wrap">
+                  <div className="flex-1 min-w-0">
+                    <span className="font-medium text-sm">{u.business_name}</span>
+                    <span className="text-[#64748b] text-xs ml-2">{u.lead_count} leads · ${(u.total_cents / 100).toFixed(0)}</span>
+                    {daysSince >= 7 && (
+                      <span className="ml-2 text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-[#f87171]/20 text-[#f87171]">
+                        {daysSince}d sin cobrar
+                      </span>
+                    )}
+                  </div>
+                  <CopyMessageButton
+                    template={COLLECT_TEMPLATE}
+                    variables={{
+                      name: u.business_name,
+                      lead_count: u.lead_count,
+                      category: '',
+                      amount: (u.total_cents / 100).toFixed(0),
+                    }}
+                  />
+                </div>
+              )
+            })}
+          </div>
+        )}
+      </section>
+
+      {/* Block 2 — PITCHEA HOY */}
+      <section className="bg-[#1e293b] rounded-xl border border-[#334155] p-5 mb-6">
+        <div className="flex items-center gap-2 mb-4">
+          <span className="text-lg">🎯</span>
+          <h2 className="text-sm font-semibold text-[#a78bfa] uppercase tracking-wider">Pitchea Hoy</h2>
+        </div>
+        {opportunities.length === 0 ? (
+          <p className="text-[#64748b] text-sm">No hay oportunidades con 3+ leads ahora mismo.</p>
+        ) : (
+          <div className="space-y-3">
+            {opportunities.slice(0, 5).map((o) => (
+              <div key={o.place_id} className="flex items-center gap-3 flex-wrap">
+                <div className="flex-1 min-w-0">
+                  <span className="font-medium text-sm">{o.name}</span>
+                  <span className="text-[#64748b] text-xs ml-2">{o.category}</span>
+                  <span className="text-[#4ade80] text-xs ml-2">{o.lead_count} leads gratis · ${(o.total_value_cents / 100).toFixed(0)} valor</span>
+                </div>
+                <CopyMessageButton
+                  template={PITCH_TEMPLATE}
+                  variables={{
+                    name: o.name,
+                    search_count: o.lead_count,
+                    category: o.category || '',
+                    match_count: o.lead_count,
+                  }}
+                  label="Copiar pitch"
+                />
               </div>
             ))}
           </div>
+        )}
+      </section>
+
+      {/* Block 3 — RETENCIÓN */}
+      <section className="bg-[#1e293b] rounded-xl border border-[#334155] p-5 mb-6">
+        <div className="flex items-center gap-2 mb-4">
+          <span className="text-lg">📊</span>
+          <h2 className="text-sm font-semibold text-[#fbbf24] uppercase tracking-wider">Retención</h2>
         </div>
-      )}
+        {sponsors.length === 0 ? (
+          <p className="text-[#64748b] text-sm">No hay sponsors activos.</p>
+        ) : (
+          <div className="space-y-3">
+            {sponsors.map((s) => {
+              const health = s.leads_30d > 0 && s.profile_completeness >= 80 ? 'green'
+                : (s.leads_30d === 0 && s.profile_completeness < 60) ? 'red'
+                : 'yellow'
+              const healthEmoji = health === 'green' ? '🟢' : health === 'yellow' ? '🟡' : '🔴'
+              const meta = sponsorMeta.get(s.place_id)
+              return (
+                <div key={s.place_id} className="flex items-center gap-3 flex-wrap">
+                  <span>{healthEmoji}</span>
+                  <div className="flex-1 min-w-0">
+                    <span className="font-medium text-sm">{s.name}</span>
+                    <span className="text-[#64748b] text-xs ml-2">
+                      {s.leads_30d} leads/30d · {s.profile_completeness}% perfil
+                    </span>
+                  </div>
+                  {meta && (
+                    <CopyVitrinaLink slug={meta.slug} token={meta.token} />
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        )}
+      </section>
 
-      {/* KPI Strip */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
-        <KPI label="Total Places" value={overview.total_places} color="sky" />
-        <KPI label="Published" value={overview.places_published} color="sky" />
-        <KPI label="Sponsors" value={overview.active_sponsors} color="yellow" />
-        <KPI label="Users (7d)" value={overview.unique_users_7d} color="green" />
-        <KPI label="Leads (7d)" value={overview.total_leads_7d} color="green" />
-        <KPI label="Unbilled" value={`$${(overview.unbilled_leads_total / 100).toFixed(0)}`} color="red" sub={`${overview.unbilled_leads_count} leads`} />
-      </div>
-
-      {/* Trending */}
-      {trending.length > 0 && (
-        <div className="bg-[#1e293b] rounded-xl border border-[#334155] p-5 mb-6">
-          <h2 className="text-sm font-semibold text-[#94a3b8] uppercase tracking-wider mb-3">Trending This Week</h2>
-          <div className="flex flex-wrap gap-2">
-            {trending.map((t, i) => (
-              <span key={i} className="bg-[#334155] px-3 py-1.5 rounded-lg text-sm">
-                {t.emoji} {t.category} <span className="text-[#38bdf8] font-semibold">{t.count}</span>
-              </span>
+      {/* Noelia Section — PENDIENTE FOTOS */}
+      {missingPhotos.length > 0 && (
+        <section className="bg-[#1e293b] rounded-xl border border-[#334155] p-5">
+          <div className="flex items-center gap-2 mb-4">
+            <span className="text-lg">📷</span>
+            <h2 className="text-sm font-semibold text-[#38bdf8] uppercase tracking-wider">Pendiente — Fotos</h2>
+            <span className="ml-auto text-xs text-[#64748b]">{missingPhotos.length} negocios sin foto</span>
+          </div>
+          <div className="space-y-2">
+            {missingPhotos.slice(0, 10).map((p) => (
+              <div key={p.id} className="flex items-center gap-3 text-sm">
+                <span className="flex-1 font-medium">{p.name}</span>
+                <span className="text-[#64748b] text-xs">{p.category}</span>
+                {p.sponsor_weight > 0 && (
+                  <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-[#fbbf24]/20 text-[#fbbf24]">
+                    sponsor
+                  </span>
+                )}
+              </div>
             ))}
           </div>
-        </div>
+        </section>
       )}
-
-      {/* Data Health */}
-      <div className="bg-[#1e293b] rounded-xl border border-[#334155] p-5">
-        <h2 className="text-sm font-semibold text-[#94a3b8] uppercase tracking-wider mb-3">Data Health</h2>
-        <div className="space-y-2">
-          <HealthBar label="GPS Coordinates" value={overview.places_with_gps} total={overview.total_places} />
-          <HealthBar label="Descriptions" value={overview.places_with_description} total={overview.total_places} />
-          <HealthBar label="Phone Numbers" value={overview.places_with_phone} total={overview.total_places} />
-          <HealthBar label="Images" value={overview.places_with_image} total={overview.total_places} />
-          <HealthBar label="Websites" value={overview.places_with_website} total={overview.total_places} />
-          <HealthBar label="Embeddings" value={overview.places_with_embedding} total={overview.total_places} />
-        </div>
-      </div>
     </div>
   )
 }
 
 function KPI({ label, value, color, sub }: { label: string; value: string | number; color: string; sub?: string }) {
   const colors: Record<string, string> = {
-    sky: 'text-[#38bdf8]', green: 'text-[#4ade80]', yellow: 'text-[#fbbf24]', red: 'text-[#f87171]', orange: 'text-[#fb923c]',
+    sky: 'text-[#38bdf8]', green: 'text-[#4ade80]', yellow: 'text-[#fbbf24]', red: 'text-[#f87171]',
   }
   return (
     <div className="bg-[#1e293b] rounded-xl border border-[#334155] p-4">
       <div className="text-[10px] text-[#64748b] uppercase tracking-wider">{label}</div>
       <div className={`text-2xl font-bold mt-1 ${colors[color] || 'text-white'}`}>{value}</div>
       {sub && <div className="text-xs text-[#64748b] mt-0.5">{sub}</div>}
-    </div>
-  )
-}
-
-function HealthBar({ label, value, total }: { label: string; value: number; total: number }) {
-  const pct = total > 0 ? Math.round((value / total) * 100) : 0
-  const color = pct >= 80 ? '#4ade80' : pct >= 50 ? '#fbbf24' : '#f87171'
-  return (
-    <div className="flex items-center gap-3">
-      <span className="text-sm text-[#94a3b8] w-32 shrink-0">{label}</span>
-      <div className="flex-1 bg-[#334155] rounded-full h-2">
-        <div className="h-2 rounded-full transition-all" style={{ width: `${pct}%`, backgroundColor: color }} />
-      </div>
-      <span className="text-sm font-medium w-20 text-right" style={{ color }}>{value}/{total} ({pct}%)</span>
     </div>
   )
 }

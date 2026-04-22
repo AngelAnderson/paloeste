@@ -295,6 +295,93 @@ export async function updateConversationStatus(conversationId: string, status: s
   if (error) throw error
 }
 
+// === Vitrina / Revenue Co-Pilot Queries ===
+
+export async function getVitrinaToken(placeId: string): Promise<string | null> {
+  const supabase = await createSupabaseAdminClient()
+  const { data, error } = await supabase
+    .from('places')
+    .select('vitrina_token')
+    .eq('id', placeId)
+    .single()
+  if (error) return null
+  return data?.vitrina_token || null
+}
+
+export async function getPlaceBySlugWithToken(slug: string): Promise<{ id: string; name: string; slug: string; category: string; hero_image_url: string | null; phone: string | null; website: string | null; description: string | null; plan: string | null; sponsor_weight: number; google_rating: number | null; google_review_count: number | null; opening_hours: unknown; one_liner: string | null; vitrina_token: string | null } | null> {
+  const supabase = await createSupabaseAdminClient()
+  const { data, error } = await supabase
+    .from('places')
+    .select('id, name, slug, category, hero_image_url, phone, website, description, plan, sponsor_weight, google_rating, google_review_count, opening_hours, one_liner, vitrina_token')
+    .eq('slug', slug)
+    .single()
+  if (error) return null
+  return data
+}
+
+export async function getSponsorLeadsWeekly(placeId: string, weeks = 12): Promise<{ week_start: string; lead_count: number }[]> {
+  const supabase = await createSupabaseAdminClient()
+  const { data, error } = await supabase.rpc('get_sponsor_leads_weekly', { p_place_id: placeId, p_weeks: weeks })
+  if (error) throw error
+  return (data || []) as { week_start: string; lead_count: number }[]
+}
+
+export async function getCategoryPosition(placeId: string): Promise<{ rank: number; total: number; category: string; searches_30d: number } | null> {
+  const supabase = await createSupabaseAdminClient()
+  const { data, error } = await supabase.rpc('get_category_position', { p_place_id: placeId })
+  if (error) return null
+  const rows = data as { rank: number; total: number; category: string; searches_30d: number }[]
+  return rows?.[0] || null
+}
+
+export async function getSponsorLeadsTotal(placeId: string): Promise<{ total: number; by_channel: { channel: string; count: number }[] }> {
+  const supabase = await createSupabaseAdminClient()
+  const { data, error } = await supabase
+    .from('bot_leads')
+    .select('channel, created_at')
+    .eq('business_id', placeId)
+  if (error) throw error
+  const rows = data || []
+  const channelMap = new Map<string, number>()
+  for (const r of rows) {
+    const ch = r.channel || 'sms'
+    channelMap.set(ch, (channelMap.get(ch) || 0) + 1)
+  }
+  return {
+    total: rows.length,
+    by_channel: Array.from(channelMap.entries()).map(([channel, count]) => ({ channel, count })).sort((a, b) => b.count - a.count),
+  }
+}
+
+export async function getPlacesMissingPhotos(): Promise<{ id: string; name: string; category: string; address: string; sponsor_weight: number }[]> {
+  const supabase = await createSupabaseAdminClient()
+  const { data, error } = await supabase
+    .from('places')
+    .select('id, name, category, address, sponsor_weight')
+    .eq('status', 'open')
+    .eq('visibility', 'published')
+    .is('hero_image_url', null)
+    .order('sponsor_weight', { ascending: false })
+    .order('name')
+    .limit(20)
+  if (error) throw error
+  return (data || []) as { id: string; name: string; category: string; address: string; sponsor_weight: number }[]
+}
+
+export async function getProfileCompleteness(place: { hero_image_url: string | null; phone: string | null; website: string | null; description: string | null; opening_hours: unknown; google_rating: number | null }): Promise<{ score: number; missing: string[] }> {
+  const fields = [
+    { key: 'hero_image_url', label: 'Foto principal', val: place.hero_image_url },
+    { key: 'phone', label: 'Teléfono', val: place.phone },
+    { key: 'website', label: 'Website', val: place.website },
+    { key: 'description', label: 'Descripción', val: place.description },
+    { key: 'opening_hours', label: 'Horario', val: place.opening_hours },
+    { key: 'google_rating', label: 'Google Rating', val: place.google_rating },
+  ]
+  const missing = fields.filter(f => !f.val).map(f => f.label)
+  const score = Math.round(((fields.length - missing.length) / fields.length) * 100)
+  return { score, missing }
+}
+
 export async function getUpcomingEventsWithoutContent(): Promise<{ id: string; title: string; start_time: string; category: string; location_name: string }[]> {
   const supabase = await createSupabaseAdminClient()
   const { data, error } = await supabase
