@@ -14,7 +14,7 @@ export default async function AdminDashboard() {
   ])
 
   // Get vitrina tokens and slugs for sponsors
-  const sponsorMeta: Record<string, { token: string; slug: string }> = {}
+  const sponsorMeta: Record<string, { token: string; slug: string; phone: string | null }> = {}
   if (sponsors.length > 0) {
     const supabase = await createSupabaseAdminClient()
     const { data: sponsorRows } = await supabase
@@ -23,7 +23,7 @@ export default async function AdminDashboard() {
       .in('id', sponsors.map(s => s.place_id))
     for (const row of sponsorRows || []) {
       if (row.slug) {
-        sponsorMeta[row.id] = { token: row.vitrina_token || '', slug: row.slug }
+        sponsorMeta[row.id] = { token: row.vitrina_token || '', slug: row.slug, phone: row.phone || null }
       }
     }
   }

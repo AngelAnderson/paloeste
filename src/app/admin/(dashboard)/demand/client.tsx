@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import Link from "next/link";
+import { UserPlus } from "lucide-react";
 import {
   BarChart,
   Bar,
@@ -72,8 +73,34 @@ export function DemandDashboardClient({
   csvString: string;
 }) {
   const [tab, setTab] = useState<"money" | "queries" | "timing">("money");
+  const [addedToPipeline, setAddedToPipeline] = useState<Set<string>>(new Set());
+  const [adding, setAdding] = useState<string | null>(null);
   const data = insights;
   const s = data.summary;
+
+  const handleAddToPipeline = useCallback(async (biz: BizInsight) => {
+    setAdding(biz.id);
+    try {
+      const res = await fetch("/api/admin/prospects", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          place_id: biz.id,
+          business_name: biz.name,
+          contact_phone: biz.phone || null,
+          stage: "lead",
+          proposed_plan: "Vitrina Básica",
+          proposed_amount_cents: 79900,
+          notes: `Added from demand tab. ${biz.times_recommended} recommendations, ${biz.unique_users} unique users, category ${biz.category}.`,
+          next_action: `Contactar. Data: ${biz.times_recommended} recomendaciones, $${biz.estimated_value_usd} valor estimado.`,
+        }),
+      });
+      if (res.ok) {
+        setAddedToPipeline(prev => new Set([...prev, biz.id]));
+      }
+    } catch { /* ignore */ }
+    setAdding(null);
+  }, []);
 
   const freeBiz = (data.money_on_table || []).filter((b) => b.is_free);
   const freeRevenue = freeBiz.reduce(
@@ -226,23 +253,39 @@ export function DemandDashboardClient({
                         ${biz.estimated_value_usd}
                       </td>
                       <td className="py-2.5">
-                        {biz.is_free && biz.phone ? (
-                          <a
-                            href={`https://wa.me/${biz.phone.replace(/\D/g, "")}?text=${encodeURIComponent(`Hola, soy Angel de *7711. Tu negocio fue recomendado ${biz.times_recommended} veces este mes. ¿Te interesa saber más?`)}`}
-                            target="_blank"
-                            className="text-xs px-2 py-1 rounded bg-green-800 hover:bg-green-700 text-white transition-colors"
-                          >
-                            WhatsApp
-                          </a>
-                        ) : biz.is_free ? (
-                          <span className="text-xs text-[#64748b]">
-                            Sin tel
-                          </span>
-                        ) : (
-                          <span className="text-xs text-green-600">
-                            Activo
-                          </span>
-                        )}
+                        <div className="flex items-center gap-1.5">
+                          {biz.is_free && biz.phone ? (
+                            <a
+                              href={`https://wa.me/${biz.phone.replace(/\D/g, "")}?text=${encodeURIComponent(`Hola, soy Angel de *7711. Tu negocio fue recomendado ${biz.times_recommended} veces este mes. ¿Te interesa saber más?`)}`}
+                              target="_blank"
+                              className="text-xs px-2 py-1 rounded bg-green-800 hover:bg-green-700 text-white transition-colors"
+                            >
+                              WA
+                            </a>
+                          ) : biz.is_free ? (
+                            <span className="text-xs text-[#64748b]">
+                              Sin tel
+                            </span>
+                          ) : (
+                            <span className="text-xs text-green-600">
+                              Activo
+                            </span>
+                          )}
+                          {biz.is_free && !addedToPipeline.has(biz.id) && (
+                            <button
+                              onClick={() => handleAddToPipeline(biz)}
+                              disabled={adding === biz.id}
+                              className="text-xs px-2 py-1 rounded bg-[#38bdf8]/20 text-[#38bdf8] hover:bg-[#38bdf8]/30 transition-colors cursor-pointer disabled:opacity-50 flex items-center gap-1"
+                              title="Add to pipeline"
+                            >
+                              <UserPlus size={10} />
+                              Pipeline
+                            </button>
+                          )}
+                          {addedToPipeline.has(biz.id) && (
+                            <span className="text-xs text-[#4ade80]">✓ Added</span>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))}

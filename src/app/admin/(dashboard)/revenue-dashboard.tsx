@@ -35,7 +35,7 @@ export function RevenueDashboard({
   opportunities: ConversionOpportunity[]
   opPhones: Record<string, string | null>
   sponsors: SponsorROI[]
-  sponsorMeta: Record<string, { token: string; slug: string }>
+  sponsorMeta: Record<string, { token: string; slug: string; phone: string | null }>
   missingPhotos: { id: string; name: string; category: string; address: string; sponsor_weight: number }[]
   overview: AdminOverview
 }) {
@@ -64,8 +64,7 @@ export function RevenueDashboard({
     const msg = REFERRAL_TEMPLATE
       .replace('{name}', s.name)
       .replace('{category}', s.category || '')
-    // Use phone from sponsorMeta or null
-    setModal({ businessName: s.name, phone: null, message: msg })
+    setModal({ businessName: s.name, phone: meta?.phone || null, message: msg })
   }
 
   return (
@@ -214,9 +213,18 @@ export function RevenueDashboard({
                       </span>
                     </div>
                   </div>
-                  <div className="flex gap-2 ml-7">
+                  <div className="flex gap-2 ml-7 flex-wrap">
                     {meta?.token && (
                       <CopyVitrinaLink slug={meta.slug} token={meta.token} />
+                    )}
+                    {meta?.phone && (
+                      <button
+                        onClick={() => setModal({ businessName: s.name, phone: meta.phone, message: '' })}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-[#22c55e]/20 text-[#4ade80] hover:bg-[#22c55e]/30 transition-colors cursor-pointer"
+                      >
+                        <Send size={12} />
+                        Mensaje
+                      </button>
                     )}
                     <button
                       onClick={() => openSponsorMessage(s)}
@@ -225,6 +233,12 @@ export function RevenueDashboard({
                       <Send size={12} className="text-[#94a3b8]" />
                       <span className="text-[#94a3b8]">Pedir referido</span>
                     </button>
+                    <Link
+                      href="/admin/ventas/pipeline"
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-[#334155] hover:bg-[#475569] transition-colors"
+                    >
+                      <span className="text-[#94a3b8]">Pipeline →</span>
+                    </Link>
                   </div>
                 </div>
               )
