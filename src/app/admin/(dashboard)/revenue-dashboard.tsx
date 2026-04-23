@@ -2,13 +2,13 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Send, ExternalLink } from 'lucide-react'
+import { Send, ExternalLink, Clock, ChevronRight, AlertTriangle } from 'lucide-react'
 import { SendMessageModal } from '@/components/admin/send-message-modal'
 import { CopyVitrinaLink } from '@/components/admin/copy-vitrina-link'
 import { CopyMessageButton } from '@/components/admin/copy-message-button'
 import { LeadDetail } from '@/components/admin/lead-detail'
 import type { UnbilledBusiness } from '@/lib/admin-queries'
-import type { ConversionOpportunity, SponsorROI, AdminOverview } from '@/lib/types'
+import type { ConversionOpportunity, SponsorROI, AdminOverview, Prospect } from '@/lib/types'
 
 const COLLECT_TEMPLATE = 'Oye {name}, este mes El Veci te envió {lead_count} clientes buscando {category}. Son ${amount}. ¿Te paso el link de pago?'
 const PITCH_TEMPLATE = '{name}, el mes pasado {search_count} personas buscaron {category} en Cabo Rojo por El Veci. Tu negocio salió {match_count} veces. Con La Vitrina sales primero. Mira: chequeodenegocio.com'
@@ -29,6 +29,8 @@ export function RevenueDashboard({
   sponsorMeta,
   missingPhotos,
   overview,
+  followUps,
+  staleCount,
 }: {
   unbilled: UnbilledBusiness[]
   totalUnbilled: number
@@ -38,6 +40,8 @@ export function RevenueDashboard({
   sponsorMeta: Record<string, { token: string; slug: string; phone: string | null }>
   missingPhotos: { id: string; name: string; category: string; address: string; sponsor_weight: number }[]
   overview: AdminOverview
+  followUps: Prospect[]
+  staleCount: number
 }) {
   const [modal, setModal] = useState<ModalState | null>(null)
 
@@ -73,12 +77,95 @@ export function RevenueDashboard({
       <p className="text-[#64748b] text-sm mb-6">Acciones que mueven dinero — hoy.</p>
 
       {/* KPI Strip */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+      <div className={`grid grid-cols-2 ${followUps.length > 0 ? 'md:grid-cols-5' : 'md:grid-cols-4'} gap-3 mb-6`}>
         <KPI label="Sin cobrar" value={`$${(totalUnbilled / 100).toFixed(0)}`} color="red" sub={`${unbilled.length} negocios`} />
         <KPI label="Sponsors" value={overview.active_sponsors} color="yellow" />
         <KPI label="Leads (7d)" value={overview.total_leads_7d} color="green" />
         <KPI label="Oportunidades" value={opportunities.length} color="sky" sub="free con demanda" />
+        {followUps.length > 0 && (
+          <KPI label="Follow-ups" value={followUps.length} color="yellow" sub="pendientes hoy" />
+        )}
       </div>
+
+      {/* Block 0 — SEGUIMIENTO HOY */}
+      {followUps.length > 0 && (
+        <section className="bg-[#1e293b] rounded-xl border border-[#fbbf24]/30 p-5 mb-6">
+          <div className="flex items-center gap-2 mb-4">
+            <span className="text-lg">📞</span>
+            <h2 className="text-sm font-semibold text-[#fbbf24] uppercase tracking-wider">Seguimiento Hoy</h2>
+            <span className="ml-auto text-xs text-[#fbbf24] font-medium">{followUps.length} pendientes</span>
+            {staleCount > 0 && (
+              <span className="flex items-center gap-1 text-xs text-[#f87171]">
+                <AlertTriangle size={11} />
+                {staleCount} stale
+              </span>
+            )}
+          </div>
+          <div className="space-y-3">
+            {followUps.map((p) => {
+              const daysOverdue = Math.floor((Date.now() - new Date(p.next_action_date!).getTime()) / 86400000)
+              const stageColors: Record<string, string> = {
+                lead: '#64748b', contacted: '#38bdf8', pitched: '#fbbf24', negotiating: '#fb923c',
+              }
+              const stageColor = stageColors[p.stage.replace('closed_', '')] || '#64748b'
+              return (
+                <div key={p.id} className="flex items-start gap-3 p-3 rounded-lg bg-[#0f172a] border border-[#334155]">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span
+                        className="text-[10px] font-bold uppercase px-2 py-0.5 rounded"
+                        style={{ backgroundColor: stageColor + '30', color: stageColor }}
+                      >
+                        {p.stage.replace('closed_', '')}
+                      </span>
+                      <span className="font-semibold text-sm">{p.business_name}</span>
+                      {p.contact_name && <span className="text-xs text-[#64748b]">({p.contact_name})</span>}
+                      {daysOverdue > 0 && (
+                        <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-[#f87171]/20 text-[#f87171]">
+                          {daysOverdue}d overdue
+                        </span>
+                      )}
+                    </div>
+                    {p.next_action && (
+                      <p className="text-xs text-[#94a3b8] line-clamp-2">{p.next_action}</p>
+                    )}
+                    {p.proposed_plan && (
+                      <div className="text-xs text-[#64748b] mt-1">
+                        {p.proposed_plan}
+                        {p.proposed_amount_cents && (
+                          <span className="text-[#4ade80] font-semibold ml-1">
+                            ${(p.proposed_amount_cents / 100).toLocaleString()}
+                          </span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex flex-col gap-1.5 shrink-0">
+                    {p.contact_phone ? (
+                      <button
+                        onClick={() => setModal({ businessName: p.business_name, phone: p.contact_phone, message: '' })}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-[#22c55e]/20 text-[#4ade80] hover:bg-[#22c55e]/30 transition-colors cursor-pointer"
+                      >
+                        <Send size={12} />
+                        Mensaje
+                      </button>
+                    ) : (
+                      <span className="text-[10px] text-[#475569]">Sin tel</span>
+                    )}
+                    <Link
+                      href="/admin/ventas/pipeline"
+                      className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium bg-[#334155] hover:bg-[#475569] transition-colors text-[#94a3b8]"
+                    >
+                      <ChevronRight size={10} />
+                      Pipeline
+                    </Link>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </section>
+      )}
 
       {/* Block 1 — COBRA HOY */}
       <section className="bg-[#1e293b] rounded-xl border border-[#334155] p-5 mb-6">

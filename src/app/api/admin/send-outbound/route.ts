@@ -133,5 +133,51 @@ export async function POST(req: NextRequest) {
     })
     .eq('id', conversationId)
 
-  return NextResponse.json({ success: true, sid: twilioData.sid, conversationId })
+  // Auto-track in pipeline: if this phone matches a business, ensure a prospect exists
+  const { data: matchedPlace } = await supabase
+    .from('places')
+    .select('id, name, category')
+    .eq('phone', phoneE164)
+    .eq('status', 'open')
+    .limit(1)
+    .maybeSingle()
+
+  let prospectId: string | null = null
+  if (matchedPlace) {
+    // Check if prospect already exists for this place
+    const { data: existingProspect } = await supabase
+      .from('prospects')
+      .select('id')
+      .eq('place_id', matchedPlace.id)
+      .limit(1)
+      .maybeSingle()
+
+    if (existingProspect) {
+      // Update last_contact_at
+      await supabase
+        .from('prospects')
+        .update({ last_contact_at: new Date().toISOString(), updated_at: new Date().toISOString() })
+        .eq('id', existingProspect.id)
+      prospectId = existingProspect.id
+    } else {
+      // Auto-create prospect
+      const { data: newProspect } = await supabase
+        .from('prospects')
+        .insert({
+          place_id: matchedPlace.id,
+          business_name: matchedPlace.name,
+          contact_phone: phoneE164,
+          stage: 'contacted',
+          last_contact_at: new Date().toISOString(),
+          notes: `Auto-created from admin outbound ${channel} message.`,
+          next_action: 'Esperar respuesta. Follow up en 7 días si no contesta.',
+          next_action_date: new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10),
+        })
+        .select('id')
+        .maybeSingle()
+      prospectId = newProspect?.id || null
+    }
+  }
+
+  return NextResponse.json({ success: true, sid: twilioData.sid, conversationId, prospectId })
 }
