@@ -10,7 +10,7 @@ import { BOT_PHONE, CONTACT_WHATSAPP, CATEGORIES, SITE_URL } from "@/lib/constan
 export const revalidate = 3600
 
 const VITRINA_PRICE = 799
-const LEAD_VALUE = 3.5
+const LEAD_VALUE = 2.15
 
 const CAT_LABEL: Record<string, string> = {}
 CATEGORIES.forEach((c) => { CAT_LABEL[c.id] = c.label_es })
