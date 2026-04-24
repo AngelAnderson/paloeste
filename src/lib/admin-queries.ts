@@ -1,5 +1,5 @@
 import { createSupabaseAdminClient } from './supabase-server'
-import type { AdminOverview, ConversionOpportunity, RevenueMonth, AdminPlace, Prospect, BotIntelligence, SponsorROI, InboxConversation, InboxMessage, InboxContact } from './types'
+import type { AdminOverview, ConversionOpportunity, RevenueMonth, AdminPlace, Prospect, BotIntelligence, SponsorROI, InboxConversation, InboxMessage, InboxContact, Relationship, RelationshipHistoryEntry, OverdueRelationship } from './types'
 
 // Demand Intelligence
 export async function getDemandInsights() {
@@ -470,4 +470,58 @@ export async function getUpcomingEventsWithoutContent(): Promise<{ id: string; t
     .order('start_time', { ascending: true })
   if (error) throw error
   return (data || []) as { id: string; title: string; start_time: string; category: string; location_name: string }[]
+}
+
+
+// ==========================================================================
+// Relationships (Relationship Engine)
+// ==========================================================================
+
+export async function getRelationships(filter?: {
+  type?: string
+  activeOnly?: boolean
+}): Promise<Relationship[]> {
+  const supabase = await createSupabaseAdminClient()
+  let q = supabase.from('relationships').select('*')
+  if (filter?.activeOnly ?? true) q = q.eq('active', true)
+  if (filter?.type && filter.type !== 'all') q = q.eq('type', filter.type)
+  const { data, error } = await q.order('updated_at', { ascending: false })
+  if (error) throw new Error(error.message)
+  return data as Relationship[]
+}
+
+export async function getOverdueRelationships(): Promise<OverdueRelationship[]> {
+  const supabase = await createSupabaseAdminClient()
+  const { data, error } = await supabase.rpc('get_overdue_relationships')
+  if (error) throw new Error(error.message)
+  return data as OverdueRelationship[]
+}
+
+export async function getRelationshipHistory(
+  relationship_id: string
+): Promise<RelationshipHistoryEntry[]> {
+  const supabase = await createSupabaseAdminClient()
+  const { data, error } = await supabase
+    .from('relationship_history')
+    .select('*')
+    .eq('relationship_id', relationship_id)
+    .order('logged_at', { ascending: false })
+  if (error) throw new Error(error.message)
+  return data as RelationshipHistoryEntry[]
+}
+
+export async function logRelationshipContact(
+  rel_id: string,
+  action: string,
+  notes?: string
+): Promise<string> {
+  const supabase = await createSupabaseAdminClient()
+  const { data, error } = await supabase.rpc('log_relationship_contact', {
+    rel_id,
+    action_text: action,
+    notes_text: notes ?? null,
+    logged_by_val: 'paloeste_admin',
+  })
+  if (error) throw new Error(error.message)
+  return data as string
 }

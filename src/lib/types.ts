@@ -24,7 +24,9 @@ export interface Place {
   hero_image_url?: string;
   phone: string;
   website?: string;
-  status: "open" | "closed" | "pending";
+  municipality?: string;
+  municipality_id?: number;
+  status: "open" | "closed" | "pending" | "duplicate_removed";
   plan: "free" | "basic" | "pro" | "enterprise";
   sponsor_weight: number;
   is_featured: boolean;
@@ -121,6 +123,8 @@ export interface AdminPlace {
   name: string
   slug: string
   category: string
+  municipality?: string | null
+  municipality_id?: number | null
   plan: string | null
   sponsor_weight: number
   is_featured: boolean
@@ -153,6 +157,72 @@ export interface Prospect {
   last_contact_at: string | null
   created_at: string
   updated_at: string
+}
+
+export type RelationshipType =
+  | 'personal'
+  | 'prospect'
+  | 'client'
+  | 'partner'
+  | 'cold'
+  | 'inbound_lead'
+
+export type RelationshipCadence =
+  | 'daily'
+  | 'weekly'
+  | 'biweekly'
+  | 'monthly'
+  | 'quarterly'
+  | 'none'
+
+export type RelationshipContactMethod =
+  | 'whatsapp'
+  | 'sms'
+  | 'in_person'
+  | 'call'
+  | 'email'
+
+export interface Relationship {
+  id: string
+  name: string
+  type: RelationshipType
+  place_id: string | null
+  prospect_id: string | null
+  contact_phone: string | null
+  contact_method: RelationshipContactMethod | null
+  cadence: RelationshipCadence
+  last_contact_at: string | null
+  next_action: string | null
+  next_action_date: string | null
+  content_cadence: string | null
+  revenue_potential_cents: number | null
+  tags: string[]
+  notes: string | null
+  active: boolean
+  created_at: string
+  updated_at: string
+}
+
+export interface RelationshipHistoryEntry {
+  id: string
+  relationship_id: string
+  action: string
+  notes: string | null
+  year: number
+  logged_at: string
+  logged_by: string
+}
+
+export interface OverdueRelationship {
+  id: string
+  name: string
+  type: RelationshipType
+  last_contact_at: string | null
+  days_since_contact: number
+  cadence: RelationshipCadence
+  next_action: string | null
+  revenue_potential_cents: number | null
+  contact_phone: string | null
 }
 
 export interface BotIntelligence {
