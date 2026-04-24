@@ -344,32 +344,32 @@ export default async function VitrinaPage({
 
                 <div className="grid grid-cols-3 gap-4 max-w-lg mx-auto">
                   <Link
-                    href={`${CONTACT_WHATSAPP}?text=${encodeURIComponent(`Quiero La Vitrina mensual ($89) para ${place.name}`)}`}
+                    href={`${CONTACT_WHATSAPP}?text=${encodeURIComponent(`Quiero probar Boost 7 días ($29) para ${place.name}`)}`}
                     target="_blank"
                     className="border border-po-border rounded-xl p-4 text-center hover:border-stone-400 transition-colors"
                   >
-                    <p className="text-2xl font-black text-stone-900">$89</p>
-                    <p className="text-stone-500 text-xs">por mes</p>
+                    <p className="text-2xl font-black text-stone-900">$29</p>
+                    <p className="text-stone-500 text-xs">Boost 7 d{"í"}as</p>
                   </Link>
                   <Link
-                    href={`${CONTACT_WHATSAPP}?text=${encodeURIComponent(`Quiero La Vitrina 90 días ($229) para ${place.name}`)}`}
+                    href={`${CONTACT_WHATSAPP}?text=${encodeURIComponent(`Quiero La Vitrina Básica ($799/año) para ${place.name}`)}`}
                     target="_blank"
                     className="border-2 border-red-600 rounded-xl p-4 text-center relative hover:bg-red-50 transition-colors"
                   >
                     <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">
                       Popular
                     </span>
-                    <p className="text-2xl font-black text-stone-900">$229</p>
-                    <p className="text-stone-500 text-xs">90 d{"í"}as</p>
+                    <p className="text-2xl font-black text-stone-900">$799</p>
+                    <p className="text-stone-500 text-xs">B{"á"}sica / a{"ñ"}o</p>
+                    <p className="text-green-600 text-[10px] font-medium">${dailyCost}/d{"í"}a</p>
                   </Link>
                   <Link
-                    href={`${CONTACT_WHATSAPP}?text=${encodeURIComponent(`Quiero La Vitrina anual ($799) para ${place.name}`)}`}
+                    href={`${CONTACT_WHATSAPP}?text=${encodeURIComponent(`Quiero Vitrina + Veci ($1,800/año) para ${place.name}`)}`}
                     target="_blank"
                     className="border border-po-border rounded-xl p-4 text-center hover:border-stone-400 transition-colors"
                   >
-                    <p className="text-2xl font-black text-stone-900">$799</p>
-                    <p className="text-stone-500 text-xs">por a{"ñ"}o</p>
-                    <p className="text-green-600 text-[10px] font-medium">${dailyCost}/d{"í"}a</p>
+                    <p className="text-2xl font-black text-stone-900">$1,800</p>
+                    <p className="text-stone-500 text-xs">+ Veci / a{"ñ"}o</p>
                   </Link>
                 </div>
 
