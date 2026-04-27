@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
 import type { Relationship, OverdueRelationship } from '@/lib/types'
 import { RelationshipPanel } from '@/components/admin/relationship-panel'
 
@@ -15,8 +16,17 @@ export function RelationshipsList({
   initial: Relationship[]
   initialOverdue: OverdueRelationship[]
 }) {
+  const searchParams = useSearchParams()
   const [tab, setTab] = useState<Tab>('all')
   const [selected, setSelected] = useState<Relationship | null>(null)
+
+  useEffect(() => {
+    const id = searchParams.get('id')
+    if (id) {
+      const found = initial.find(r => r.id === id)
+      if (found) setSelected(found)
+    }
+  }, [searchParams, initial])
 
   const filtered = useMemo(() => {
     if (tab === 'all') return initial
@@ -36,7 +46,7 @@ export function RelationshipsList({
   return (
     <div className="p-6">
       <div className="flex items-center justify-between mb-4">
-        <h1 className="text-2xl font-bold">Relaciones</h1>
+        <h1 className="text-2xl font-bold">Contactos</h1>
         <div className="text-sm text-gray-500">
           {initial.length} activas · {initialOverdue.length} overdue
         </div>

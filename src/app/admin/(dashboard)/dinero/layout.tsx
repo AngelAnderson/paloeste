@@ -4,28 +4,24 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
 const TABS = [
-  { href: '/admin/ventas', label: 'Dashboard' },
-  { href: '/admin/ventas/sponsors', label: 'Sponsors' },
-  { href: '/admin/ventas/pipeline', label: 'Pipeline' },
-  { href: '/admin/ventas/vitrina', label: 'Vitrina' },
-  { href: '/admin/ventas/demand', label: 'Demand' },
+  { href: '/admin/dinero', label: 'Dashboard' },
+  { href: '/admin/revenue', label: 'Revenue Detail' },
 ]
 
-export default function VentasLayout({ children }: { children: React.ReactNode }) {
+export default function DineroLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
 
   return (
     <div>
       <div className="mb-6">
-        <h1 className="text-2xl font-bold">Ventas</h1>
-        <p className="text-[#64748b] text-sm">Revenue, sponsors, pipeline, demand signals</p>
+        <h1 className="text-2xl font-bold">Dinero</h1>
+        <p className="text-[#64748b] text-sm">Revenue, MRR, Stripe</p>
       </div>
 
-      {/* Sub-tabs */}
       <div className="flex gap-1 mb-6 bg-[#1e293b] rounded-lg p-1 w-fit overflow-x-auto">
         {TABS.map(t => {
-          const active = t.href === '/admin/ventas'
-            ? pathname === '/admin/ventas'
+          const active = t.href === '/admin/dinero'
+            ? pathname === '/admin/dinero'
             : pathname.startsWith(t.href)
           return (
             <Link

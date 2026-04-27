@@ -8,10 +8,11 @@ import { createSupabaseBrowserClient } from '@/lib/supabase-browser'
 const NAV = [
   { href: '/admin', label: 'Command Center', icon: '\u26A1' },
   { href: '/admin/inbox', label: 'Inbox', icon: '\uD83D\uDCAC' },
-  { href: '/admin/relationships', label: 'Relaciones', icon: '\u2764\uFE0F' },
+  { href: '/admin/contactos', label: 'Contactos', icon: '\u2764\uFE0F' },
+  { href: '/admin/pipeline', label: 'Pipeline', icon: '\uD83C\uDFAF' },
+  { href: '/admin/dinero', label: 'Dinero', icon: '\uD83D\uDCB0' },
   { href: '/admin/bot', label: 'Bot Health', icon: '\uD83E\uDD16' },
   { href: '/admin/directorio', label: 'Directorio', icon: '\uD83D\uDCCD' },
-  { href: '/admin/ventas', label: 'Ventas', icon: '\uD83D\uDCB0' },
   { href: '/admin/content', label: 'Contenido', icon: '\uD83D\uDCDD' },
   { href: '/admin/docs', label: 'Docs', icon: '\uD83D\uDCDA' },
 ]

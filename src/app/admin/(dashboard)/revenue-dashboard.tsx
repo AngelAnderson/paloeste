@@ -153,7 +153,7 @@ export function RevenueDashboard({
                       <span className="text-[10px] text-[#475569]">Sin tel</span>
                     )}
                     <Link
-                      href="/admin/ventas/pipeline"
+                      href="/admin/pipeline"
                       className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium bg-[#334155] hover:bg-[#475569] transition-colors text-[#94a3b8]"
                     >
                       <ChevronRight size={10} />
@@ -321,7 +321,7 @@ export function RevenueDashboard({
                       <span className="text-[#94a3b8]">Pedir referido</span>
                     </button>
                     <Link
-                      href="/admin/ventas/pipeline"
+                      href="/admin/pipeline"
                       className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-[#334155] hover:bg-[#475569] transition-colors"
                     >
                       <span className="text-[#94a3b8]">Pipeline →</span>
