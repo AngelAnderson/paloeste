@@ -64,12 +64,14 @@ export function InboxView({ initialConversations }: InboxViewProps) {
 
     if (!res.ok) {
       const err = await res.json().catch(() => ({}))
-      throw new Error(err.error || err.details?.message || 'Error al enviar')
+      const code = err.twilio_code ? ` [Twilio ${err.twilio_code}]` : ''
+      throw new Error((err.error || err.details?.message || 'Error al enviar') + code)
     }
 
     const result = await res.json()
+    const channelUsed: 'whatsapp' | 'sms' = result.channel_used || sendChannel
 
-    // Optimistically add message to thread
+    // Optimistically add message to thread (use post-fallback channel)
     const now = new Date().toISOString()
     const botNumber = '+17874177711'
     setMessages(prev => [...prev, {
@@ -79,13 +81,19 @@ export function InboxView({ initialConversations }: InboxViewProps) {
       body,
       intent: 'manual_reply',
       source: 'admin',
-      channel: sendChannel,
+      channel: channelUsed,
       from: botNumber,
       to,
       created_at: now,
       status: 'sent',
       error_code: null,
     }])
+
+    // Surface fallback note (e.g., "Enviado por SMS porque la ventana WA expiró")
+    if (result.fallback_reason) {
+      // Quick UX: alert. TODO upgrade to a proper toast component.
+      setTimeout(() => alert(`✓ ${result.fallback_reason}`), 50)
+    }
 
     // Update conversation preview in list
     setConversations(prev => prev.map(c =>
