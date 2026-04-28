@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { createSupabaseBrowserClient } from '@/lib/supabase-browser'
+import type { AdminBadges } from '@/lib/admin-badges'
 
 const NAV = [
   { href: '/admin', label: 'Command Center', icon: '\u26A1' },
@@ -17,7 +18,7 @@ const NAV = [
   { href: '/admin/docs', label: 'Docs', icon: '\uD83D\uDCDA' },
 ]
 
-export function AdminShell({ children }: { children: React.ReactNode }) {
+export function AdminShell({ children, badges = {} }: { children: React.ReactNode; badges?: AdminBadges }) {
   const pathname = usePathname()
   const router = useRouter()
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -40,6 +41,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           const active = item.href === '/admin'
             ? pathname === '/admin'
             : pathname.startsWith(item.href)
+          const count = badges[item.href] || 0
           return (
             <Link
               key={item.href}
@@ -52,7 +54,17 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
               }`}
             >
               <span className="text-base">{item.icon}</span>
-              {item.label}
+              <span className="flex-1">{item.label}</span>
+              {count > 0 && (
+                <span
+                  className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center ${
+                    active ? 'bg-[#38bdf8] text-[#0f172a]' : 'bg-[#f87171] text-white'
+                  }`}
+                  aria-label={`${count} pendientes`}
+                >
+                  {count > 99 ? '99+' : count}
+                </span>
+              )}
             </Link>
           )
         })}

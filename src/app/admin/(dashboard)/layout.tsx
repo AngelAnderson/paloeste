@@ -1,5 +1,9 @@
 import { AdminShell } from '@/components/admin/admin-shell'
+import { getAdminBadges } from '@/lib/admin-badges'
 
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  return <AdminShell>{children}</AdminShell>
+export const dynamic = 'force-dynamic'
+
+export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
+  const badges = await getAdminBadges().catch(() => ({}))
+  return <AdminShell badges={badges}>{children}</AdminShell>
 }
