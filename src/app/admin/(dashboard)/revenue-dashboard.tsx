@@ -7,6 +7,8 @@ import { SendMessageModal } from '@/components/admin/send-message-modal'
 import { CopyVitrinaLink } from '@/components/admin/copy-vitrina-link'
 import { CopyMessageButton } from '@/components/admin/copy-message-button'
 import { LeadDetail } from '@/components/admin/lead-detail'
+import { TopThreeHero } from '@/components/admin/top-three-hero'
+import { rankActions, type RankedAction } from '@/lib/admin-action-ranker'
 import type { UnbilledBusiness } from '@/lib/admin-queries'
 import type { ConversionOpportunity, SponsorROI, AdminOverview, Prospect } from '@/lib/types'
 
@@ -71,10 +73,41 @@ export function RevenueDashboard({
     setModal({ businessName: s.name, phone: meta?.phone || null, message: msg })
   }
 
+  function handleHeroAction(action: RankedAction) {
+    if (action.payload.type === 'follow_up') {
+      const p = action.payload.prospect
+      if (p.contact_phone) {
+        setModal({ businessName: p.business_name, phone: p.contact_phone, message: p.next_action || '' })
+      }
+      return
+    }
+    if (action.payload.type === 'unbilled') {
+      openCollect(action.payload.unbilled)
+      return
+    }
+    if (action.payload.type === 'pitch') {
+      openPitch(action.payload.opportunity)
+      return
+    }
+    if (action.payload.type === 'sponsor_risk') {
+      openSponsorMessage(action.payload.sponsor)
+      return
+    }
+  }
+
+  const rankedActions = rankActions({
+    followUps,
+    unbilled,
+    opportunities,
+    sponsors,
+  })
+
   return (
     <div>
       <h1 className="text-2xl font-bold mb-2">Revenue Co-Pilot</h1>
       <p className="text-[#64748b] text-sm mb-6">Acciones que mueven dinero — hoy.</p>
+
+      <TopThreeHero actions={rankedActions} onAction={handleHeroAction} />
 
       {/* KPI Strip */}
       <div className={`grid grid-cols-2 ${followUps.length > 0 ? 'md:grid-cols-5' : 'md:grid-cols-4'} gap-3 mb-6`}>
