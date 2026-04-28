@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { createSupabaseBrowserClient } from '@/lib/supabase-browser'
 
 export default function AdminLogin() {
@@ -10,6 +10,7 @@ export default function AdminLogin() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const router = useRouter()
+  const searchParams = useSearchParams()
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault()
@@ -21,7 +22,9 @@ export default function AdminLogin() {
       setError(error.message)
       setLoading(false)
     } else {
-      router.push('/admin')
+      const next = searchParams.get('next')
+      const safeNext = next && next.startsWith('/admin') && !next.startsWith('/admin/login') ? next : '/admin'
+      router.push(safeNext)
       router.refresh()
     }
   }
