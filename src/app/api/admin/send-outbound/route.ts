@@ -277,11 +277,31 @@ export async function POST(req: NextRequest) {
     }
   }
 
+  // Auto-update relationship last_contact_at if phone matches an active relationship.
+  // This is what keeps inbound leads from re-appearing in the daily digest after
+  // Angel responds (digest's get_inbound_leads_unanswered reads last_contact_at).
+  const { data: matchedRel } = await supabase
+    .from('relationships')
+    .select('id')
+    .eq('contact_phone', phoneE164)
+    .eq('active', true)
+    .maybeSingle()
+
+  if (matchedRel) {
+    await supabase.rpc('log_relationship_contact', {
+      rel_id: matchedRel.id,
+      action_text: effectiveChannel === 'whatsapp' ? 'WhatsApp enviado' : 'SMS enviado',
+      notes_text: body.slice(0, 200),
+      logged_by_val: 'admin_outbound_auto',
+    })
+  }
+
   return NextResponse.json({
     success: true,
     sid: twilioData.sid,
     conversationId,
     prospectId,
+    relationshipId: matchedRel?.id ?? null,
     channel_used: effectiveChannel,
     fallback_reason: fallbackReason,
   })

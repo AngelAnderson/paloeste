@@ -56,19 +56,10 @@ export function ComposeForm({
         throw new Error(`${data.error || 'Send failed'}${code}`)
       }
 
-      const channelUsed: 'whatsapp' | 'sms' = data.channel_used || channel
       if (data.fallback_reason) setFallbackNote(data.fallback_reason)
 
-      if (contextId) {
-        await fetch(`/api/admin/relationships/${contextId}/log`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            action: channelUsed === 'whatsapp' ? 'WhatsApp enviado' : 'SMS enviado',
-            notes: body.trim().slice(0, 200),
-          }),
-        }).catch(() => {})
-      }
+      // Server auto-logs relationship contact when phone matches an active relationship,
+      // so no client-side log call needed. Single source of truth = send-outbound route.
 
       setSent(true)
       // If fallback fired, give the user a beat to read the note before redirect
