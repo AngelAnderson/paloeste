@@ -79,42 +79,98 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Twilio credentials not configured' }, { status: 500 })
   }
 
-  const isWhatsApp = channel === 'whatsapp'
+  // Apr 28 2026 fix: WA messages outside the 24h session window fail with Twilio 63016.
+  // Check the most recent inbound from this contact; if >24h, downgrade WA → SMS automatically
+  // and surface the fallback in the response so the UI can show a toast.
+  let effectiveChannel: 'sms' | 'whatsapp' = channel === 'whatsapp' ? 'whatsapp' : 'sms'
+  let fallbackReason: string | null = null
+
+  if (effectiveChannel === 'whatsapp') {
+    const { data: lastInbound } = await supabase
+      .from('messages')
+      .select('created_at')
+      .eq('conversation_id', conversationId)
+      .eq('direction', 'inbound')
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+
+    if (lastInbound?.created_at) {
+      const ageMs = Date.now() - new Date(lastInbound.created_at).getTime()
+      if (ageMs > 24 * 60 * 60 * 1000) {
+        effectiveChannel = 'sms'
+        const days = Math.floor(ageMs / (24 * 60 * 60 * 1000))
+        fallbackReason = `Ventana de WhatsApp cerrada (último inbound hace ${days}d). Enviado por SMS.`
+      }
+    } else {
+      // No prior inbound at all → window never opened → SMS-only
+      effectiveChannel = 'sms'
+      fallbackReason = 'Sin mensajes inbound previos. Enviado por SMS.'
+    }
+  }
+
+  const isWhatsApp = effectiveChannel === 'whatsapp'
   const fromNumber = isWhatsApp ? `whatsapp:${botNumber}` : botNumber
   const toNumber = isWhatsApp ? `whatsapp:${phoneE164}` : phoneE164
 
-  const params = new URLSearchParams()
-  params.set('From', fromNumber)
-  params.set('To', toNumber)
-  params.set('Body', body)
+  const sendViaTwilio = async (sendFrom: string, sendTo: string) => {
+    const params = new URLSearchParams()
+    params.set('From', sendFrom)
+    params.set('To', sendTo)
+    params.set('Body', body)
+    return fetch(
+      `https://api.twilio.com/2010-04-01/Accounts/${twilioSid}/Messages.json`,
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': 'Basic ' + Buffer.from(`${twilioSid}:${twilioToken}`).toString('base64'),
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: params.toString(),
+      }
+    )
+  }
 
-  const twilioRes = await fetch(
-    `https://api.twilio.com/2010-04-01/Accounts/${twilioSid}/Messages.json`,
-    {
-      method: 'POST',
-      headers: {
-        'Authorization': 'Basic ' + Buffer.from(`${twilioSid}:${twilioToken}`).toString('base64'),
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: params.toString(),
+  let twilioRes = await sendViaTwilio(fromNumber, toNumber)
+
+  // Late fallback: if WA still fails with 63016/63017 (outside-window codes), retry via SMS
+  if (!twilioRes.ok && isWhatsApp) {
+    const errData = await twilioRes.clone().json().catch(() => ({}))
+    const twErrCode = errData?.code
+    if (twErrCode === 63016 || twErrCode === 63017) {
+      effectiveChannel = 'sms'
+      fallbackReason = `WhatsApp rechazado (código ${twErrCode}). Reintentado por SMS.`
+      twilioRes = await sendViaTwilio(botNumber, phoneE164)
     }
-  )
+  }
 
   if (!twilioRes.ok) {
     const errData = await twilioRes.json().catch(() => ({}))
-    return NextResponse.json({ error: 'Twilio send failed', details: errData }, { status: 500 })
+    const code = errData?.code ?? null
+    const message = errData?.message ?? 'Twilio send failed'
+    return NextResponse.json({
+      error: message,
+      details: errData,
+      twilio_code: code,
+      attempted_channel: effectiveChannel,
+    }, { status: 500 })
   }
 
   const twilioData = await twilioRes.json()
+
+  // Use post-fallback channel for log + response (effectiveChannel may have flipped)
+  const finalIsWhatsApp = effectiveChannel === 'whatsapp'
+  const finalFromNumber = finalIsWhatsApp ? `whatsapp:${botNumber}` : botNumber
+  const finalToNumber = finalIsWhatsApp ? `whatsapp:${phoneE164}` : phoneE164
 
   // Log the message
   await supabase.from('messages').insert({
     conversation_id: conversationId,
     direction: 'outbound',
     body,
-    channel: isWhatsApp ? 'whatsapp' : 'sms',
-    from: fromNumber,
-    to: toNumber,
+    channel: effectiveChannel,
+    from: finalFromNumber,
+    to: finalToNumber,
     source: 'admin',
     intent: 'outbound_pitch',
     message_sid: twilioData.sid || null,
@@ -179,5 +235,12 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  return NextResponse.json({ success: true, sid: twilioData.sid, conversationId, prospectId })
+  return NextResponse.json({
+    success: true,
+    sid: twilioData.sid,
+    conversationId,
+    prospectId,
+    channel_used: effectiveChannel,
+    fallback_reason: fallbackReason,
+  })
 }

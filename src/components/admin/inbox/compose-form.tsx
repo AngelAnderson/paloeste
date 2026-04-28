@@ -34,6 +34,7 @@ export function ComposeForm({
   const [sending, setSending] = useState(false)
   const [sent, setSent] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [fallbackNote, setFallbackNote] = useState<string | null>(null)
 
   async function handleSend() {
     if (!to.trim() || !body.trim()) {
@@ -42,6 +43,7 @@ export function ComposeForm({
     }
     setSending(true)
     setError(null)
+    setFallbackNote(null)
     try {
       const res = await fetch('/api/admin/send-outbound', {
         method: 'POST',
@@ -49,21 +51,29 @@ export function ComposeForm({
         body: JSON.stringify({ to: to.trim(), body: body.trim(), channel }),
       })
       const data = await res.json()
-      if (!res.ok) throw new Error(data.error || 'Send failed')
+      if (!res.ok) {
+        const code = data.twilio_code ? ` [Twilio ${data.twilio_code}]` : ''
+        throw new Error(`${data.error || 'Send failed'}${code}`)
+      }
+
+      const channelUsed: 'whatsapp' | 'sms' = data.channel_used || channel
+      if (data.fallback_reason) setFallbackNote(data.fallback_reason)
 
       if (contextId) {
         await fetch(`/api/admin/relationships/${contextId}/log`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            action: channel === 'whatsapp' ? 'WhatsApp enviado' : 'SMS enviado',
+            action: channelUsed === 'whatsapp' ? 'WhatsApp enviado' : 'SMS enviado',
             notes: body.trim().slice(0, 200),
           }),
         }).catch(() => {})
       }
 
       setSent(true)
-      setTimeout(() => router.push('/admin/inbox'), 1500)
+      // If fallback fired, give the user a beat to read the note before redirect
+      const delay = data.fallback_reason ? 3500 : 1500
+      setTimeout(() => router.push('/admin/inbox'), delay)
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Error enviando mensaje')
     } finally {
@@ -164,8 +174,13 @@ export function ComposeForm({
       {error && <p className="text-[#f87171] text-sm">{error}</p>}
 
       {sent ? (
-        <div className="flex items-center justify-center gap-2 text-[#4ade80] font-medium py-3 bg-[#022c22] rounded-lg">
-          <Check size={18} /> Enviado desde *7711
+        <div className="flex flex-col items-center justify-center gap-1 text-[#4ade80] font-medium py-3 bg-[#022c22] rounded-lg">
+          <div className="flex items-center gap-2">
+            <Check size={18} /> Enviado desde *7711
+          </div>
+          {fallbackNote && (
+            <div className="text-xs text-[#fbbf24] font-normal mt-1">{fallbackNote}</div>
+          )}
         </div>
       ) : (
         <button
