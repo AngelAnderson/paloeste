@@ -14,10 +14,12 @@ export async function POST(req: NextRequest) {
   const phoneE164 = phone.startsWith('+') ? phone : `+1${phone}`
 
   // Find or create conversation
+  // Note: same contact may have separate WA + SMS conversations. We pick the one matching
+  // the requested channel; if downgrade fires later, we re-find/create one for the new channel.
   let conversationId: string
   const { data: existing } = await supabase
     .from('conversations')
-    .select('id')
+    .select('id, contact, channel')
     .eq('contact', phoneE164)
     .eq('line', '7711')
     .order('last_message_at', { ascending: false })
@@ -112,6 +114,46 @@ export async function POST(req: NextRequest) {
   const isWhatsApp = effectiveChannel === 'whatsapp'
   const fromNumber = isWhatsApp ? `whatsapp:${botNumber}` : botNumber
   const toNumber = isWhatsApp ? `whatsapp:${phoneE164}` : phoneE164
+
+  // If the conversation we picked was a different channel than effectiveChannel, the FK
+  // on messages will fail. Find/create a conversation matching the post-fallback channel.
+  if (existing && existing.channel !== effectiveChannel) {
+    const { data: matchingConv } = await supabase
+      .from('conversations')
+      .select('id')
+      .eq('contact', phoneE164)
+      .eq('channel', effectiveChannel)
+      .eq('line', '7711')
+      .maybeSingle()
+
+    if (matchingConv?.id) {
+      conversationId = matchingConv.id
+    } else {
+      const { data: waConv } = await supabase
+        .from('conversations')
+        .select('contact_id')
+        .eq('id', conversationId)
+        .maybeSingle()
+      const { data: newConv, error: newConvErr } = await supabase
+        .from('conversations')
+        .insert({
+          contact: phoneE164,
+          contact_id: waConv?.contact_id ?? null,
+          channel: effectiveChannel,
+          line: '7711',
+          status: 'human',
+          needs_human: false,
+          message_count: 0,
+          last_message_at: new Date().toISOString(),
+        })
+        .select('id')
+        .single()
+      if (newConvErr) {
+        return NextResponse.json({ error: 'Failed to create fallback conversation: ' + newConvErr.message }, { status: 500 })
+      }
+      conversationId = newConv.id
+    }
+  }
 
   const sendViaTwilio = async (sendFrom: string, sendTo: string) => {
     const params = new URLSearchParams()

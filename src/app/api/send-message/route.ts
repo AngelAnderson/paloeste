@@ -5,7 +5,9 @@ export async function POST(req: NextRequest) {
   // Verify admin session
   const supabase = await createSupabaseAdminClient()
 
-  const { conversationId, body, to, channel } = await req.json()
+  const payload = await req.json()
+  const { body, to, channel } = payload
+  let conversationId: string = payload.conversationId
 
   if (!conversationId || !body || !to) {
     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
@@ -70,6 +72,53 @@ export async function POST(req: NextRequest) {
   const cleanTo = to.replace(/^whatsapp:/, '')
   const fromNumber = isWhatsApp ? `whatsapp:${botNumber}` : botNumber
   const toNumber = isWhatsApp ? `whatsapp:${cleanTo}` : cleanTo
+
+  // If we downgraded WA → SMS, the inbound conversationId points to a WA conversation
+  // but the outbound message will have channel='sms'. The FK messages_conversation_fk
+  // needs (conversation_contact, channel, line) → conversations(contact, channel, line),
+  // so insert would fail. Find or create an SMS-channel conversation for the same contact
+  // and switch conversationId before insert.
+  if (effectiveChannel === 'sms' && channel === 'whatsapp') {
+    const { data: existingSms } = await supabase
+      .from('conversations')
+      .select('id')
+      .eq('contact', cleanTo)
+      .eq('channel', 'sms')
+      .eq('line', '7711')
+      .maybeSingle()
+
+    if (existingSms?.id) {
+      conversationId = existingSms.id
+    } else {
+      // Pull contact_id from the original WA conversation (if any) for continuity
+      const { data: waConv } = await supabase
+        .from('conversations')
+        .select('contact_id')
+        .eq('id', conversationId)
+        .maybeSingle()
+
+      const { data: newSms, error: newSmsErr } = await supabase
+        .from('conversations')
+        .insert({
+          contact: cleanTo,
+          contact_id: waConv?.contact_id ?? null,
+          channel: 'sms',
+          line: '7711',
+          status: 'human',
+          needs_human: false,
+          message_count: 0,
+          last_message_at: new Date().toISOString(),
+        })
+        .select('id')
+        .single()
+
+      if (newSmsErr || !newSms) {
+        console.error('[send-message] Failed to create SMS conversation for fallback:', newSmsErr)
+      } else {
+        conversationId = newSms.id
+      }
+    }
+  }
 
   let twilioRes = await sendViaTwilio(fromNumber, toNumber)
 
