@@ -8,9 +8,11 @@ import { CopyVitrinaLink } from '@/components/admin/copy-vitrina-link'
 import { CopyMessageButton } from '@/components/admin/copy-message-button'
 import { LeadDetail } from '@/components/admin/lead-detail'
 import { TopThreeHero } from '@/components/admin/top-three-hero'
+import { BotPulseCard } from '@/components/admin/bot-pulse-card'
+import { RelationshipsCard } from '@/components/admin/relationships-card'
 import { rankActions, type RankedAction } from '@/lib/admin-action-ranker'
 import type { UnbilledBusiness } from '@/lib/admin-queries'
-import type { ConversionOpportunity, SponsorROI, AdminOverview, Prospect } from '@/lib/types'
+import type { ConversionOpportunity, SponsorROI, AdminOverview, Prospect, BotIntelligence, OverdueRelationship } from '@/lib/types'
 
 const COLLECT_TEMPLATE = 'Oye {name}, este mes El Veci te envió {lead_count} clientes buscando {category}. Son ${amount}. ¿Te paso el link de pago?'
 const PITCH_TEMPLATE = '{name}, el mes pasado {search_count} personas buscaron {category} en Cabo Rojo por El Veci. Tu negocio salió {match_count} veces. Con La Vitrina sales primero. Mira: chequeodenegocio.com'
@@ -33,6 +35,8 @@ export function RevenueDashboard({
   overview,
   followUps,
   staleCount,
+  botIntel,
+  overdueRels,
 }: {
   unbilled: UnbilledBusiness[]
   totalUnbilled: number
@@ -44,6 +48,8 @@ export function RevenueDashboard({
   overview: AdminOverview
   followUps: Prospect[]
   staleCount: number
+  botIntel: BotIntelligence | null
+  overdueRels: OverdueRelationship[]
 }) {
   const [modal, setModal] = useState<ModalState | null>(null)
 
@@ -95,6 +101,15 @@ export function RevenueDashboard({
     }
   }
 
+  function openRelationshipMessage(rel: OverdueRelationship) {
+    if (!rel.contact_phone) return
+    setModal({
+      businessName: rel.name,
+      phone: rel.contact_phone,
+      message: rel.next_action || '',
+    })
+  }
+
   const rankedActions = rankActions({
     followUps,
     unbilled,
@@ -108,6 +123,13 @@ export function RevenueDashboard({
       <p className="text-[#64748b] text-sm mb-6">Acciones que mueven dinero — hoy.</p>
 
       <TopThreeHero actions={rankedActions} onAction={handleHeroAction} />
+
+      {(botIntel || overdueRels.length > 0) && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          {botIntel && <BotPulseCard intel={botIntel} />}
+          <RelationshipsCard overdue={overdueRels} onMessage={openRelationshipMessage} />
+        </div>
+      )}
 
       {/* KPI Strip */}
       <div className={`grid grid-cols-2 ${followUps.length > 0 ? 'md:grid-cols-5' : 'md:grid-cols-4'} gap-3 mb-6`}>

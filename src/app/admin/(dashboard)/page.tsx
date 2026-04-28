@@ -1,17 +1,19 @@
-import { getUnbilledLeadsByBusiness, getConversionOpportunities, getSponsorROI, getPlacesMissingPhotos, getAdminOverview, getProspects } from '@/lib/admin-queries'
+import { getUnbilledLeadsByBusiness, getConversionOpportunities, getSponsorROI, getPlacesMissingPhotos, getAdminOverview, getProspects, getBotIntelligence, getOverdueRelationships } from '@/lib/admin-queries'
 import { createSupabaseAdminClient } from '@/lib/supabase-server'
 import { RevenueDashboard } from './revenue-dashboard'
 
 export const dynamic = 'force-dynamic'
 
 export default async function AdminDashboard() {
-  const [unbilled, opportunities, sponsors, missingPhotos, overview, prospects] = await Promise.all([
+  const [unbilled, opportunities, sponsors, missingPhotos, overview, prospects, botIntel, overdueRels] = await Promise.all([
     getUnbilledLeadsByBusiness(),
     getConversionOpportunities(3),
     getSponsorROI(),
     getPlacesMissingPhotos(),
     getAdminOverview(),
     getProspects(),
+    getBotIntelligence(7).catch(() => null),
+    getOverdueRelationships().catch(() => []),
   ])
 
   // Get vitrina tokens and slugs for sponsors
@@ -74,6 +76,8 @@ export default async function AdminDashboard() {
       overview={overview}
       followUps={followUps}
       staleCount={staleProspects.length}
+      botIntel={botIntel}
+      overdueRels={overdueRels}
     />
   )
 }
