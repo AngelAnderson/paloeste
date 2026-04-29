@@ -73,36 +73,38 @@ export async function POST(req: NextRequest) {
   const fromNumber = isWhatsApp ? `whatsapp:${botNumber}` : botNumber
   const toNumber = isWhatsApp ? `whatsapp:${cleanTo}` : cleanTo
 
-  // If we downgraded WA → SMS, the inbound conversationId points to a WA conversation
-  // but the outbound message will have channel='sms'. The FK messages_conversation_fk
-  // needs (conversation_contact, channel, line) → conversations(contact, channel, line),
-  // so insert would fail. Find or create an SMS-channel conversation for the same contact
-  // and switch conversationId before insert.
-  if (effectiveChannel === 'sms' && channel === 'whatsapp') {
-    const { data: existingSms } = await supabase
+  // FK guard: the message we're about to insert will have channel=effectiveChannel + to=cleanTo,
+  // and the FK messages_conversation_fk requires (conversation_contact, channel, line) match
+  // conversations(contact, channel, line). If conversationId points at a DIFFERENT-channel
+  // conversation (either because of automatic WA→SMS downgrade, or because the user manually
+  // picked SMS in the UI from a WA-history thread), the insert fails. Find or create a matching
+  // conversation and switch conversationId before send.
+  // Apr 29 2026: original condition only caught the auto-downgrade case; UI-selected channel
+  // mismatch (Angel clicked SMS on a WA conv) also has to be handled here.
+  const { data: currentConv } = await supabase
+    .from('conversations')
+    .select('channel, contact_id')
+    .eq('id', conversationId)
+    .maybeSingle()
+
+  if (currentConv && currentConv.channel !== effectiveChannel) {
+    const { data: matchingConv } = await supabase
       .from('conversations')
       .select('id')
       .eq('contact', cleanTo)
-      .eq('channel', 'sms')
+      .eq('channel', effectiveChannel)
       .eq('line', '7711')
       .maybeSingle()
 
-    if (existingSms?.id) {
-      conversationId = existingSms.id
+    if (matchingConv?.id) {
+      conversationId = matchingConv.id
     } else {
-      // Pull contact_id from the original WA conversation (if any) for continuity
-      const { data: waConv } = await supabase
-        .from('conversations')
-        .select('contact_id')
-        .eq('id', conversationId)
-        .maybeSingle()
-
-      const { data: newSms, error: newSmsErr } = await supabase
+      const { data: newConv, error: newConvErr } = await supabase
         .from('conversations')
         .insert({
           contact: cleanTo,
-          contact_id: waConv?.contact_id ?? null,
-          channel: 'sms',
+          contact_id: currentConv.contact_id ?? null,
+          channel: effectiveChannel,
           line: '7711',
           status: 'human',
           needs_human: false,
@@ -112,10 +114,10 @@ export async function POST(req: NextRequest) {
         .select('id')
         .single()
 
-      if (newSmsErr || !newSms) {
-        console.error('[send-message] Failed to create SMS conversation for fallback:', newSmsErr)
+      if (newConvErr || !newConv) {
+        console.error('[send-message] Failed to create matching-channel conversation:', newConvErr)
       } else {
-        conversationId = newSms.id
+        conversationId = newConv.id
       }
     }
   }
