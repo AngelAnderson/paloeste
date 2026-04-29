@@ -126,11 +126,14 @@ export function InboxView({ initialConversations }: InboxViewProps) {
   }, [])
 
   // Filter conversations
-  const handleFilterChange = useCallback(async (filters: { needsHuman?: boolean; channel?: string; search?: string }) => {
+  const handleFilterChange = useCallback(async (filters: { needsHuman?: boolean; channel?: string; search?: string; starred?: boolean; awaiting?: boolean; resolved?: boolean }) => {
     const params = new URLSearchParams()
     if (filters.needsHuman) params.set('needsHuman', '1')
     if (filters.channel) params.set('channel', filters.channel)
     if (filters.search) params.set('search', filters.search)
+    if (filters.starred) params.set('starred', '1')
+    if (filters.awaiting) params.set('awaiting', '1')
+    if (filters.resolved) params.set('resolved', '1')
 
     try {
       const res = await fetch(`/api/inbox/conversations?${params}`)
@@ -195,8 +198,14 @@ export function InboxView({ initialConversations }: InboxViewProps) {
             contactName={selected.display_name || selected.place_name}
             contactPhone={contactPhone}
             conversationId={selected.id}
+            conversation={selected}
             onShowContact={() => setShowContact(true)}
             onBack={() => setMobileView('list')}
+            onFlagChanged={(_action, applied) => {
+              // Reflect in selected + list state
+              setSelected(prev => prev ? { ...prev, ...applied } as typeof prev : prev)
+              setConversations(prev => prev.map(c => c.id === selected.id ? { ...c, ...applied } : c))
+            }}
           />
         ) : (
           <div className="flex-1 flex items-center justify-center text-[#64748b] text-sm">

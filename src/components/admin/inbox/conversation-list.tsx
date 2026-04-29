@@ -2,12 +2,13 @@
 
 import { useState, useRef, useEffect } from 'react'
 import type { InboxConversation } from '@/lib/types'
+import { Star, AlertCircle, Check } from 'lucide-react'
 
 interface ConversationListProps {
   conversations: InboxConversation[]
   selectedId: string | null
   onSelect: (conv: InboxConversation) => void
-  onFilterChange: (filters: { needsHuman?: boolean; channel?: string; search?: string }) => void
+  onFilterChange: (filters: { needsHuman?: boolean; channel?: string; search?: string; starred?: boolean; awaiting?: boolean; resolved?: boolean }) => void
 }
 
 function formatPhone(contact: string) {
@@ -30,37 +31,54 @@ export function ConversationList({ conversations, selectedId, onSelect, onFilter
   const [search, setSearch] = useState('')
   const [filterHuman, setFilterHuman] = useState(false)
   const [filterChannel, setFilterChannel] = useState<string>('')
+  // Apr 29 2026: quick-action filters
+  const [filterStarred, setFilterStarred] = useState(false)
+  const [filterAwaiting, setFilterAwaiting] = useState(false)
+  const [filterResolved, setFilterResolved] = useState(false)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  // Debounce search to avoid hammering the API on every keystroke
+  function emitFilters(extra: Partial<{ search?: string; needsHuman?: boolean; channel?: string; starred?: boolean; awaiting?: boolean; resolved?: boolean }> = {}) {
+    onFilterChange({
+      search: search || undefined,
+      needsHuman: filterHuman || undefined,
+      channel: filterChannel || undefined,
+      starred: filterStarred || undefined,
+      awaiting: filterAwaiting || undefined,
+      resolved: filterResolved || undefined,
+      ...extra,
+    })
+  }
+
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current)
-    debounceRef.current = setTimeout(() => {
-      onFilterChange({
-        search: search || undefined,
-        needsHuman: filterHuman || undefined,
-        channel: filterChannel || undefined,
-      })
-    }, 300)
-    return () => {
-      if (debounceRef.current) clearTimeout(debounceRef.current)
-    }
+    debounceRef.current = setTimeout(() => emitFilters(), 300)
+    return () => { if (debounceRef.current) clearTimeout(debounceRef.current) }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search])
-
-  function handleSearch(val: string) {
-    setSearch(val)
-  }
 
   function toggleHuman() {
     const next = !filterHuman
     setFilterHuman(next)
-    onFilterChange({ search: search || undefined, needsHuman: next || undefined, channel: filterChannel || undefined })
+    emitFilters({ needsHuman: next || undefined })
   }
-
+  function toggleStarred() {
+    const next = !filterStarred
+    setFilterStarred(next)
+    emitFilters({ starred: next || undefined })
+  }
+  function toggleAwaiting() {
+    const next = !filterAwaiting
+    setFilterAwaiting(next)
+    emitFilters({ awaiting: next || undefined })
+  }
+  function toggleResolved() {
+    const next = !filterResolved
+    setFilterResolved(next)
+    emitFilters({ resolved: next || undefined })
+  }
   function handleChannel(val: string) {
     setFilterChannel(val)
-    onFilterChange({ search: search || undefined, needsHuman: filterHuman || undefined, channel: val || undefined })
+    emitFilters({ channel: val || undefined })
   }
 
   return (
@@ -71,11 +89,11 @@ export function ConversationList({ conversations, selectedId, onSelect, onFilter
         <input
           type="text"
           value={search}
-          onChange={e => handleSearch(e.target.value)}
+          onChange={e => setSearch(e.target.value)}
           placeholder="Buscar nombre, telefono, texto..."
           className="w-full bg-[#1e293b] text-[#f1f5f9] border border-[#334155] rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:border-[#38bdf8] placeholder:text-[#64748b]"
         />
-        <div className="flex gap-1.5">
+        <div className="flex gap-1.5 flex-wrap">
           <button
             onClick={toggleHuman}
             className={`px-2 py-0.5 rounded text-[10px] font-medium transition-colors ${
@@ -83,6 +101,33 @@ export function ConversationList({ conversations, selectedId, onSelect, onFilter
             }`}
           >
             Needs Human
+          </button>
+          <button
+            onClick={toggleStarred}
+            title="Solo starred"
+            className={`px-2 py-0.5 rounded text-[10px] font-medium transition-colors flex items-center gap-1 ${
+              filterStarred ? 'bg-[#fbbf24]/20 text-[#fbbf24]' : 'bg-[#1e293b] text-[#64748b] hover:text-[#fbbf24]'
+            }`}
+          >
+            <Star size={10} className={filterStarred ? 'fill-[#fbbf24]' : ''} /> Star
+          </button>
+          <button
+            onClick={toggleAwaiting}
+            title="Esperando info"
+            className={`px-2 py-0.5 rounded text-[10px] font-medium transition-colors flex items-center gap-1 ${
+              filterAwaiting ? 'bg-[#fb923c]/20 text-[#fb923c]' : 'bg-[#1e293b] text-[#64748b] hover:text-[#fb923c]'
+            }`}
+          >
+            <AlertCircle size={10} /> Esperando
+          </button>
+          <button
+            onClick={toggleResolved}
+            title="Resueltos"
+            className={`px-2 py-0.5 rounded text-[10px] font-medium transition-colors flex items-center gap-1 ${
+              filterResolved ? 'bg-[#4ade80]/20 text-[#4ade80]' : 'bg-[#1e293b] text-[#64748b] hover:text-[#4ade80]'
+            }`}
+          >
+            <Check size={10} /> Resuelto
           </button>
           <select
             value={filterChannel}
@@ -116,8 +161,11 @@ export function ConversationList({ conversations, selectedId, onSelect, onFilter
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-1.5">
-                    <span className="text-sm font-medium text-white truncate">{name}</span>
-                    {conv.needs_human && (
+                    {conv.is_starred && <Star size={11} className="text-[#fbbf24] fill-[#fbbf24] shrink-0" />}
+                    {conv.awaiting_info && <AlertCircle size={11} className="text-[#fb923c] shrink-0" />}
+                    {conv.resolved_at && <Check size={11} className="text-[#4ade80] shrink-0" />}
+                    <span className={`text-sm font-medium truncate ${conv.resolved_at ? 'text-[#94a3b8] line-through decoration-[#475569]' : 'text-white'}`}>{name}</span>
+                    {conv.needs_human && !conv.resolved_at && (
                       <span className="w-2 h-2 rounded-full bg-[#f87171] shrink-0" />
                     )}
                   </div>

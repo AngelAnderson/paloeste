@@ -178,20 +178,29 @@ export async function getInboxConversations(filters?: {
   needsHuman?: boolean
   channel?: string
   search?: string
+  // Apr 29 2026: quick-action filters
+  starred?: boolean
+  awaiting?: boolean
+  resolved?: boolean
+  hideSnoozed?: boolean // default true for normal inbox
 }): Promise<InboxConversation[]> {
   const supabase = await createSupabaseAdminClient()
   let query = supabase
     .from('conversations')
-    .select('id, contact, channel, line, status, needs_human, message_count, last_message_at, last_inbound_body, intent, last_intent, internal_note, contact_id')
+    .select('id, contact, channel, line, status, needs_human, message_count, last_message_at, last_inbound_body, intent, last_intent, internal_note, contact_id, is_starred, snoozed_until, awaiting_info, resolved_at')
     .eq('line', '7711')
     .order('last_message_at', { ascending: false })
     .limit(100)
 
-  if (filters?.needsHuman) {
-    query = query.eq('needs_human', true)
-  }
-  if (filters?.channel) {
-    query = query.eq('channel', filters.channel)
+  if (filters?.needsHuman) query = query.eq('needs_human', true)
+  if (filters?.channel) query = query.eq('channel', filters.channel)
+  if (filters?.starred) query = query.eq('is_starred', true)
+  if (filters?.awaiting) query = query.eq('awaiting_info', true)
+  if (filters?.resolved === true) query = query.not('resolved_at', 'is', null)
+  if (filters?.resolved === false) query = query.is('resolved_at', null)
+  // Hide snoozed by default (snoozed_until in the future) — unless explicitly looking at all
+  if (filters?.hideSnoozed !== false) {
+    query = query.or(`snoozed_until.is.null,snoozed_until.lt.${new Date().toISOString()}`)
   }
 
   // For text search, we need to query across multiple places:

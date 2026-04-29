@@ -19,7 +19,7 @@ const products = [
     badgeColor: "bg-red-600 text-white",
     features: ["15 negocios destacados", "10 músicos y grupos", "Guía de 4 días por pueblo", "Directorio de negocios del oeste"],
     stripePdfUrl: "https://buy.stripe.com/6oUbJ01Fy2xV5YJ48j0co0n",
-    amazonUrl: "#", // TODO: agregar Amazon KDP link
+    amazonUrl: "https://www.amazon.com/dp/B0GWCR6J4Q", // KDP Paperback ASIN
   },
   {
     name: "Descubre Cabo Rojo",

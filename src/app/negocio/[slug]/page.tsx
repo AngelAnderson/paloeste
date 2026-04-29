@@ -39,9 +39,9 @@ export async function generateMetadata({
   };
 }
 
-function JsonLd({ place }: { place: { name: string; description: string; phone: string; address: string; hero_image_url?: string; lat?: number; lon?: number } }) {
+function JsonLd({ place }: { place: { name: string; description: string; phone: string; address: string; hero_image_url?: string; lat?: number; lon?: number; google_rating?: number; google_review_count?: number; opening_hours?: { formatted?: string } } }) {
   // Server-generated trusted content for SEO structured data
-  const data = {
+  const data: Record<string, unknown> = {
     "@context": "https://schema.org",
     "@type": "LocalBusiness",
     name: place.name,
@@ -58,6 +58,20 @@ function JsonLd({ place }: { place: { name: string; description: string; phone: 
     ...(place.hero_image_url ? { image: place.hero_image_url } : {}),
     ...(place.lat && place.lon
       ? { geo: { "@type": "GeoCoordinates", latitude: place.lat, longitude: place.lon } }
+      : {}),
+    ...(place.google_rating && place.google_review_count
+      ? {
+          aggregateRating: {
+            "@type": "AggregateRating",
+            ratingValue: place.google_rating,
+            reviewCount: place.google_review_count,
+            bestRating: 5,
+            worstRating: 1,
+          },
+        }
+      : {}),
+    ...(place.opening_hours?.formatted
+      ? { openingHours: place.opening_hours.formatted }
       : {}),
   };
 

@@ -7,6 +7,9 @@ export async function GET(req: NextRequest) {
     needsHuman: params.get('needsHuman') === '1' || undefined,
     channel: params.get('channel') || undefined,
     search: params.get('search') || undefined,
+    starred: params.get('starred') === '1' || undefined,
+    awaiting: params.get('awaiting') === '1' || undefined,
+    resolved: params.get('resolved') === '1' || undefined,
   })
 
   return NextResponse.json({ conversations })

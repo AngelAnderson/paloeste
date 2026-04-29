@@ -21,44 +21,50 @@ function SearchResults() {
       setLoading(true);
       setSearched(true);
 
-      // Synonym expansion (same as bot *7711)
-      const synonyms: Record<string, string> = {
-        plomero: "plumber", plumber: "plomero",
-        electricista: "electrician", electrician: "electricista",
-        mariscos: "seafood", seafood: "mariscos",
-        grua: "tow", tow: "grua",
-        carniceria: "butcher", butcher: "carniceria",
-        restaurante: "FOOD", comida: "FOOD",
-        hotel: "LODGING", hospedaje: "LODGING",
-        playa: "BEACH", beach: "BEACH",
-        cafe: "café", coffee: "café",
-      };
+      try {
+        // Synonym expansion (same as bot *7711)
+        const synonyms: Record<string, string> = {
+          plomero: "plumber", plumber: "plomero",
+          electricista: "electrician", electrician: "electricista",
+          mariscos: "seafood", seafood: "mariscos",
+          grua: "tow", tow: "grua",
+          carniceria: "butcher", butcher: "carniceria",
+          restaurante: "FOOD", comida: "FOOD",
+          hotel: "LODGING", hospedaje: "LODGING",
+          playa: "BEACH", beach: "BEACH",
+          cafe: "café", coffee: "café",
+        };
 
-      const terms = [query, synonyms[query.toLowerCase()]].filter(Boolean);
-      const searchTerm = `%${query}%`;
+        const terms = [query, synonyms[query.toLowerCase()]].filter(Boolean);
 
-      // Text search across name, description, category, subcategory, address, one_liner
-      const { data, error } = await supabase
-        .from("places")
-        .select("*")
-        .eq("visibility", "published")
-        .neq("quality_tier", "hidden")
-        .or(
-          terms.map(t => {
-            const term = `%${t}%`;
-            return `name.ilike.${term},description.ilike.${term},category.ilike.${term},subcategory.ilike.${term},address.ilike.${term},one_liner.ilike.${term}`;
-          }).join(",")
-        )
-        .order("sponsor_weight", { ascending: false })
-        .order("name")
-        .limit(20);
+        // Text search across name, description, category, subcategory, address, one_liner
+        const { data, error } = await supabase
+          .from("places")
+          .select("*")
+          .eq("visibility", "published")
+          .neq("quality_tier", "hidden")
+          .or(
+            terms.map(t => {
+              const term = `%${t}%`;
+              return `name.ilike.${term},description.ilike.${term},category.ilike.${term},subcategory.ilike.${term},address.ilike.${term},one_liner.ilike.${term}`;
+            }).join(",")
+          )
+          .order("sponsor_weight", { ascending: false })
+          .order("name")
+          .limit(20);
 
-      if (!error && data) {
-        setResults(data as Place[]);
-      } else {
+        if (!error && data) {
+          setResults(data as Place[]);
+        } else {
+          console.error("[buscar] Supabase error:", error);
+          setResults([]);
+        }
+      } catch (err) {
+        console.error("[buscar] Search threw:", err);
         setResults([]);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     }
 
     search();
@@ -104,7 +110,7 @@ function SearchResults() {
 
 export default function BuscarPage() {
   return (
-    <Suspense fallback={<div className="max-w-3xl mx-auto px-4 py-8"><p className="text-stone-500">Cargando...</p></div>}>
+    <Suspense fallback={<div className="max-w-3xl mx-auto px-4 py-8"><h1 className="text-2xl font-display font-black text-stone-900 mb-4">Buscar</h1><p className="text-stone-400 text-sm">Iniciando búsqueda...</p></div>}>
       <SearchResults />
     </Suspense>
   );

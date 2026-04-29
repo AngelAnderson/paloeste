@@ -267,6 +267,11 @@ export interface InboxConversation {
   display_name: string | null
   place_name: string | null
   contact_id: string | null
+  // Apr 29 2026: quick-action state
+  is_starred?: boolean | null
+  snoozed_until?: string | null
+  awaiting_info?: boolean | null
+  resolved_at?: string | null
 }
 
 export interface InboxMessage {

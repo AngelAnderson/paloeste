@@ -27,7 +27,7 @@ export function QueryActions({ queries }: { queries: Query[] }) {
           {expanded === q.query && (
             <div className="px-2 pb-3 flex flex-wrap gap-2">
               <a
-                href={`sms:7874177711?body=${encodeURIComponent(q.query)}`}
+                href={`https://wa.me/17874177711?text=${encodeURIComponent(q.query)}`}
                 className="inline-flex items-center gap-1 text-xs bg-[#38bdf8]/10 text-[#38bdf8] px-3 py-1.5 rounded-full hover:bg-[#38bdf8]/20 transition-colors"
               >
                 📱 Test in bot

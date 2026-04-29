@@ -117,14 +117,14 @@ function Footer() {
             <Link href={CONTACT_WHATSAPP} target="_blank" className="block text-red-600 hover:text-red-700">
               WhatsApp Directo →
             </Link>
-            <a href="sms:7874177711?body=HOLA" className="block text-stone-700 hover:text-red-600 transition-colors">
+            <a href="https://wa.me/17874177711?text=HOLA" className="block text-stone-700 hover:text-red-600 transition-colors">
               ¿Buscas un negocio? Textea al 787-417-7711 →
             </a>
           </div>
         </div>
       </div>
       <div className="border-t border-po-border px-4 py-4 text-center text-xs text-stone-400">
-        © {new Date().getFullYear()} Pal&apos; Oeste · CaboRojo.com · Angel Anderson
+        © {new Date().getFullYear()} Pal&apos; Oeste · <a href="https://caborojo.com" className="hover:text-stone-600 underline transition-colors">CaboRojo.com</a> · Angel Anderson
       </div>
     </footer>
   );
