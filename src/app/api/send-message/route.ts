@@ -192,10 +192,40 @@ export async function POST(req: NextRequest) {
     console.error('[send-message] Conversation update failed:', updateErr)
   }
 
+  // Apr 29 2026: auto-log relationship contact + add urgent-follow-up tag.
+  // Mirrors /api/admin/send-outbound logic (was missing here, so /admin/inbox sends
+  // weren't logged and contacts never got tagged for cron monitoring — bug found today
+  // when 5 contributors responded but no WA nudge fired).
+  const { data: matchedRel } = await supabase
+    .from('relationships')
+    .select('id, type, tags')
+    .eq('contact_phone', cleanTo)
+    .eq('active', true)
+    .maybeSingle()
+
+  if (matchedRel) {
+    // Log the contact action (updates last_contact_at + writes relationship_history row)
+    await supabase.rpc('log_relationship_contact', {
+      rel_id: matchedRel.id,
+      action_text: effectiveChannel === 'whatsapp' ? 'WhatsApp enviado' : 'SMS enviado',
+      notes_text: body.slice(0, 200),
+      logged_by_val: 'inbox_send_auto',
+    })
+
+    // Add urgent-follow-up tag for not-yet-converted contacts so the cron alerts on response.
+    // Skip for `client`/`sponsor` (already converted — too noisy).
+    const monitoredTypes = ['inbound_lead', 'prospect', 'partner', 'cold', 'personal']
+    if (monitoredTypes.includes(matchedRel.type) && !(matchedRel.tags || []).includes('urgent-follow-up')) {
+      const newTags = Array.from(new Set([...(matchedRel.tags || []), 'urgent-follow-up']))
+      await supabase.from('relationships').update({ tags: newTags }).eq('id', matchedRel.id)
+    }
+  }
+
   return NextResponse.json({
     success: true,
     sid: twilioData.sid,
     channel_used: effectiveChannel,
     fallback_reason: fallbackReason,
+    relationshipId: matchedRel?.id ?? null,
   })
 }
