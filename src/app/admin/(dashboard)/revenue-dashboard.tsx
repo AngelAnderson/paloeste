@@ -10,6 +10,7 @@ import { LeadDetail } from '@/components/admin/lead-detail'
 import { TopThreeHero } from '@/components/admin/top-three-hero'
 import { BotPulseCard } from '@/components/admin/bot-pulse-card'
 import { RelationshipsCard } from '@/components/admin/relationships-card'
+import { SinceLastVisit } from '@/components/admin/since-last-visit'
 import { rankActions, type RankedAction } from '@/lib/admin-action-ranker'
 import type { UnbilledBusiness } from '@/lib/admin-queries'
 import type { ConversionOpportunity, SponsorROI, AdminOverview, Prospect, BotIntelligence, OverdueRelationship } from '@/lib/types'
@@ -121,6 +122,8 @@ export function RevenueDashboard({
     <div>
       <h1 className="text-2xl font-bold mb-2">Revenue Co-Pilot</h1>
       <p className="text-[#64748b] text-sm mb-6">Acciones que mueven dinero — hoy.</p>
+
+      <SinceLastVisit />
 
       <TopThreeHero actions={rankedActions} onAction={handleHeroAction} />
 
