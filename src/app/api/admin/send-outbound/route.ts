@@ -220,7 +220,9 @@ export async function POST(req: NextRequest) {
   })
 
   // Update conversation
-  const manualUntil = new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString()
+  // Apr 29 2026 — extended from 2h → 14d. Pitches expect day-scale replies, not hour-scale.
+  // Bot has separate sponsor-aware gates (handler.ts) that survive even after this expires.
+  const manualUntil = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString()
   await supabase
     .from('conversations')
     .update({
@@ -280,12 +282,34 @@ export async function POST(req: NextRequest) {
   // Auto-update relationship last_contact_at if phone matches an active relationship.
   // This is what keeps inbound leads from re-appearing in the daily digest after
   // Angel responds (digest's get_inbound_leads_unanswered reads last_contact_at).
-  const { data: matchedRel } = await supabase
+  let { data: matchedRel } = await supabase
     .from('relationships')
-    .select('id')
+    .select('id, tags')
     .eq('contact_phone', phoneE164)
     .eq('active', true)
     .maybeSingle()
+
+  // Apr 29 2026 — if no relationship exists but phone matches a place, auto-create one as prospect.
+  // Closes the gap where a pitch to a non-prospect business goes invisible (no Pass 1 nudge possible).
+  if (!matchedRel && matchedPlace) {
+    const { data: created } = await supabase
+      .from('relationships')
+      .insert({
+        name: matchedPlace.name,
+        type: 'prospect',
+        place_id: matchedPlace.id,
+        contact_phone: phoneE164,
+        contact_method: effectiveChannel === 'whatsapp' ? 'whatsapp' : 'sms',
+        cadence: 'weekly',
+        next_action: 'Esperar respuesta al pitch',
+        notes: `Auto-created on outbound ${effectiveChannel} pitch ${new Date().toISOString().slice(0, 10)}.`,
+        tags: ['outbound-pitch', 'urgent-follow-up', 'auto-created'],
+        active: true,
+      })
+      .select('id, tags')
+      .maybeSingle()
+    matchedRel = created
+  }
 
   if (matchedRel) {
     await supabase.rpc('log_relationship_contact', {
@@ -293,6 +317,11 @@ export async function POST(req: NextRequest) {
       action_text: effectiveChannel === 'whatsapp' ? 'WhatsApp enviado' : 'SMS enviado',
       notes_text: body.slice(0, 200),
       logged_by_val: 'admin_outbound_auto',
+    })
+    // Apr 29 2026 — tag urgent-follow-up so detect-inbound-lead Pass 1 picks up replies
+    await supabase.rpc('tag_relationship_urgent', {
+      p_phone: phoneE164,
+      p_reason: 'Outbound pitch sent via admin',
     })
   }
 
