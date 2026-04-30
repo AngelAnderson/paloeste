@@ -12,8 +12,13 @@ export default async function AdminDashboard() {
     getPlacesMissingPhotos(),
     getAdminOverview(),
     getProspects(),
-    getBotIntelligence(7).catch(() => null),
-    getOverdueRelationships().catch(() => []),
+    getBotIntelligence(7).then(intel => {
+      if (!intel || !Array.isArray((intel as { daily_volume?: unknown }).daily_volume) || !Array.isArray((intel as { top_queries?: unknown }).top_queries) || !(intel as { fail_rate?: unknown }).fail_rate) {
+        return null
+      }
+      return intel
+    }).catch(() => null),
+    getOverdueRelationships().then(d => Array.isArray(d) ? d : []).catch(() => []),
   ])
 
   // Get vitrina tokens and slugs for sponsors
