@@ -48,6 +48,33 @@ export async function getRevenueByMonth(): Promise<RevenueMonth[]> {
   return (data || []) as RevenueMonth[]
 }
 
+export interface BusinessEdit {
+  id: string
+  place_id: string | null
+  phone: string
+  business_name: string | null
+  requested_changes: string
+  status: 'pending' | 'applied' | 'rejected'
+  notes: string | null
+  created_at: string
+  applied_at: string | null
+  applied_by: string | null
+  conversation_id: string | null
+}
+
+export async function getBusinessEdits(status: 'pending' | 'applied' | 'rejected' | 'all' = 'pending'): Promise<BusinessEdit[]> {
+  const supabase = await createSupabaseAdminClient()
+  let q = supabase
+    .from('business_edits')
+    .select('id,place_id,phone,business_name,requested_changes,status,notes,created_at,applied_at,applied_by,conversation_id')
+    .order('created_at', { ascending: false })
+    .limit(200)
+  if (status !== 'all') q = q.eq('status', status)
+  const { data, error } = await q
+  if (error) throw error
+  return (data || []) as BusinessEdit[]
+}
+
 export async function getAdminPlaces(): Promise<AdminPlace[]> {
   const supabase = await createSupabaseAdminClient()
   const { data, error } = await supabase
