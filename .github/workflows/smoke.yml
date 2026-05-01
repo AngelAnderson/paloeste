@@ -1,0 +1,31 @@
+name: smoke /admin
+
+# Triggered when Vercel reports a Production deployment as successful.
+# We then hit the smoke endpoint with a shared secret and fail the workflow
+# if any admin query is broken or its shape drifted.
+
+on:
+  deployment_status:
+
+jobs:
+  smoke:
+    if: ${{ github.event.deployment_status.state == 'success' && github.event.deployment.environment == 'Production' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Smoke test /admin queries
+        env:
+          SMOKE_URL: https://www.paloeste.com
+          ADMIN_SMOKE_KEY: ${{ secrets.ADMIN_SMOKE_KEY }}
+        run: |
+          if [ -z "$ADMIN_SMOKE_KEY" ]; then
+            echo "::error::ADMIN_SMOKE_KEY secret not set in repo"
+            exit 2
+          fi
+          status=$(curl -sS -o /tmp/smoke.json -w '%{http_code}' \
+            "${SMOKE_URL}/api/admin/_smoke?key=${ADMIN_SMOKE_KEY}")
+          cat /tmp/smoke.json | python3 -m json.tool || cat /tmp/smoke.json
+          if [ "$status" != "200" ]; then
+            echo "::error::smoke failed with HTTP $status"
+            exit 1
+          fi
+          echo "smoke ok"
