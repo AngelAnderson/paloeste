@@ -12,8 +12,8 @@ if (!key) {
   process.exit(2)
 }
 
-const url = `${baseUrl.replace(/\/$/, '')}/api/admin/_smoke?key=${encodeURIComponent(key)}`
-console.log(`GET ${baseUrl}/api/admin/_smoke`)
+const url = `${baseUrl.replace(/\/$/, '')}/api/admin/smoke?key=${encodeURIComponent(key)}`
+console.log(`GET ${baseUrl}/api/admin/smoke`)
 
 const res = await fetch(url, { headers: { 'cache-control': 'no-store' } })
 const body = await res.json().catch(() => ({ status: 'fail', reason: 'non-json response' }))

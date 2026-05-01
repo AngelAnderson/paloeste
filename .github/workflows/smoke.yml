@@ -22,7 +22,7 @@ jobs:
             exit 2
           fi
           status=$(curl -sS -o /tmp/smoke.json -w '%{http_code}' \
-            "${SMOKE_URL}/api/admin/_smoke?key=${ADMIN_SMOKE_KEY}")
+            "${SMOKE_URL}/api/admin/smoke?key=${ADMIN_SMOKE_KEY}")
           cat /tmp/smoke.json | python3 -m json.tool || cat /tmp/smoke.json
           if [ "$status" != "200" ]; then
             echo "::error::smoke failed with HTTP $status"
