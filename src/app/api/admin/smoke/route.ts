@@ -37,13 +37,13 @@ async function run<T>(
 }
 
 export async function GET(request: Request) {
-  const expected = process.env.ADMIN_SMOKE_KEY
+  const expected = process.env.ADMIN_SMOKE_KEY?.trim()
   if (!expected) {
     return NextResponse.json({ status: 'fail', reason: 'ADMIN_SMOKE_KEY not configured' }, { status: 500 })
   }
 
   const url = new URL(request.url)
-  const provided = url.searchParams.get('key') ?? request.headers.get('x-smoke-key')
+  const provided = (url.searchParams.get('key') ?? request.headers.get('x-smoke-key'))?.trim()
   if (provided !== expected) {
     return NextResponse.json({ status: 'fail', reason: 'unauthorized' }, { status: 401 })
   }
