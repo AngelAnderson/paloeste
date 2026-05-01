@@ -1,11 +1,11 @@
-import { getUnbilledLeadsByBusiness, getConversionOpportunities, getSponsorROI, getPlacesMissingPhotos, getAdminOverview, getProspects, getBotIntelligence, getOverdueRelationships } from '@/lib/admin-queries'
+import { getUnbilledLeadsByBusiness, getConversionOpportunities, getSponsorROI, getPlacesMissingPhotos, getAdminOverview, getProspects, getBotIntelligence, getOverdueRelationships, getNightlyAgentRuns } from '@/lib/admin-queries'
 import { createSupabaseAdminClient } from '@/lib/supabase-server'
 import { RevenueDashboard } from './revenue-dashboard'
 
 export const dynamic = 'force-dynamic'
 
 export default async function AdminDashboard() {
-  const [unbilled, opportunities, sponsors, missingPhotos, overview, prospects, botIntel, overdueRels] = await Promise.all([
+  const [unbilled, opportunities, sponsors, missingPhotos, overview, prospects, botIntel, overdueRels, nightlyRuns] = await Promise.all([
     getUnbilledLeadsByBusiness(),
     getConversionOpportunities(3),
     getSponsorROI(),
@@ -19,6 +19,7 @@ export default async function AdminDashboard() {
       return intel
     }).catch(() => null),
     getOverdueRelationships().then(d => Array.isArray(d) ? d : []).catch(() => []),
+    getNightlyAgentRuns().then(d => Array.isArray(d) ? d : []).catch(() => []),
   ])
 
   // Get vitrina tokens and slugs for sponsors
@@ -83,6 +84,7 @@ export default async function AdminDashboard() {
       staleCount={staleProspects.length}
       botIntel={botIntel}
       overdueRels={overdueRels}
+      nightlyRuns={nightlyRuns}
     />
   )
 }

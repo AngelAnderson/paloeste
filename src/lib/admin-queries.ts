@@ -561,3 +561,25 @@ export async function logRelationshipContact(
   if (error) throw new Error(error.message)
   return data as string
 }
+
+// ==========================================================================
+// Nightly Agent Runs (pg_cron telemetry)
+// ==========================================================================
+
+export interface NightlyAgentRun {
+  jobid: number
+  jobname: string
+  schedule: string
+  last_start: string
+  last_end: string | null
+  last_status: string
+  duration_ms: number | null
+  failures_24h: number
+}
+
+export async function getNightlyAgentRuns(): Promise<NightlyAgentRun[]> {
+  const supabase = await createSupabaseAdminClient()
+  const { data, error } = await supabase.rpc('get_nightly_agent_runs')
+  if (error) throw new Error(error.message)
+  return (data || []) as NightlyAgentRun[]
+}

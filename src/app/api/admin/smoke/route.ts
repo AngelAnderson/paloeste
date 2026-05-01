@@ -8,6 +8,7 @@ import {
   getProspects,
   getBotIntelligence,
   getOverdueRelationships,
+  getNightlyAgentRuns,
 } from '@/lib/admin-queries'
 import { getAdminBadges } from '@/lib/admin-badges'
 
@@ -57,6 +58,11 @@ export async function GET(request: Request) {
     run('getProspects', getProspects, v => Array.isArray(v) ? null : 'expected array'),
     run('getOverdueRelationships', getOverdueRelationships, v => Array.isArray(v) ? null : 'expected array'),
     run('getAdminBadges', getAdminBadges, v => isObj(v) ? null : 'expected object'),
+    run('getNightlyAgentRuns', getNightlyAgentRuns, v => {
+      if (!Array.isArray(v)) return 'expected array'
+      if (v.length === 0) return { warning: 'NightlyAgentsCard hidden — no cron runs visible' }
+      return null
+    }),
     run('getBotIntelligence', () => getBotIntelligence(7), v => {
       if (v == null) return 'returned null'
       if (!isObj(v)) return 'not an object'

@@ -12,7 +12,9 @@ import { BotPulseCard } from '@/components/admin/bot-pulse-card'
 import { RelationshipsCard } from '@/components/admin/relationships-card'
 import { SinceLastVisit } from '@/components/admin/since-last-visit'
 import { EodModal } from '@/components/admin/eod-modal'
+import { NightlyAgentsCard } from '@/components/admin/nightly-agents-card'
 import { Moon } from 'lucide-react'
+import type { NightlyAgentRun } from '@/lib/admin-queries'
 import { rankActions, type RankedAction } from '@/lib/admin-action-ranker'
 import type { UnbilledBusiness } from '@/lib/admin-queries'
 import type { ConversionOpportunity, SponsorROI, AdminOverview, Prospect, BotIntelligence, OverdueRelationship } from '@/lib/types'
@@ -40,6 +42,7 @@ export function RevenueDashboard({
   staleCount,
   botIntel,
   overdueRels,
+  nightlyRuns,
 }: {
   unbilled: UnbilledBusiness[]
   totalUnbilled: number
@@ -53,6 +56,7 @@ export function RevenueDashboard({
   staleCount: number
   botIntel: BotIntelligence | null
   overdueRels: OverdueRelationship[]
+  nightlyRuns: NightlyAgentRun[]
 }) {
   const [modal, setModal] = useState<ModalState | null>(null)
   const [eodOpen, setEodOpen] = useState(false)
@@ -147,6 +151,8 @@ export function RevenueDashboard({
           <RelationshipsCard overdue={overdueRels} onMessage={openRelationshipMessage} />
         </div>
       )}
+
+      <NightlyAgentsCard runs={nightlyRuns} />
 
       {/* KPI Strip */}
       <div className={`grid grid-cols-2 ${followUps.length > 0 ? 'md:grid-cols-5' : 'md:grid-cols-4'} gap-3 mb-6`}>
