@@ -11,6 +11,8 @@ import { TopThreeHero } from '@/components/admin/top-three-hero'
 import { BotPulseCard } from '@/components/admin/bot-pulse-card'
 import { RelationshipsCard } from '@/components/admin/relationships-card'
 import { SinceLastVisit } from '@/components/admin/since-last-visit'
+import { EodModal } from '@/components/admin/eod-modal'
+import { Moon } from 'lucide-react'
 import { rankActions, type RankedAction } from '@/lib/admin-action-ranker'
 import type { UnbilledBusiness } from '@/lib/admin-queries'
 import type { ConversionOpportunity, SponsorROI, AdminOverview, Prospect, BotIntelligence, OverdueRelationship } from '@/lib/types'
@@ -53,6 +55,7 @@ export function RevenueDashboard({
   overdueRels: OverdueRelationship[]
 }) {
   const [modal, setModal] = useState<ModalState | null>(null)
+  const [eodOpen, setEodOpen] = useState(false)
 
   function openCollect(u: UnbilledBusiness) {
     const msg = COLLECT_TEMPLATE
@@ -120,8 +123,19 @@ export function RevenueDashboard({
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-2">Revenue Co-Pilot</h1>
-      <p className="text-[#64748b] text-sm mb-6">Acciones que mueven dinero — hoy.</p>
+      <div className="flex items-start justify-between gap-3 mb-6">
+        <div>
+          <h1 className="text-2xl font-bold mb-2">Revenue Co-Pilot</h1>
+          <p className="text-[#64748b] text-sm">Acciones que mueven dinero — hoy.</p>
+        </div>
+        <button
+          onClick={() => setEodOpen(true)}
+          className="shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium bg-[#1e293b] border border-[#334155] text-[#94a3b8] hover:text-white hover:border-[#38bdf8] transition-colors"
+        >
+          <Moon size={14} />
+          Cierra el día
+        </button>
+      </div>
 
       <SinceLastVisit />
 
@@ -425,6 +439,15 @@ export function RevenueDashboard({
           phone={modal.phone}
           defaultMessage={modal.message}
           onClose={() => setModal(null)}
+        />
+      )}
+
+      {/* EOD Modal */}
+      {eodOpen && (
+        <EodModal
+          cobros={unbilled}
+          rels={overdueRels}
+          onClose={() => setEodOpen(false)}
         />
       )}
     </div>
