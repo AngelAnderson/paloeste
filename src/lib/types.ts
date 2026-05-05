@@ -34,6 +34,7 @@ export interface Place {
   price_level?: string;
   vibe?: string[];
   is_verified?: boolean;
+  verified_at?: string;
   one_liner?: string;
   local_tip?: string;
   angel_rating?: number;
