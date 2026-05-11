@@ -18,6 +18,11 @@ const nextConfig: NextConfig = {
         destination: "/api/vitrina/stats/luis-david-refrigeracion",
         permanent: true,
       },
+      {
+        source: "/admin/municipio",
+        destination: "https://www.mapadecaborojo.com/admin/municipio",
+        permanent: false,
+      },
     ];
   },
 };
