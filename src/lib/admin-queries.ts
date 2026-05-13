@@ -583,3 +583,103 @@ export async function getNightlyAgentRuns(): Promise<NightlyAgentRun[]> {
   if (error) throw new Error(error.message)
   return (data || []) as NightlyAgentRun[]
 }
+
+// ==========================================================================
+// CARTERA — multi-tenant ops layer (El Cartera, Phase 1)
+// Plan: ~/.claude/plans/estado-viendo-v-deos-de-rosy-hammock.md
+// ==========================================================================
+
+export type CarteraTenantType = 'personal' | 'casa_propia' | 'cliente_active' | 'lead' | 'partner'
+export type CarteraAutonomyLevel = 'draft_only' | 'autonomous_within_playbook' | 'restricted'
+
+export interface CarteraTenantSummary {
+  id: string
+  display_name: string
+  type: CarteraTenantType
+  status: string
+  budget_usd_month: number
+  cost_mtd_usd: number
+  active_agents: number
+  pending_decisions: number
+  last_activity_at: string | null
+}
+
+export interface CarteraAgentDetail {
+  agent_id: string
+  persona_name: string
+  persona_title: string
+  mission: string
+  schedule: string | null
+  autonomy_level: CarteraAutonomyLevel
+  playbook_id: string | null
+  agent_status: string
+  last_run_at: string | null
+  last_run_status: string | null
+  runs_30d: number
+  success_rate: number
+  cost_30d_usd: number
+  pending_decisions: number
+}
+
+export interface CarteraAgentRun {
+  run_id: number
+  ran_at: string
+  status: string
+  cost_usd: number
+  duration_ms: number | null
+  audit_message: string | null
+  decision_id: number | null
+  decision_status: string | null
+}
+
+export interface CarteraPendingDecision {
+  id: number
+  agent_id: string
+  persona_name: string
+  tenant_id: string
+  tenant_name: string
+  action_type: string
+  preview: string
+  proposed_at: string
+  expires_at: string
+  age_hours: number
+}
+
+export async function getCarteraTenants(): Promise<CarteraTenantSummary[]> {
+  const supabase = await createSupabaseAdminClient()
+  const { data, error } = await supabase.rpc('get_cartera_tenants_summary')
+  if (error) throw new Error(error.message)
+  return (data || []) as CarteraTenantSummary[]
+}
+
+export async function getCarteraTenantDetail(tenantId: string): Promise<CarteraAgentDetail[]> {
+  const supabase = await createSupabaseAdminClient()
+  const { data, error } = await supabase.rpc('get_cartera_tenant_detail', { p_tenant_id: tenantId })
+  if (error) throw new Error(error.message)
+  return (data || []) as CarteraAgentDetail[]
+}
+
+export async function getCarteraTenantById(tenantId: string): Promise<{ id: string; display_name: string; type: CarteraTenantType; budget_usd_month: number; context_jsonb: Record<string, unknown> } | null> {
+  const supabase = await createSupabaseAdminClient()
+  const { data, error } = await supabase
+    .from('cartera_tenants')
+    .select('id, display_name, type, budget_usd_month, context_jsonb')
+    .eq('id', tenantId)
+    .maybeSingle()
+  if (error) throw new Error(error.message)
+  return data as { id: string; display_name: string; type: CarteraTenantType; budget_usd_month: number; context_jsonb: Record<string, unknown> } | null
+}
+
+export async function getCarteraAgentHistory(agentId: string, limit = 30): Promise<CarteraAgentRun[]> {
+  const supabase = await createSupabaseAdminClient()
+  const { data, error } = await supabase.rpc('get_cartera_agent_history', { p_agent_id: agentId, p_limit: limit })
+  if (error) throw new Error(error.message)
+  return (data || []) as CarteraAgentRun[]
+}
+
+export async function getCarteraPendingDecisions(tenantId?: string): Promise<CarteraPendingDecision[]> {
+  const supabase = await createSupabaseAdminClient()
+  const { data, error } = await supabase.rpc('get_cartera_pending_decisions', { p_tenant_id: tenantId ?? null })
+  if (error) throw new Error(error.message)
+  return (data || []) as CarteraPendingDecision[]
+}
