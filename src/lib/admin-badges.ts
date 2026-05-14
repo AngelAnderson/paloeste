@@ -8,7 +8,7 @@ export async function getAdminBadges(): Promise<AdminBadges> {
   const supabase = await createSupabaseAdminClient()
   const today = new Date().toISOString().slice(0, 10)
 
-  const [inbox, pipeline, contactos, dinero, contenido, edits] = await Promise.allSettled([
+  const [inbox, pipeline, contactos, dinero, contenido, edits, decisiones] = await Promise.allSettled([
     supabase
       .from('conversations')
       .select('id', { count: 'exact', head: true })
@@ -38,6 +38,12 @@ export async function getAdminBadges(): Promise<AdminBadges> {
       .from('business_edits')
       .select('id', { count: 'exact', head: true })
       .eq('status', 'pending'),
+
+    supabase
+      .from('cartera_decisions')
+      .select('id', { count: 'exact', head: true })
+      .is('decision', null)
+      .gt('expires_at', new Date().toISOString()),
   ])
 
   const badges: AdminBadges = {}
@@ -65,6 +71,10 @@ export async function getAdminBadges(): Promise<AdminBadges> {
 
   if (edits.status === 'fulfilled' && edits.value.count != null) {
     badges['/admin/edits'] = edits.value.count
+  }
+
+  if (decisiones.status === 'fulfilled' && decisiones.value.count != null) {
+    badges['/admin/decisiones'] = decisiones.value.count
   }
 
   return badges
