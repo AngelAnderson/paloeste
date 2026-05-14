@@ -683,3 +683,98 @@ export async function getCarteraPendingDecisions(tenantId?: string): Promise<Car
   if (error) throw new Error(error.message)
   return (data || []) as CarteraPendingDecision[]
 }
+
+export interface CarteraAgentRecord {
+  id: string
+  tenant_id: string
+  persona_name: string
+  persona_title: string
+  mission: string
+  type: string
+  schedule: string | null
+  playbook_id: string | null
+  autonomy_level: CarteraAutonomyLevel
+  status: string
+  activated_at: string
+}
+
+export async function getCarteraAgentById(agentId: string): Promise<(CarteraAgentRecord & { tenant_display_name: string; tenant_type: CarteraTenantType }) | null> {
+  const supabase = await createSupabaseAdminClient()
+  const { data, error } = await supabase
+    .from('cartera_agents')
+    .select('id, tenant_id, persona_name, persona_title, mission, type, schedule, playbook_id, autonomy_level, status, activated_at, cartera_tenants!inner(display_name, type)')
+    .eq('id', agentId)
+    .maybeSingle()
+  if (error) throw new Error(error.message)
+  if (!data) return null
+  const tenant = (data as unknown as { cartera_tenants: { display_name: string; type: CarteraTenantType } }).cartera_tenants
+  return {
+    id: data.id as string,
+    tenant_id: data.tenant_id as string,
+    persona_name: data.persona_name as string,
+    persona_title: data.persona_title as string,
+    mission: data.mission as string,
+    type: data.type as string,
+    schedule: data.schedule as string | null,
+    playbook_id: data.playbook_id as string | null,
+    autonomy_level: data.autonomy_level as CarteraAutonomyLevel,
+    status: data.status as string,
+    activated_at: data.activated_at as string,
+    tenant_display_name: tenant.display_name,
+    tenant_type: tenant.type,
+  }
+}
+
+export interface CarteraAgentRosterRow {
+  agent_id: string
+  persona_name: string
+  persona_title: string
+  mission: string
+  schedule: string | null
+  autonomy_level: CarteraAutonomyLevel
+  playbook_id: string | null
+  tenant_id: string
+  tenant_display_name: string
+  tenant_type: CarteraTenantType
+  last_run_at: string | null
+  last_run_status: string | null
+  runs_30d: number
+  success_rate: number
+  cost_30d_usd: number
+  pending_decisions: number
+}
+
+export async function getCarteraAllAgentsRoster(): Promise<CarteraAgentRosterRow[]> {
+  const supabase = await createSupabaseAdminClient()
+  const { data, error } = await supabase.rpc('get_cartera_all_agents_roster')
+  if (error) throw new Error(error.message)
+  return (data || []) as CarteraAgentRosterRow[]
+}
+
+export async function getCarteraAllAgents(): Promise<(CarteraAgentRecord & { tenant_display_name: string; tenant_type: CarteraTenantType })[]> {
+  const supabase = await createSupabaseAdminClient()
+  const { data, error } = await supabase
+    .from('cartera_agents')
+    .select('id, tenant_id, persona_name, persona_title, mission, type, schedule, playbook_id, autonomy_level, status, activated_at, cartera_tenants!inner(display_name, type)')
+    .eq('status', 'active')
+    .order('persona_name')
+  if (error) throw new Error(error.message)
+  return (data || []).map(row => {
+    const r = row as unknown as { id: string; tenant_id: string; persona_name: string; persona_title: string; mission: string; type: string; schedule: string | null; playbook_id: string | null; autonomy_level: CarteraAutonomyLevel; status: string; activated_at: string; cartera_tenants: { display_name: string; type: CarteraTenantType } }
+    return {
+      id: r.id,
+      tenant_id: r.tenant_id,
+      persona_name: r.persona_name,
+      persona_title: r.persona_title,
+      mission: r.mission,
+      type: r.type,
+      schedule: r.schedule,
+      playbook_id: r.playbook_id,
+      autonomy_level: r.autonomy_level,
+      status: r.status,
+      activated_at: r.activated_at,
+      tenant_display_name: r.cartera_tenants.display_name,
+      tenant_type: r.cartera_tenants.type,
+    }
+  })
+}
