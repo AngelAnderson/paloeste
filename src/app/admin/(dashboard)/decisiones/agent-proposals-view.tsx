@@ -108,11 +108,15 @@ export function AgentProposalsView({ proposals }: { proposals: AgentProposal[] }
           )}
 
           <div className="mt-4 flex flex-wrap gap-2 border-t border-[#334155] pt-4">
+            <div className="basis-full text-xs text-[#94a3b8] mb-1">
+              Aprobar la deja lista para trabajar. Cerrar como hecho solo archiva la propuesta cuando ya resolviste la acción afuera. Rechazar la descarta.
+            </div>
             <button
               type="button"
               onClick={() => review(p.id, 'approved')}
               disabled={isPending || pendingId === p.id}
               className="rounded-lg bg-[#38bdf8] px-3 py-2 text-xs font-semibold text-[#020617] hover:bg-[#7dd3fc] disabled:cursor-not-allowed disabled:opacity-60"
+              title="Acepta la propuesta para trabajarla después; no ejecuta cambios externos."
             >
               Aprobar
             </button>
@@ -121,14 +125,16 @@ export function AgentProposalsView({ proposals }: { proposals: AgentProposal[] }
               onClick={() => review(p.id, 'applied')}
               disabled={isPending || pendingId === p.id}
               className="rounded-lg bg-[#22c55e] px-3 py-2 text-xs font-semibold text-[#052e16] hover:bg-[#4ade80] disabled:cursor-not-allowed disabled:opacity-60"
+              title="Cierra la propuesta porque ya hiciste la acción fuera de este flujo."
             >
-              Marcar aplicado
+              Cerrar como hecho
             </button>
             <button
               type="button"
               onClick={() => review(p.id, 'rejected')}
               disabled={isPending || pendingId === p.id}
               className="rounded-lg border border-[#475569] px-3 py-2 text-xs font-semibold text-[#cbd5e1] hover:border-[#f87171] hover:text-[#fecaca] disabled:cursor-not-allowed disabled:opacity-60"
+              title="Descarta la propuesta; no borra datos core."
             >
               Rechazar
             </button>

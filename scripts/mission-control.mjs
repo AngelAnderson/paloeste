@@ -39,6 +39,29 @@ function todayDate() {
   return new Date().toISOString().slice(0, 10)
 }
 
+function searchTermsForGap(gap) {
+  const raw = `${gap.query || ''} ${gap.category || ''}`
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+
+  const terms = new Set(raw.split(/[^a-z0-9]+/).filter(t => t.length >= 4))
+
+  if (raw.includes('plomero') || raw.includes('plumber')) {
+    terms.add('plomero')
+    terms.add('plumbing')
+    terms.add('plumber')
+  }
+  if (raw.includes('air conditioner') || raw.includes('aire acondicionado') || raw.includes('refrigeracion')) {
+    terms.add('refrigeracion')
+    terms.add('acondicionado')
+    terms.add('mecanico')
+    terms.add('auto')
+  }
+
+  return Array.from(terms).slice(0, 6)
+}
+
 async function safe(label, fn, fallback) {
   try {
     const { data, error, count } = await fn()
@@ -125,6 +148,32 @@ async function loadMissionData() {
     safe('opportunities', () => sb.rpc('get_conversion_opportunities', { min_leads: 3 }), []),
   ])
 
+  const gapMatches = {}
+  for (const gap of rows(searchGaps).slice(0, 8)) {
+    const terms = searchTermsForGap(gap)
+    if (!terms.length) {
+      gapMatches[gap.id] = { terms, matches: [] }
+      continue
+    }
+
+    const filters = terms.flatMap(term => [
+      `name.ilike.%${term}%`,
+      `category.ilike.%${term}%`,
+      `subcategory.ilike.%${term}%`,
+      `description.ilike.%${term}%`,
+      `one_liner.ilike.%${term}%`,
+    ]).join(',')
+
+    const matchResult = await safe(`gapMatches:${gap.id}`, () => sb
+      .from('places')
+      .select('id,name,category,subcategory,municipality,phone,website,verified_at')
+      .eq('visibility', 'published')
+      .or(filters)
+      .limit(5), [])
+
+    gapMatches[gap.id] = { terms, matches: rows(matchResult), error: matchResult.error }
+  }
+
   return {
     unbilled,
     followUps,
@@ -136,6 +185,7 @@ async function loadMissionData() {
     apiErrors,
     stalePlaces,
     opportunities,
+    gapMatches,
   }
 }
 
@@ -224,20 +274,42 @@ function buildProposals(data) {
   }
 
   for (const g of rows(data.searchGaps).slice(0, 5)) {
+    const matchInfo = data.gapMatches?.[g.id] || { terms: [], matches: [] }
+    const matches = Array.isArray(matchInfo.matches) ? matchInfo.matches : []
+    const hasCandidate = matches.length > 0
+
     proposals.push({
       agent_name: 'Mission Control',
-      proposal_type: 'fix_search_gap',
+      proposal_type: hasCandidate ? 'fix_search_match' : 'source_directory_supply',
       target_table: 'search_gaps',
       target_id: g.id,
-      title: `Arreglar gap de búsqueda: ${g.query}`,
-      rationale: 'Una búsqueda reciente no tuvo buena respuesta o match suficiente.',
-      evidence: g,
+      title: hasCandidate
+        ? `Arreglar búsqueda que no encontró candidato: ${g.query}`
+        : `Conseguir oferta para búsqueda sin respuesta: ${g.query}`,
+      rationale: hasCandidate
+        ? `La búsqueda tuvo 0 resultados, pero el directorio ya tiene ${matches.length} candidato(s). Esto apunta a fallo de ranking, sinónimos, embeddings o filtro.`
+        : 'Una búsqueda reciente no tuvo respuesta y no encontré candidato publicado en el directorio. Esto debe convertirse en tarea de supply/content, no solo edición.',
+      evidence: { ...g, candidate_places: matches, terms_checked: matchInfo.terms, match_error: matchInfo.error },
       proposed_patch: {
-        action: 'review_directory_data',
-        admin_path: '/admin/directorio',
+        action: hasCandidate ? 'fix_retrieval_or_synonyms' : 'source_new_supply',
+        admin_path: hasCandidate ? '/admin/bot' : '/admin/directorio',
+        suggested_next_steps: hasCandidate
+          ? [
+              'Probar la búsqueda en el bot.',
+              'Confirmar por qué no devolvió el candidato existente.',
+              'Actualizar sinónimos, categoría, embedding o ranking antes de crear otra ficha.',
+            ]
+          : [
+              'Crear post preguntando por recomendación local.',
+              'Buscar candidato externo y crear ficha draft.',
+              'Marcar como oportunidad de sponsor si la demanda se repite.',
+            ],
+        suggested_post: hasCandidate
+          ? null
+          : `La gente está buscando "${g.query}" en El Veci. ¿Conoces a alguien confiable en el oeste? Escríbenos al 787-417-7711.`,
       },
       risk_level: 'medium',
-      rollback_plan: 'No edita directorio automáticamente.',
+      rollback_plan: 'No edita directorio ni publica contenido automáticamente.',
     })
   }
 
