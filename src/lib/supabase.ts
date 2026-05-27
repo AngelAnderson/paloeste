@@ -1,13 +1,40 @@
 import { createClient } from "@supabase/supabase-js";
 import { Place, Event } from "./types";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+type RpcClient = ReturnType<typeof createClient> & {
+  rpc: (
+    fn: string,
+    args?: Record<string, unknown>
+  ) => Promise<{ data: unknown; error: { message: string } | null }>
+}
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+let supabaseClient: ReturnType<typeof createClient> | null = null
+
+function hasSupabaseConfig() {
+  return Boolean(supabaseUrl && supabaseAnonKey)
+}
+
+function getSupabaseClient() {
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error("Supabase public env vars are not configured")
+  }
+  supabaseClient ??= createClient(supabaseUrl, supabaseAnonKey)
+  return supabaseClient
+}
+
+export const supabase = new Proxy({} as ReturnType<typeof createClient>, {
+  get(_target, prop) {
+    return Reflect.get(getSupabaseClient(), prop)
+  },
+});
 
 export async function getPlaces(category?: string): Promise<Place[]> {
-  let query = supabase
+  if (!hasSupabaseConfig()) return []
+
+  let query = getSupabaseClient()
     .from("places")
     .select("*")
     .eq("visibility", "published")
@@ -25,7 +52,9 @@ export async function getPlaces(category?: string): Promise<Place[]> {
 }
 
 export async function getPlaceBySlug(slug: string): Promise<Place | null> {
-  const { data, error } = await supabase
+  if (!hasSupabaseConfig()) return null
+
+  const { data, error } = await getSupabaseClient()
     .from("places")
     .select("*")
     .eq("slug", slug)
@@ -37,7 +66,9 @@ export async function getPlaceBySlug(slug: string): Promise<Place | null> {
 }
 
 export async function getFeaturedPlaces(): Promise<Place[]> {
-  const { data, error } = await supabase
+  if (!hasSupabaseConfig()) return []
+
+  const { data, error } = await getSupabaseClient()
     .from("places")
     .select("*")
     .eq("is_featured", true)
@@ -54,7 +85,9 @@ export async function searchPlaces(
   queryEmbedding: number[],
   matchCount: number = 5
 ): Promise<Place[]> {
-  const { data, error } = await supabase.rpc("match_places_v3", {
+  if (!hasSupabaseConfig()) return []
+
+  const { data, error } = await (getSupabaseClient() as unknown as RpcClient).rpc("match_places_v3", {
     query_embedding: queryEmbedding,
     match_threshold: 0.3,
     match_count: matchCount,
@@ -70,7 +103,9 @@ export async function searchNearby(
   radiusKm: number = 5,
   category?: string
 ): Promise<Place[]> {
-  const { data, error } = await supabase.rpc("match_places_nearby", {
+  if (!hasSupabaseConfig()) return []
+
+  const { data, error } = await (getSupabaseClient() as unknown as RpcClient).rpc("match_places_nearby", {
     p_lat: lat,
     p_lon: lon,
     p_radius_km: radiusKm,
@@ -82,7 +117,9 @@ export async function searchNearby(
 }
 
 export async function getUpcomingEvents(): Promise<Event[]> {
-  const { data, error } = await supabase
+  if (!hasSupabaseConfig()) return []
+
+  const { data, error } = await getSupabaseClient()
     .from("events")
     .select("*")
     .in("status", ["active", "approved", "published"])
@@ -93,7 +130,9 @@ export async function getUpcomingEvents(): Promise<Event[]> {
 }
 
 export async function getAllEvents(): Promise<Event[]> {
-  const { data, error } = await supabase
+  if (!hasSupabaseConfig()) return []
+
+  const { data, error } = await getSupabaseClient()
     .from("events")
     .select("*")
     .in("status", ["active", "approved", "published", "archived"])
@@ -104,12 +143,14 @@ export async function getAllEvents(): Promise<Event[]> {
 }
 
 export async function getAllSlugs(): Promise<string[]> {
-  const { data, error } = await supabase
+  if (!hasSupabaseConfig()) return []
+
+  const { data, error } = await getSupabaseClient()
     .from("places")
     .select("slug")
     .eq("visibility", "published")
     .neq("quality_tier", "hidden");
 
   if (error) throw error;
-  return (data || []).map((p) => p.slug).filter(Boolean);
+  return ((data || []) as { slug?: string }[]).map((p) => p.slug).filter(Boolean) as string[];
 }
