@@ -20,7 +20,6 @@ export function ComposeForm({
   initialTo,
   initialBody,
   initialChannel,
-  contextId,
   contactName,
   contactType,
   contactNotes,

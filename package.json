@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "mission-control": "node scripts/mission-control.mjs",
     "smoke": "node scripts/smoke.mjs"
   },
   "dependencies": {

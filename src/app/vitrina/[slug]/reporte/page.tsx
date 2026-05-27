@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 import { notFound } from 'next/navigation'
 import { Metadata } from 'next'
 import { getPlaceBySlugWithToken, getSponsorLeadsWeekly, getCategoryPosition, getSponsorLeadsTotal, getProfileCompleteness } from '@/lib/admin-queries'

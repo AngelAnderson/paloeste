@@ -102,7 +102,7 @@ Responde SOLO con un JSON array de 3 strings, sin markdown:
     }
 
     return NextResponse.json({ suggestions: suggestions.slice(0, 3) })
-  } catch (e: any) {
-    return NextResponse.json({ error: e.message || 'Failed to generate suggestions' }, { status: 500 })
+  } catch (e: unknown) {
+    return NextResponse.json({ error: e instanceof Error ? e.message : 'Failed to generate suggestions' }, { status: 500 })
   }
 }

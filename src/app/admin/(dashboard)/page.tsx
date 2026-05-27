@@ -58,6 +58,7 @@ export default async function AdminDashboard() {
 
   // Filter prospects: due today or overdue, active stages only
   const today = new Date().toISOString().slice(0, 10)
+  const todayMs = new Date(today).getTime()
   const activeStages = ['lead', 'contacted', 'pitched', 'negotiating']
   const followUps = prospects
     .filter(p => activeStages.includes(p.stage.replace('closed_', '')) && p.next_action_date && p.next_action_date.slice(0, 10) <= today)
@@ -66,7 +67,7 @@ export default async function AdminDashboard() {
     .filter(p => {
       if (!activeStages.includes(p.stage.replace('closed_', ''))) return false
       const lastTouch = p.last_contact_at || p.created_at
-      const days = Math.floor((Date.now() - new Date(lastTouch).getTime()) / 86400000)
+      const days = Math.floor((todayMs - new Date(lastTouch).getTime()) / 86400000)
       return days >= 7
     })
 

@@ -1,5 +1,4 @@
 import Link from "next/link";
-import Image from "next/image";
 import { SearchInput } from "@/components/search-input";
 import { CategoryPills } from "@/components/category-pills";
 import { PlaceCard } from "@/components/place-card";

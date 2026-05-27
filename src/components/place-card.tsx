@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 import Link from "next/link";
 import { Place } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";

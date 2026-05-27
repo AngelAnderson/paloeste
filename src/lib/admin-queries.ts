@@ -286,7 +286,7 @@ export async function getInboxConversations(filters?: {
 
   // Fetch display names for contacts that have contact_id
   const contactIds = (convos || []).map(c => c.contact_id).filter(Boolean) as string[]
-  let contactMap = new Map<string, string>()
+  const contactMap = new Map<string, string>()
   if (contactIds.length > 0) {
     const { data: contacts } = await supabase
       .from('contacts')
@@ -299,7 +299,7 @@ export async function getInboxConversations(filters?: {
 
   // Fetch last message (inbound OR outbound) for each conversation
   const convoIds = (convos || []).map(c => c.id)
-  let lastMsgMap = new Map<string, { body: string; direction: string }>()
+  const lastMsgMap = new Map<string, { body: string; direction: string }>()
   if (convoIds.length > 0) {
     // Get last message per conversation using distinct on
     const { data: lastMsgs } = await supabase
@@ -318,7 +318,7 @@ export async function getInboxConversations(filters?: {
 
   // Match phone numbers to business names in places table
   const phones = (convos || []).map(c => c.contact.replace('whatsapp:', ''))
-  let placeMap = new Map<string, string>()
+  const placeMap = new Map<string, string>()
   if (phones.length > 0) {
     const { data: places } = await supabase
       .from('places')
@@ -645,6 +645,26 @@ export interface CarteraPendingDecision {
   age_hours: number
 }
 
+export interface AgentProposal {
+  id: string
+  agent_name: string
+  proposal_type: string
+  target_table: string | null
+  target_id: string | null
+  title: string
+  rationale: string
+  evidence: unknown
+  proposed_patch: unknown
+  risk_level: 'low' | 'medium' | 'high' | 'critical'
+  status: 'draft' | 'needs_review' | 'approved' | 'rejected' | 'applied' | 'rolled_back'
+  reviewer: string | null
+  review_notes: string | null
+  rollback_plan: string | null
+  applied_at: string | null
+  created_at: string
+  updated_at: string
+}
+
 export async function getCarteraTenants(): Promise<CarteraTenantSummary[]> {
   const supabase = await createSupabaseAdminClient()
   const { data, error } = await supabase.rpc('get_cartera_tenants_summary')
@@ -682,6 +702,18 @@ export async function getCarteraPendingDecisions(tenantId?: string): Promise<Car
   const { data, error } = await supabase.rpc('get_cartera_pending_decisions', { p_tenant_id: tenantId ?? null })
   if (error) throw new Error(error.message)
   return (data || []) as CarteraPendingDecision[]
+}
+
+export async function getAgentProposals(statuses = ['draft', 'needs_review']): Promise<AgentProposal[]> {
+  const supabase = await createSupabaseAdminClient()
+  const { data, error } = await supabase
+    .from('agent_proposals')
+    .select('id,agent_name,proposal_type,target_table,target_id,title,rationale,evidence,proposed_patch,risk_level,status,reviewer,review_notes,rollback_plan,applied_at,created_at,updated_at')
+    .in('status', statuses)
+    .order('created_at', { ascending: false })
+    .limit(100)
+  if (error) throw new Error(error.message)
+  return (data || []) as AgentProposal[]
 }
 
 export interface CarteraAgentRecord {

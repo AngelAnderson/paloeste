@@ -20,6 +20,10 @@ const FILTERS: Array<{ key: Props['filter']; label: string }> = [
   { key: 'all', label: 'Todos' },
 ]
 
+function errorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error)
+}
+
 export function EditsView({ edits, filter }: Props) {
   const router = useRouter()
   const [pending, startTransition] = useTransition()
@@ -32,8 +36,8 @@ export function EditsView({ edits, filter }: Props) {
       try {
         await approveEdit(id, APPLIED_BY)
         router.refresh()
-      } catch (e: any) {
-        alert(`Error: ${e.message || e}`)
+      } catch (e: unknown) {
+        alert(`Error: ${errorMessage(e)}`)
       }
     })
   }
@@ -53,8 +57,8 @@ export function EditsView({ edits, filter }: Props) {
         setRejectingId(null)
         setRejectReason('')
         router.refresh()
-      } catch (e: any) {
-        alert(`Error: ${e.message || e}`)
+      } catch (e: unknown) {
+        alert(`Error: ${errorMessage(e)}`)
       }
     })
   }

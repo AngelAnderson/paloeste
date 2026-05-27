@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { X, Save, Send, MessageSquare, Phone, Clock, ChevronRight } from 'lucide-react'
+import { X, Save, Send, MessageSquare, Phone, Clock } from 'lucide-react'
 import type { Prospect } from '@/lib/types'
 
 const STAGES = [

@@ -13,10 +13,12 @@ export function LeadDetail({
   leadCount,
   totalCents,
   leads,
+  nowMs,
 }: {
   leadCount: number
   totalCents: number
   leads: LeadRow[]
+  nowMs: number
 }) {
   const [open, setOpen] = useState(false)
   const avg = leadCount > 0 ? totalCents / leadCount : 0
@@ -39,7 +41,7 @@ export function LeadDetail({
             <div className="space-y-1 max-h-32 overflow-y-auto">
               {leads.slice(0, 20).map((l, i) => {
                 const d = new Date(l.date)
-                const ago = Math.floor((Date.now() - d.getTime()) / 86400000)
+                const ago = Math.floor((nowMs - d.getTime()) / 86400000)
                 return (
                   <div key={i} className="flex justify-between text-[#64748b]">
                     <span>{d.toLocaleDateString('es-PR', { month: 'short', day: 'numeric' })} ({ago}d)</span>
@@ -52,7 +54,7 @@ export function LeadDetail({
           )}
           {leads.length > 0 && (
             <div className="text-[#64748b]">
-              Último lead: hace {Math.floor((Date.now() - new Date(leads[0].date).getTime()) / 86400000)} días
+              Último lead: hace {Math.floor((nowMs - new Date(leads[0].date).getTime()) / 86400000)} días
             </div>
           )}
         </div>

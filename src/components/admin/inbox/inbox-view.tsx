@@ -11,6 +11,15 @@ interface InboxViewProps {
   initialConversations: InboxConversation[]
 }
 
+type InboxMessagePayload = InboxMessage & {
+  source?: string | null
+}
+
+type ConversationPayload = Partial<InboxConversation> & {
+  id: string
+  last_inbound_body?: string | null
+}
+
 export function InboxView({ initialConversations }: InboxViewProps) {
   const [conversations, setConversations] = useState(initialConversations)
   const [selected, setSelected] = useState<InboxConversation | null>(null)
@@ -150,19 +159,26 @@ export function InboxView({ initialConversations }: InboxViewProps) {
     const channel = supabase
       .channel('inbox-realtime')
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (payload) => {
-        const newMsg = payload.new as any
+        const newMsg = payload.new as InboxMessagePayload
         // If it's for the selected conversation, add it
         if (selected && newMsg.conversation_id === selected.id && newMsg.source !== 'admin') {
           setMessages(prev => {
             if (prev.some(m => m.id === newMsg.id)) return prev
-            return [...prev, newMsg as InboxMessage]
+            return [...prev, newMsg]
           })
         }
       })
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'conversations' }, (payload) => {
-        const updated = payload.new as any
+        const updated = payload.new as ConversationPayload
         setConversations(prev => prev.map(c =>
-          c.id === updated.id ? { ...c, last_message_at: updated.last_message_at, last_inbound_body: updated.last_inbound_body, message_count: updated.message_count, needs_human: updated.needs_human, last_body: updated.last_inbound_body || c.last_body } : c
+          c.id === updated.id ? {
+            ...c,
+            last_message_at: updated.last_message_at ?? c.last_message_at,
+            last_inbound_body: updated.last_inbound_body ?? c.last_inbound_body,
+            message_count: updated.message_count ?? c.message_count,
+            needs_human: updated.needs_human ?? c.needs_human,
+            last_body: updated.last_inbound_body || c.last_body,
+          } : c
         ))
       })
       .subscribe()

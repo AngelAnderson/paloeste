@@ -1,8 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import Link from 'next/link'
-import { Send, ExternalLink, Clock, ChevronRight, AlertTriangle } from 'lucide-react'
+import { Send, ExternalLink, ChevronRight, AlertTriangle } from 'lucide-react'
 import { SendMessageModal } from '@/components/admin/send-message-modal'
 import { CopyVitrinaLink } from '@/components/admin/copy-vitrina-link'
 import { CopyMessageButton } from '@/components/admin/copy-message-button'
@@ -60,6 +60,7 @@ export function RevenueDashboard({
 }) {
   const [modal, setModal] = useState<ModalState | null>(null)
   const [eodOpen, setEodOpen] = useState(false)
+  const nowMs = useMemo(() => new Date().getTime(), [])
 
   function openCollect(u: UnbilledBusiness) {
     const msg = COLLECT_TEMPLATE
@@ -181,7 +182,7 @@ export function RevenueDashboard({
           </div>
           <div className="space-y-3">
             {followUps.map((p) => {
-              const daysOverdue = Math.floor((Date.now() - new Date(p.next_action_date!).getTime()) / 86400000)
+              const daysOverdue = Math.floor((nowMs - new Date(p.next_action_date!).getTime()) / 86400000)
               const stageColors: Record<string, string> = {
                 lead: '#64748b', contacted: '#38bdf8', pitched: '#fbbf24', negotiating: '#fb923c',
               }
@@ -259,7 +260,7 @@ export function RevenueDashboard({
         ) : (
           <div className="space-y-3">
             {unbilled.slice(0, 8).map((u) => {
-              const daysSince = Math.floor((Date.now() - new Date(u.newest).getTime()) / 86400000)
+              const daysSince = Math.floor((nowMs - new Date(u.newest).getTime()) / 86400000)
               return (
                 <div key={u.business_id} className="space-y-1">
                   <div className="flex items-center gap-3 flex-wrap">
@@ -293,7 +294,7 @@ export function RevenueDashboard({
                       />
                     )}
                   </div>
-                  <LeadDetail leadCount={u.lead_count} totalCents={u.total_cents} leads={u.leads} />
+                  <LeadDetail leadCount={u.lead_count} totalCents={u.total_cents} leads={u.leads} nowMs={nowMs} />
                 </div>
               )
             })}
