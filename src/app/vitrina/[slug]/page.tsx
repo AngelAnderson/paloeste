@@ -154,7 +154,6 @@ export default async function VitrinaPage({
     // Extract missed queries for this place's subcategory family
     const gaps = (demandGapsRes as { data: DemandGapBucket[] | null }).data
     if (gaps && Array.isArray(gaps) && subFamily) {
-      const subLower = subFamily.label.toLowerCase()
       // Find gap buckets whose category matches the subcategory family
       const matchingBuckets = gaps.filter(b => {
         const cat = (b.category || '').toLowerCase()

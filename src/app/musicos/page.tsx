@@ -1,5 +1,4 @@
 import { Metadata } from "next";
-import { Badge } from "@/components/ui/badge";
 import { CONTACT_WHATSAPP } from "@/lib/constants";
 import Link from "next/link";
 

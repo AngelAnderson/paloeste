@@ -174,7 +174,6 @@ function JsonLd() {
       },
     ],
   };
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const safeJson = JSON.stringify(schema);
   return <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJson }} />;
 }

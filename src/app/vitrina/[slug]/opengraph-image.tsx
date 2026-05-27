@@ -1,5 +1,4 @@
 import { ImageResponse } from "next/og"
-import { getVitrinaData } from "@/lib/vitrina-queries"
 import { CATEGORIES } from "@/lib/constants"
 
 export const revalidate = 3600
@@ -15,17 +14,15 @@ export default async function OGImage({
   params: Promise<{ slug: string }>
 }) {
   const { slug } = await params
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+    return fallbackImage()
+  }
+
+  const { getVitrinaData } = await import("@/lib/vitrina-queries")
   const data = await getVitrinaData(slug)
 
   if (!data) {
-    return new ImageResponse(
-      (
-        <div style={{ display: "flex", width: "100%", height: "100%", background: "#0d6e77", alignItems: "center", justifyContent: "center", color: "white", fontSize: 48 }}>
-          CaboRojo.com
-        </div>
-      ),
-      size
-    )
+    return fallbackImage()
   }
 
   const { place, totalSearches, sponsorsInCategory } = data
@@ -79,6 +76,17 @@ export default async function OGImage({
             </div>
           )}
         </div>
+      </div>
+    ),
+    size
+  )
+}
+
+function fallbackImage() {
+  return new ImageResponse(
+    (
+      <div style={{ display: "flex", width: "100%", height: "100%", background: "#0d6e77", alignItems: "center", justifyContent: "center", color: "white", fontSize: 48 }}>
+        CaboRojo.com
       </div>
     ),
     size

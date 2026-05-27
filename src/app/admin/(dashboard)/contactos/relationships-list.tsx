@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo } from 'react'
 import { useSearchParams } from 'next/navigation'
 import type { Relationship, OverdueRelationship } from '@/lib/types'
 import { RelationshipPanel } from '@/components/admin/relationship-panel'
@@ -18,15 +18,10 @@ export function RelationshipsList({
 }) {
   const searchParams = useSearchParams()
   const [tab, setTab] = useState<Tab>('all')
-  const [selected, setSelected] = useState<Relationship | null>(null)
-
-  useEffect(() => {
+  const [selected, setSelected] = useState<Relationship | null>(() => {
     const id = searchParams.get('id')
-    if (id) {
-      const found = initial.find(r => r.id === id)
-      if (found) setSelected(found)
-    }
-  }, [searchParams, initial])
+    return id ? initial.find(r => r.id === id) ?? null : null
+  })
 
   const filtered = useMemo(() => {
     if (tab === 'all') return initial

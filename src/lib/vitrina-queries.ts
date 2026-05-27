@@ -91,7 +91,7 @@ export async function getVitrinaStats(slug: string): Promise<VitrinaStats | null
   const supabase = await createSupabaseAdminClient()
   const category = place.category
 
-  const [catReport, sponsorsResult, higherRated] = await Promise.all([
+  const [catReport, , higherRated] = await Promise.all([
     supabase.rpc('get_category_report', { p_category: category }).then(r => r.data as CategoryReport | null),
     supabase
       .from('places')

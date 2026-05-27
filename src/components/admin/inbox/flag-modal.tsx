@@ -36,13 +36,13 @@ export function FlagModal({ messageId, conversationId, originalBody, onClose, on
         }),
       })
       if (!res.ok) {
-        const err = await res.json().catch(() => ({}))
+        const err = await res.json().catch((): { error?: string } => ({}))
         throw new Error(err.error || 'Error al guardar')
       }
       onSaved()
       onClose()
-    } catch (e: any) {
-      setError(e.message || 'Error al guardar')
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'Error al guardar')
     } finally {
       setSaving(false)
     }

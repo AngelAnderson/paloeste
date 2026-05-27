@@ -104,6 +104,8 @@ export default function AdminEditarPage() {
   }, [supabase, debouncedSearch, filterCategory])
 
   useEffect(() => {
+    // Initial browser fetch; loadPlaces owns the loading state for this view.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadPlaces(0, false)
   }, [loadPlaces])
 

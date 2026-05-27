@@ -102,6 +102,7 @@ export default async function BusinessPage({
         {/* Header */}
         {place.hero_image_url && (
           <div className="relative h-64 md:h-80 rounded-2xl overflow-hidden">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={place.hero_image_url}
               alt={place.name}

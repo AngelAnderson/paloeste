@@ -25,9 +25,9 @@ export default async function FixEmbeddingsPage() {
       <header className="mt-4 mb-6">
         <h1 className="text-2xl font-bold mb-1">🧠 Embeddings faltantes</h1>
         <p className="text-sm text-[#64748b]">
-          Cada negocio en tu directorio tiene un vector "embedding" (representación matemática del nombre + descripción + tags).
+          Cada negocio en tu directorio tiene un vector &quot;embedding&quot; (representación matemática del nombre + descripción + tags).
           El bot lo usa para búsqueda semántica — sin embedding, el bot NO los encuentra cuando alguien hace una pregunta tipo
-          "¿dónde como pinchos?" en vez de buscar por nombre exacto.
+          &quot;¿dónde como pinchos?&quot; en vez de buscar por nombre exacto.
         </p>
       </header>
 

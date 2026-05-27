@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useCallback } from 'react'
-import { Plus, ChevronRight, Send, Clock } from 'lucide-react'
+import { Plus, ChevronRight, Send } from 'lucide-react'
 import type { Prospect } from '@/lib/types'
 import { ProspectPanel } from '@/components/admin/prospect-panel'
 

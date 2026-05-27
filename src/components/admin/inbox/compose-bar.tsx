@@ -56,12 +56,12 @@ export function ComposeBar({ onSend, conversationId, disabled, defaultChannel = 
       if (textareaRef.current) {
         textareaRef.current.style.height = 'auto'
       }
-    } catch (e: any) {
-      setSendError(e?.message || 'Error al enviar mensaje')
+    } catch (e: unknown) {
+      setSendError(e instanceof Error ? e.message : 'Error al enviar mensaje')
     } finally {
       setSending(false)
     }
-  }, [text, sending, onSend])
+  }, [text, sending, onSend, channel])
 
   const fetchSuggestions = useCallback(async () => {
     if (!conversationId || loadingSuggestions) return
