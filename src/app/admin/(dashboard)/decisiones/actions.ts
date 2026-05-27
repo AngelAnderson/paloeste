@@ -8,6 +8,133 @@ interface ExecutionResult {
   message: string
 }
 
+function formatJsonBlock(label: string, value: unknown): string {
+  if (value == null) return ''
+  try {
+    return `\n\n${label}:\n${JSON.stringify(value, null, 2)}`
+  } catch {
+    return `\n\n${label}:\n${String(value)}`
+  }
+}
+
+function actionTypeForProposal(proposalType: string): string {
+  switch (proposalType) {
+    case 'collect_unbilled_leads':
+      return 'review_and_collect'
+    case 'follow_up_prospect':
+      return 'contact_prospect'
+    case 'answer_inbox':
+      return 'open_inbox'
+    case 'fix_search_match':
+      return 'fix_search_quality'
+    case 'source_directory_supply':
+      return 'source_directory_supply'
+    case 'review_bot_feedback':
+      return 'review_bot_feedback'
+    case 'refresh_place_data':
+      return 'verify_place_data'
+    case 'activate_sponsor':
+      return 'pitch_vitrina'
+    default:
+      return `mission_control_${proposalType || 'manual'}`
+  }
+}
+
+function buildDecisionPreview(proposal: {
+  title: string
+  rationale: string
+  proposal_type: string
+  target_table: string | null
+  target_id: string | null
+  evidence: unknown
+  proposed_patch: unknown
+  rollback_plan: string | null
+}): string {
+  const patch = proposal.proposed_patch as { suggested_next_steps?: unknown; suggested_message?: unknown; suggested_post?: unknown } | null
+  const nextSteps = Array.isArray(patch?.suggested_next_steps)
+    ? `\n\nPróximos pasos:\n${patch.suggested_next_steps.map((s, i) => `${i + 1}. ${String(s)}`).join('\n')}`
+    : ''
+  const suggested = patch?.suggested_message
+    ? `\n\nMensaje sugerido:\n${String(patch.suggested_message)}`
+    : patch?.suggested_post
+      ? `\n\nPost sugerido:\n${String(patch.suggested_post)}`
+      : ''
+
+  return [
+    `Mission Control: ${proposal.title}`,
+    '',
+    proposal.rationale,
+    proposal.target_table ? `\nTarget: ${proposal.target_table}${proposal.target_id ? `/${proposal.target_id}` : ''}` : '',
+    nextSteps,
+    suggested,
+    proposal.rollback_plan ? `\n\nRegla de seguridad:\n${proposal.rollback_plan}` : '',
+    formatJsonBlock('Evidencia', proposal.evidence),
+    formatJsonBlock('Proposed patch', proposal.proposed_patch),
+  ].filter(Boolean).join('\n')
+}
+
+async function createDecisionFromProposal(
+  supabase: Awaited<ReturnType<typeof createSupabaseAdminClient>>,
+  proposal: {
+    id: string
+    title: string
+    rationale: string
+    proposal_type: string
+    target_table: string | null
+    target_id: string | null
+    evidence: unknown
+    proposed_patch: unknown
+    rollback_plan: string | null
+    risk_level: string
+  },
+): Promise<ExecutionResult> {
+  const actionType = actionTypeForProposal(proposal.proposal_type)
+  const context = {
+    source: 'mission_control',
+    proposal_id: proposal.id,
+    proposal_type: proposal.proposal_type,
+    risk_level: proposal.risk_level,
+    target_table: proposal.target_table,
+    target_id: proposal.target_id,
+    evidence: proposal.evidence,
+  }
+  const payload = {
+    source: 'mission_control',
+    proposal_id: proposal.id,
+    title: proposal.title,
+    rationale: proposal.rationale,
+    proposed_patch: proposal.proposed_patch,
+    rollback_plan: proposal.rollback_plan,
+  }
+
+  const { data: existing, error: existingErr } = await supabase
+    .from('cartera_decisions')
+    .select('id, decision')
+    .eq('agent_id', 'daily-learning-gaps')
+    .contains('context_jsonb', { proposal_id: proposal.id })
+    .limit(1)
+    .maybeSingle()
+
+  if (existingErr) return { ok: false, message: existingErr.message }
+  if (existing) return { ok: true, message: `decision already queued #${existing.id}` }
+
+  const { data: inserted, error } = await supabase
+    .from('cartera_decisions')
+    .insert({
+      agent_id: 'daily-learning-gaps',
+      tenant_id: 'veci',
+      action_type: actionType,
+      preview: buildDecisionPreview(proposal),
+      context_jsonb: context,
+      payload_jsonb: payload,
+    })
+    .select('id')
+    .single()
+
+  if (error) return { ok: false, message: error.message }
+  return { ok: true, message: `queued as decision #${inserted.id}` }
+}
+
 async function executePayload(actionType: string, payload: Record<string, unknown>): Promise<ExecutionResult> {
   // Phase 3 v1: support send_wa (Twilio) + send_email (Resend). Other action types
   // (publish_fb, publish_blog, db_mutation, pay, commit_code, contact_lead) return
@@ -181,7 +308,7 @@ export async function reviewAgentProposal(
 
   const { data: proposal, error: fetchErr } = await supabase
     .from('agent_proposals')
-    .select('id,status')
+    .select('id,status,title,rationale,proposal_type,target_table,target_id,evidence,proposed_patch,rollback_plan,risk_level')
     .eq('id', id)
     .maybeSingle()
   if (fetchErr || !proposal) return { ok: false, message: 'proposal not found' }
@@ -192,6 +319,12 @@ export async function reviewAgentProposal(
   }
   if (status === 'approved' && current === 'approved') {
     return { ok: false, message: 'already approved' }
+  }
+
+  let queueResult: ExecutionResult | null = null
+  if (status === 'approved') {
+    queueResult = await createDecisionFromProposal(supabase, proposal)
+    if (!queueResult.ok) return queueResult
   }
 
   const now = new Date().toISOString()
@@ -209,5 +342,5 @@ export async function reviewAgentProposal(
   if (updateErr) return { ok: false, message: updateErr.message }
 
   revalidatePath('/admin/decisiones')
-  return { ok: true, message: status }
+  return { ok: true, message: queueResult ? `${status}; ${queueResult.message}` : status }
 }

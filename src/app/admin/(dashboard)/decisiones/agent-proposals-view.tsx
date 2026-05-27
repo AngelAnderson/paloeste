@@ -109,14 +109,14 @@ export function AgentProposalsView({ proposals }: { proposals: AgentProposal[] }
 
           <div className="mt-4 flex flex-wrap gap-2 border-t border-[#334155] pt-4">
             <div className="basis-full text-xs text-[#94a3b8] mb-1">
-              Aprobar la deja lista para trabajar. Cerrar como hecho solo archiva la propuesta cuando ya resolviste la acción afuera. Rechazar la descarta.
+              Aprobar la convierte en una decisión ejecutable arriba. Cerrar como hecho solo archiva la propuesta cuando ya resolviste la acción afuera. Rechazar la descarta.
             </div>
             <button
               type="button"
               onClick={() => review(p.id, 'approved')}
               disabled={isPending || pendingId === p.id}
               className="rounded-lg bg-[#38bdf8] px-3 py-2 text-xs font-semibold text-[#020617] hover:bg-[#7dd3fc] disabled:cursor-not-allowed disabled:opacity-60"
-              title="Acepta la propuesta para trabajarla después; no ejecuta cambios externos."
+              title="Convierte esta propuesta en una decisión ejecutable; no envía mensajes ni cambia datos core."
             >
               Aprobar
             </button>

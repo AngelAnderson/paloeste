@@ -23,7 +23,7 @@ export default async function DecisionesInboxPage() {
     <div>
       <h1 className="text-2xl font-bold mb-1">📥 Decisiones — tu Inbox de drafts</h1>
       <p className="text-[#64748b] text-sm mb-6">
-        Tu equipo invisible te tira drafts acá. Tap Aprobar / Editar / Rechazar. Mission Control solo propone; no ejecuta.
+        Tu equipo invisible te tira drafts acá. Aprobar una propuesta de Mission Control la convierte en decisión ejecutable; nada sale sin revisión humana.
       </p>
 
       {/* KPI Row */}
@@ -71,7 +71,7 @@ export default async function DecisionesInboxPage() {
       <section>
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-sm font-semibold text-[#38bdf8] uppercase tracking-wider">Mission Control Proposals</h2>
-          <span className="text-xs text-[#64748b]">{proposals.length} draft-only</span>
+          <span className="text-xs text-[#64748b]">{proposals.length} listas para convertir</span>
         </div>
         <AgentProposalsView proposals={proposals} />
       </section>
