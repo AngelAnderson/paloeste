@@ -1,6 +1,8 @@
 'use client'
 
+import { useState, useTransition } from 'react'
 import type { AgentProposal } from '@/lib/admin-queries'
+import { reviewAgentProposal } from './actions'
 
 const RISK_CLASS: Record<AgentProposal['risk_level'], string> = {
   low: 'bg-[#22c55e]/15 text-[#4ade80] border-[#22c55e]/25',
@@ -26,6 +28,20 @@ function previewJson(value: unknown): string {
 }
 
 export function AgentProposalsView({ proposals }: { proposals: AgentProposal[] }) {
+  const [pendingId, setPendingId] = useState<string | null>(null)
+  const [message, setMessage] = useState<string | null>(null)
+  const [isPending, startTransition] = useTransition()
+
+  function review(id: string, status: 'approved' | 'rejected' | 'applied') {
+    setPendingId(id)
+    setMessage(null)
+    startTransition(async () => {
+      const result = await reviewAgentProposal(id, status)
+      setMessage(result.ok ? `Propuesta ${result.message}` : result.message)
+      setPendingId(null)
+    })
+  }
+
   if (proposals.length === 0) {
     return (
       <div className="bg-[#1e293b] rounded-xl border border-[#334155] p-6 text-center">
@@ -38,6 +54,11 @@ export function AgentProposalsView({ proposals }: { proposals: AgentProposal[] }
 
   return (
     <div className="space-y-4">
+      {message && (
+        <div className="rounded-lg border border-[#334155] bg-[#0f172a] px-3 py-2 text-xs text-[#cbd5e1]">
+          {message}
+        </div>
+      )}
       {proposals.map((p) => (
         <div key={p.id} className="bg-[#1e293b] rounded-xl border border-[#334155] p-5">
           <div className="flex items-start justify-between gap-3 mb-3">
@@ -85,6 +106,33 @@ export function AgentProposalsView({ proposals }: { proposals: AgentProposal[] }
               {p.rollback_plan}
             </div>
           )}
+
+          <div className="mt-4 flex flex-wrap gap-2 border-t border-[#334155] pt-4">
+            <button
+              type="button"
+              onClick={() => review(p.id, 'approved')}
+              disabled={isPending || pendingId === p.id}
+              className="rounded-lg bg-[#38bdf8] px-3 py-2 text-xs font-semibold text-[#020617] hover:bg-[#7dd3fc] disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              Aprobar
+            </button>
+            <button
+              type="button"
+              onClick={() => review(p.id, 'applied')}
+              disabled={isPending || pendingId === p.id}
+              className="rounded-lg bg-[#22c55e] px-3 py-2 text-xs font-semibold text-[#052e16] hover:bg-[#4ade80] disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              Marcar aplicado
+            </button>
+            <button
+              type="button"
+              onClick={() => review(p.id, 'rejected')}
+              disabled={isPending || pendingId === p.id}
+              className="rounded-lg border border-[#475569] px-3 py-2 text-xs font-semibold text-[#cbd5e1] hover:border-[#f87171] hover:text-[#fecaca] disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              Rechazar
+            </button>
+          </div>
         </div>
       ))}
     </div>

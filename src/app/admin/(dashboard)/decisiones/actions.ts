@@ -171,3 +171,43 @@ export async function rejectDecision(id: number, reason?: string): Promise<{ ok:
   revalidatePath('/admin/decisiones')
   return { ok: true, message: 'rejected' }
 }
+
+export async function reviewAgentProposal(
+  id: string,
+  status: 'approved' | 'rejected' | 'applied',
+  notes?: string,
+): Promise<{ ok: boolean; message: string }> {
+  const supabase = await createSupabaseAdminClient()
+
+  const { data: proposal, error: fetchErr } = await supabase
+    .from('agent_proposals')
+    .select('id,status')
+    .eq('id', id)
+    .maybeSingle()
+  if (fetchErr || !proposal) return { ok: false, message: 'proposal not found' }
+
+  const current = proposal.status as string
+  if (!['draft', 'needs_review', 'approved'].includes(current)) {
+    return { ok: false, message: `already ${current}` }
+  }
+  if (status === 'approved' && current === 'approved') {
+    return { ok: false, message: 'already approved' }
+  }
+
+  const now = new Date().toISOString()
+  const { error: updateErr } = await supabase
+    .from('agent_proposals')
+    .update({
+      status,
+      reviewer: 'angel',
+      review_notes: notes?.trim() || null,
+      applied_at: status === 'applied' ? now : null,
+      updated_at: now,
+    })
+    .eq('id', id)
+
+  if (updateErr) return { ok: false, message: updateErr.message }
+
+  revalidatePath('/admin/decisiones')
+  return { ok: true, message: status }
+}
