@@ -46,7 +46,9 @@ export default function Worker() {
   const timers = useRef<Record<string, ReturnType<typeof setTimeout>>>({})
 
   const load = useCallback(async () => {
-    const r = await fetch(`/api/tareas?task=${task}&token=${encodeURIComponent(token)}`)
+    const r = await fetch(`/api/tareas?task=${task}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
     if (r.ok) {
       const d = await r.json()
       setTasks(d.tasks || [])
@@ -66,8 +68,8 @@ export default function Worker() {
     const send = () =>
       fetch('/api/tareas', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token, id: t.id, status: t.status, result: t.result, note: t.note }),
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ id: t.id, status: t.status, result: t.result, note: t.note }),
       }).then(() => setSaved((s) => ({ ...s, [t.id]: Date.now() })))
     if (debounce) {
       clearTimeout(timers.current[t.id])
@@ -104,6 +106,18 @@ export default function Worker() {
   }
   function pharmNote(t: Task, value: string) {
     apply(t.id, { note: value || null }, true)
+  }
+
+  // ---- admin: apply confirmed verifications to the directory ----
+  async function applyAll() {
+    if (!confirm('¿Aplicar los verificados al directorio? Marca is_verified en places.')) return
+    const r = await fetch('/api/tareas', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ action: 'apply' }),
+    })
+    const d = await r.json().catch(() => ({}))
+    alert(r.ok ? `${d.applied ?? 0} negocios marcados como verificados en el directorio.` : `Error: ${d.error || r.status}`)
   }
 
   const doneCount = tasks.filter((t) => t.status === 'done').length
@@ -159,6 +173,11 @@ export default function Worker() {
         <div>
           <div className="how">
             <b>Vista en vivo.</b> Se refresca sola cada 15 seg. {doneCount} completados, {tasks.length - doneCount} pendientes.
+            {doneCount > 0 && (
+              <button onClick={applyAll} className="applybtn">
+                ✅ Aplicar {doneCount} al directorio
+              </button>
+            )}
           </div>
           {adminDone.length === 0 && <div className="how">Todavía no hay nada completado.</div>}
           {adminDone.map((t) => {
@@ -299,4 +318,5 @@ header h1{font-size:1.1rem;margin:0}
 .adm{background:#fff;border-radius:10px;padding:10px 12px;margin-bottom:7px;box-shadow:0 1px 2px rgba(0,0,0,.07);font-size:.85rem}
 .adm.ok{border-left:4px solid #16a34a}.adm.fix{border-left:4px solid #d97706;background:#fffbeb}
 .adm .w{font-size:.78rem;color:#b45309;margin-top:3px}.adm .a{font-size:.76rem;color:#475569;margin-top:3px}
+.applybtn{display:block;margin-top:9px;background:#0d9488;color:#fff;border:0;padding:9px 14px;border-radius:8px;font-weight:700;font-size:.82rem;cursor:pointer}
 `

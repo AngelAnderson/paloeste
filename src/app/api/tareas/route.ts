@@ -1,18 +1,40 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { timingSafeEqual } from 'crypto'
 import { createSupabaseAdminClient } from '@/lib/supabase-server'
 
 // Token-gated worker tasks API (Noelia verification system).
-// Page lives at /tareas — public, gated only by these tokens in the URL.
-const NOELIA = 'noe-9f3a7ef8164c4358'
-const ADMIN = 'adm-d36493377f424a98'
+// Tokens live in env (Vercel) — NEVER hardcode (repo is public).
+// Accepted via `Authorization: Bearer <token>` header so they don't leak
+// through the URL / Referer / access logs. Query/body kept as fallback.
+const NOELIA = process.env.TAREAS_NOELIA_TOKEN || ''
+const ADMIN = process.env.TAREAS_ADMIN_TOKEN || ''
 
 export const dynamic = 'force-dynamic'
+
+function safeEq(a: string, b: string): boolean {
+  if (!a || !b || a.length !== b.length) return false
+  try {
+    return timingSafeEqual(Buffer.from(a), Buffer.from(b))
+  } catch {
+    return false
+  }
+}
+
+function validToken(token: string): boolean {
+  return safeEq(token, NOELIA) || safeEq(token, ADMIN)
+}
+
+function bearer(req: NextRequest): string {
+  const auth = req.headers.get('authorization') || ''
+  return auth.startsWith('Bearer ') ? auth.slice(7) : ''
+}
 
 export async function GET(req: NextRequest) {
   const u = new URL(req.url)
   const taskType = u.searchParams.get('task') || 'health_verify'
-  const token = u.searchParams.get('token') || ''
-  if (token !== NOELIA && token !== ADMIN) {
+  // Prefer Bearer header; fall back to query for backward-compat.
+  const token = bearer(req) || u.searchParams.get('token') || ''
+  if (!validToken(token)) {
     return NextResponse.json({ error: 'bad token' }, { status: 401 })
   }
   const sb = await createSupabaseAdminClient()
@@ -27,11 +49,40 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   const b = await req.json().catch(() => ({}))
-  if (b.token !== NOELIA && b.token !== ADMIN) {
+  const token = bearer(req) || b.token || ''
+  if (!validToken(token)) {
     return NextResponse.json({ error: 'bad token' }, { status: 401 })
   }
   const sb = await createSupabaseAdminClient()
-  const { data, error } = await sb
+
+  // Admin-only: apply confirmed verifications to the `places` directory.
+  // Worker submissions NEVER mutate `places` directly — Angel stays in the
+  // loop (guardrail: a worker token must not be able to flip is_verified).
+  if (b.action === 'apply') {
+    if (!safeEq(token, ADMIN)) return NextResponse.json({ error: 'admin only' }, { status: 403 })
+    const { data: done } = await sb
+      .from('noelia_tasks')
+      .select('place_id,task_type,result')
+      .eq('status', 'done')
+    const ids = (done ?? [])
+      .filter(
+        (t) =>
+          t.task_type === 'pharmacy_audit' ||
+          (t.task_type === 'health_verify' && (t.result as Record<string, unknown>)?.ok === true)
+      )
+      .map((t) => t.place_id)
+      .filter(Boolean)
+    if (ids.length) {
+      await sb
+        .from('places')
+        .update({ is_verified: true, last_verified_at: new Date().toISOString(), verification_source: 'noelia' })
+        .in('id', ids)
+    }
+    return NextResponse.json({ applied: ids.length })
+  }
+
+  // Worker submission: write to the task table only.
+  const { error } = await sb
     .from('noelia_tasks')
     .update({
       status: b.status || 'pending',
@@ -40,25 +91,6 @@ export async function POST(req: NextRequest) {
       updated_at: new Date().toISOString(),
     })
     .eq('id', b.id)
-    .select('place_id,task_type')
-    .single()
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-
-  // On confirmed verification, bump the place record (additive, reversible).
-  if (data && b.status === 'done') {
-    const res = b.result || {}
-    const cleanHealth = data.task_type === 'health_verify' && res.ok === true
-    const isPharm = data.task_type === 'pharmacy_audit'
-    if (cleanHealth || isPharm) {
-      await sb
-        .from('places')
-        .update({
-          is_verified: true,
-          last_verified_at: new Date().toISOString(),
-          verification_source: 'noelia',
-        })
-        .eq('id', data.place_id)
-    }
-  }
   return NextResponse.json({ ok: true })
 }
