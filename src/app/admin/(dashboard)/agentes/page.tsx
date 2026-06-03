@@ -121,11 +121,11 @@ export default async function AgentesRosterPage() {
         </div>
       )}
 
-      {/* Cost note — instrumentation gap, not a real $0 */}
+      {/* Cost note — now instrumented for the LLM agents */}
       <div className="bg-[#1e293b] border border-[#334155] rounded-xl px-4 py-2.5 mb-6 text-xs text-[#64748b]">
-        💸 Costo por agent: <span className="text-[#94a3b8]">no medido aún</span>. La tabla <code className="text-[#475569]">cartera_agent_runs</code> tiene
-        las columnas (<code className="text-[#475569]">cost_usd</code>, <code className="text-[#475569]">llm_tokens_in/out</code>) pero las edge functions
-        todavía no las escriben al terminar. Instrumentarlo = tarea backend por función (la mayoría no usa LLM, así que su costo real ≈ infra).
+        💸 Costo: instrumentado en los agents con LLM — <span className="text-[#94a3b8]">Kelo</span> (gpt-4o) y <span className="text-[#94a3b8]">Besi</span> (gpt-4o-mini + tts-1-hd)
+        ahora loggean <code className="text-[#475569]">cost_usd</code> + tokens en cada run (aparece tras el próximo run programado). Los demás 14 no usan LLM —
+        su costo real es infra (Twilio/Supabase), ≈ $0.
       </div>
 
       {/* Shifts */}
