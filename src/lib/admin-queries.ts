@@ -62,6 +62,37 @@ export interface BusinessEdit {
   conversation_id: string | null
 }
 
+export interface ContentSubmission {
+  id: string
+  contact: string
+  channel: string | null
+  conversation_id: string | null
+  submitter_name: string | null
+  title: string | null
+  body: string
+  media_urls: string[]
+  status: 'pending' | 'published' | 'rejected' | 'archived'
+  source: string
+  internal_note: string | null
+  reviewed_by: string | null
+  submitted_at: string
+  reviewed_at: string | null
+  published_at: string | null
+}
+
+export async function getContentSubmissions(status: 'pending' | 'published' | 'rejected' | 'archived' | 'all' = 'pending'): Promise<ContentSubmission[]> {
+  const supabase = await createSupabaseAdminClient()
+  let q = supabase
+    .from('content_submissions')
+    .select('id,contact,channel,conversation_id,submitter_name,title,body,media_urls,status,source,internal_note,reviewed_by,submitted_at,reviewed_at,published_at')
+    .order('submitted_at', { ascending: false })
+    .limit(200)
+  if (status !== 'all') q = q.eq('status', status)
+  const { data, error } = await q
+  if (error) throw error
+  return (data || []) as ContentSubmission[]
+}
+
 export async function getBusinessEdits(status: 'pending' | 'applied' | 'rejected' | 'all' = 'pending'): Promise<BusinessEdit[]> {
   const supabase = await createSupabaseAdminClient()
   let q = supabase

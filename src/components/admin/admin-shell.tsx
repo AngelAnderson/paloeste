@@ -20,6 +20,7 @@ const NAV = [
   { href: '/admin/directorio', label: 'Directorio', icon: '\uD83D\uDCCD' },
   { href: '/admin/tareas', label: 'Tareas', icon: '\u2705' },
   { href: '/admin/edits', label: 'Edits', icon: '\uD83D\uDEE0\uFE0F' },
+  { href: '/admin/submissions', label: 'Submissions', icon: '\uD83D\uDCE8' },
   { href: '/admin/content', label: 'Contenido', icon: '\uD83D\uDCDD' },
   { href: '/admin/docs', label: 'Docs', icon: '\uD83D\uDCDA' },
 ]
