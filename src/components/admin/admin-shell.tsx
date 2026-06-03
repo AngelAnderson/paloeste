@@ -14,6 +14,7 @@ const NAV = [
   { href: '/admin/inbox', label: 'Inbox', icon: '\uD83D\uDCAC' },
   { href: '/admin/contactos', label: 'Contactos', icon: '\u2764\uFE0F' },
   { href: '/admin/pipeline', label: 'Pipeline', icon: '\uD83C\uDFAF' },
+  { href: '/admin/campanas', label: 'Campa\u00F1as', icon: '\uD83C\uDFAC' },
   { href: '/admin/dinero', label: 'Dinero', icon: '\uD83D\uDCB0' },
   { href: '/admin/bot', label: 'Bot Health', icon: '\uD83E\uDD16' },
   { href: '/admin/directorio', label: 'Directorio', icon: '\uD83D\uDCCD' },
