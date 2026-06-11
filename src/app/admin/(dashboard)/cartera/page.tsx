@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { getCarteraTenants, type CarteraTenantSummary, type CarteraTenantType } from '@/lib/admin-queries'
+import { createSupabaseAdminClient } from '@/lib/supabase-server'
 
 export const dynamic = 'force-dynamic'
 
@@ -33,7 +34,23 @@ function groupTenants(tenants: CarteraTenantSummary[]): Map<CarteraTenantType, C
 }
 
 export default async function CarteraOverviewPage() {
-  const tenants = await getCarteraTenants().catch(() => [] as CarteraTenantSummary[])
+  const supabase = await createSupabaseAdminClient()
+  const since = new Date(Date.now() - 24 * 3600 * 1000).toISOString()
+  const [tenants, runsRes] = await Promise.all([
+    getCarteraTenants().catch(() => [] as CarteraTenantSummary[]),
+    Promise.resolve(
+      supabase.from('cartera_agent_runs').select('tenant_id, status').gte('ran_at', since)
+    ).then(r => (r.data || []) as { tenant_id: string; status: string }[]).catch(() => []),
+  ])
+
+  // Runs last 24h per tenant — connects La Cartera with what the team actually did
+  const runs24h = new Map<string, { total: number; failed: number }>()
+  for (const r of runsRes) {
+    const cur = runs24h.get(r.tenant_id) || { total: 0, failed: 0 }
+    cur.total++
+    if (r.status === 'failed' || r.status === 'rejected') cur.failed++
+    runs24h.set(r.tenant_id, cur)
+  }
 
   const totalBudget = tenants.reduce((s, t) => s + Number(t.budget_usd_month || 0), 0)
   const totalSpent  = tenants.reduce((s, t) => s + Number(t.cost_mtd_usd || 0), 0)
@@ -61,11 +78,11 @@ export default async function CarteraOverviewPage() {
           <div className="text-2xl font-bold mt-1 text-[#fbbf24]">${totalSpent.toFixed(2)}</div>
           <div className="text-xs text-[#64748b] mt-0.5">de ${totalBudget.toFixed(0)} budget</div>
         </div>
-        <div className="bg-[#1e293b] rounded-xl border border-[#334155] p-4">
+        <Link href="/admin/decisiones" className="bg-[#1e293b] rounded-xl border border-[#334155] hover:border-[#475569] p-4 transition-colors block">
           <div className="text-[10px] text-[#64748b] uppercase tracking-wider">Pending Decisions</div>
           <div className={`text-2xl font-bold mt-1 ${totalPending > 0 ? 'text-[#f87171]' : 'text-[#4ade80]'}`}>{totalPending}</div>
-          <div className="text-xs text-[#64748b] mt-0.5">drafts esperando review</div>
-        </div>
+          <div className="text-xs text-[#64748b] mt-0.5">drafts esperando review →</div>
+        </Link>
         <div className="bg-[#4ade80]/10 border border-[#4ade80]/30 rounded-xl p-4">
           <div className="text-[10px] text-[#64748b] uppercase tracking-wider">Status</div>
           <div className="text-2xl font-bold mt-1 text-[#4ade80]">ACTIVE</div>
@@ -126,11 +143,20 @@ export default async function CarteraOverviewPage() {
                       </div>
                     </div>
 
-                    {/* Agents count */}
+                    {/* Agents + producción 24h */}
                     <div className="mt-3 flex items-center gap-2 text-xs text-[#64748b]">
                       <span>{t.active_agents} agent{t.active_agents === 1 ? '' : 's'}</span>
-                      <span>·</span>
-                      <span className="font-mono text-[10px] text-[#475569]">{t.id}</span>
+                      {(() => {
+                        const r = runs24h.get(t.id)
+                        if (!r) return <><span>·</span><span className="text-[#475569]">0 runs 24h</span></>
+                        return (
+                          <>
+                            <span>·</span>
+                            <span className="text-[#4ade80]">{r.total} run{r.total === 1 ? '' : 's'} 24h</span>
+                            {r.failed > 0 && <span className="text-[#f87171]">({r.failed} failed)</span>}
+                          </>
+                        )
+                      })()}
                     </div>
                   </Link>
                 )

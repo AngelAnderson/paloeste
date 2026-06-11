@@ -2,18 +2,31 @@
 
 import { useState, useRef, useCallback, useEffect } from 'react'
 
+// Respuestas rápidas — servicio primero, venta después (Kern: sin presión, con permiso de salida).
 const PITCH_TEMPLATES = [
   {
-    label: '📋 Corto (SMS — 2 segmentos)',
-    text: 'Mijo, hay [X] [categoría] en Cabo Rojo y NINGUNO está en La Vitrina. $799 al año — un pago y cada vez que alguien textea "[categoría]" al 787-417-7711, TÚ sales primero. El que madruga, Dios lo ayuda. ¿Te interesa?',
+    label: '🙋 Disculpa + retomo yo (bot falló)',
+    text: 'Saludos, soy Angel, el humano detrás del Veci. Vi que el bot no te resolvió bien, disculpa. Dime qué buscas y te lo consigo yo mismo.',
   },
   {
-    label: '📋 Medio (WhatsApp)',
-    text: 'Bendición — te escribo porque hay [X] [categoría] en el directorio de Cabo Rojo y NINGUNO es sponsor todavía. Eso quiere decir que el primer negocio que entre, domina la categoría completa.\n\nPor $799 al año recibes: prioridad en El Veci (787-417-7711), tu página en CaboRojo.com, mención semanal en Facebook, newsletter a 1,000+ caborrojeños, y posicionamiento en Google.\n\nLuis David Refrigeración lleva meses y le funciona — cuando buscan "aire acondicionado", él sale primero.\n\nEl que llega primero, come caliente. ¿Quieres ser el primero en [categoría]?',
+    label: '➕ Añadir negocio gratis',
+    text: 'Claro que sí, te lo añado gratis al directorio hoy. Mándame: nombre del negocio, dirección, teléfono, horario y 1 o 2 fotos. Con eso queda en CaboRojo.com y el Veci lo recomienda cuando pregunten.',
   },
   {
-    label: '📋 Completo (WhatsApp/Email)',
-    text: 'Saludos — te escribo del directorio de CaboRojo.com. Solo hay [X] [categoría] registrados en Cabo Rojo y NINGUNO tiene La Vitrina todavía.\n\nPor $799 al año — un solo pago — esto es lo que recibes:\n\n✅ El Veci — Cuando alguien textea "[categoría]" al 787-417-7711, TÚ sales primero. No el de al lado.\n✅ Página dedicada en CaboRojo.com y MapaDeCaboRojo.com — con tus fotos, horario, mapa y teléfono.\n✅ Facebook semanal — Te mencionamos en la página de CaboRojo.com usando lo que TÚ publiques.\n✅ Newsletter — Sales en el email semanal que le llega a 1,000+ caborrojeños directo al inbox.\n✅ Google SEO — Tu negocio indexado para que te encuentren en Google también.\n✅ Reporte — Data real de cuántas veces buscaron "[categoría]" en el directorio.\n\nLuis David Refrigeración ya está y le funciona — cuando se daña un aire, la gente no googlea, textea al 787-417-7711 y él sale primero.\n\n$799 al año. Un pago. Pa\'lante todo el año, 24/7. El que llega primero, come caliente — ¿va a ser tu negocio o el de enfrente?',
+    label: '💲 Precio Vitrina (cuando preguntan)',
+    text: 'La Vitrina funciona así: la prueba es $40 (una publicación esta semana + listing en el Veci), el mes completo $150 (4 publicaciones, una por semana), y el año $799 (52 publicaciones). Si te cuadra te mando el link de pago. Y si no, todo bien, sigues saliendo gratis en el directorio.',
+  },
+  {
+    label: '🔁 Pitch corto (Kern, sin presión)',
+    text: 'Esto es lo que tengo: La Vitrina. Yo cojo lo que tú ya publicas, lo publico una vez por semana en CaboRojo.com y le recuerdo al pueblo que existes. $799 el año completo. ¿Te paso los detalles? Si no es pa ti, sin problema.',
+  },
+  {
+    label: '🙏 Gracias por el dato',
+    text: 'Gracias por el dato, eso es oro. Lo verifico y lo monto en el directorio. Si ves algo más así, mándamelo cuando quieras.',
+  },
+  {
+    label: '📅 Evento recibido',
+    text: 'Qué bueno. Mándame fecha, hora, lugar y un flyer o foto si tienes, y lo monto en el calendario de CaboRojo.com.',
   },
 ]
 
@@ -148,7 +161,7 @@ export function ComposeBar({ onSend, conversationId, disabled, defaultChannel = 
       {showTemplates && (
         <div className="px-3 pt-3 pb-1 space-y-1.5 max-h-64 overflow-y-auto">
           <div className="flex items-center justify-between mb-1">
-            <span className="text-[10px] uppercase tracking-wider text-[#64748b]">Templates de Pitch</span>
+            <span className="text-[10px] uppercase tracking-wider text-[#64748b]">Respuestas rápidas</span>
             <button
               onClick={() => setShowTemplates(false)}
               className="text-[10px] text-[#64748b] hover:text-white"
