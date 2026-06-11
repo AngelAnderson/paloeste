@@ -1,7 +1,18 @@
 import Link from 'next/link'
 import { getCarteraAllAgentsRoster, type CarteraAgentRosterRow, type CarteraAutonomyLevel } from '@/lib/admin-queries'
+import { createSupabaseAdminClient } from '@/lib/supabase-server'
 
 export const dynamic = 'force-dynamic'
+
+interface TodayRun {
+  agent_id: string
+  tenant_id: string
+  ran_at: string
+  status: string
+  audit_message: string | null
+  cost_usd: number | null
+  decision_id: number | null
+}
 
 const AUTONOMY_META: Record<CarteraAutonomyLevel, { label: string; color: string; emoji: string }> = {
   draft_only:                 { label: 'Draft only',    color: '#fbbf24', emoji: '✍️' },
@@ -70,7 +81,19 @@ function statusColor(status: string | null): string {
 type EnrichedAgent = CarteraAgentRosterRow & { _shift: ShiftKey; _when: string; _sortKey: number }
 
 export default async function AgentesRosterPage() {
-  const rosterRaw = await getCarteraAllAgentsRoster().catch(() => [] as CarteraAgentRosterRow[])
+  const supabase = await createSupabaseAdminClient()
+  const since = new Date(Date.now() - 24 * 3600 * 1000).toISOString()
+  const [rosterRaw, todayRuns] = await Promise.all([
+    getCarteraAllAgentsRoster().catch(() => [] as CarteraAgentRosterRow[]),
+    Promise.resolve(
+      supabase
+        .from('cartera_agent_runs')
+        .select('agent_id, tenant_id, ran_at, status, audit_message, cost_usd, decision_id')
+        .gte('ran_at', since)
+        .order('ran_at', { ascending: false })
+        .limit(25)
+    ).then(r => (r.data || []) as TodayRun[]).catch(() => [] as TodayRun[]),
+  ])
   const roster: EnrichedAgent[] = rosterRaw.map((a) => {
     const p = parseSchedule(a.schedule)
     return { ...a, _shift: p.shift, _when: p.when, _sortKey: p.sortKey }
@@ -119,6 +142,39 @@ export default async function AgentesRosterPage() {
           🌙 <b className="text-[#a78bfa]">Night shift vacío.</b> Casi todo el equipo clockea de mañana (6–10am AT) porque tú lees todo en el desayuno.
           Si quieres trabajo pesado corriendo mientras duermes (compilar, limpiar, pre-draftear), hay que mover o crear agents en la madrugada.
         </div>
+      )}
+
+      {/* Producción últimas 24h — qué hizo el equipo mientras no mirabas */}
+      {todayRuns.length > 0 && (
+        <section className="mb-6">
+          <div className="flex items-baseline gap-2 mb-2">
+            <h2 className="text-sm font-semibold uppercase tracking-wider text-[#4ade80]">📦 Producción últimas 24h</h2>
+            <span className="text-xs text-[#64748b]">{todayRuns.length} runs · lo que el equipo hizo mientras no mirabas</span>
+          </div>
+          <div className="rounded-xl border border-[#334155] bg-[#1e293b] divide-y divide-[#283548] max-h-[320px] overflow-y-auto">
+            {todayRuns.map((run, i) => {
+              const persona = roster.find(a => a.agent_id === run.agent_id)
+              return (
+                <div key={i} className="flex items-center gap-3 px-3 py-2">
+                  <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: statusColor(run.status) }} />
+                  <Link href={`/admin/agentes/${encodeURIComponent(run.agent_id)}`} className="text-xs font-semibold text-white hover:text-[#38bdf8] shrink-0 w-24 truncate">
+                    {persona?.persona_name || run.agent_id}
+                  </Link>
+                  <span className="text-xs text-[#94a3b8] flex-1 truncate">{run.audit_message || run.status}</span>
+                  {run.decision_id != null && (
+                    <Link href="/admin/decisiones" className="text-[10px] font-semibold text-[#fbbf24] hover:underline shrink-0">
+                      → decisión
+                    </Link>
+                  )}
+                  {run.cost_usd != null && Number(run.cost_usd) > 0 && (
+                    <span className="text-[10px] text-[#64748b] shrink-0 tabular-nums">${Number(run.cost_usd).toFixed(3)}</span>
+                  )}
+                  <span className="text-[10px] text-[#64748b] shrink-0">{formatRelative(run.ran_at)}</span>
+                </div>
+              )
+            })}
+          </div>
+        </section>
       )}
 
       {/* Cost note — now instrumented for the LLM agents */}

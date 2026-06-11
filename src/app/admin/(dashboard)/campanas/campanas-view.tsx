@@ -1,17 +1,12 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Send, ChevronDown, Sparkles } from 'lucide-react'
+import { Send, ChevronDown, Sparkles, Plus, Copy, Check, Archive, ArrowRight } from 'lucide-react'
 import { SendMessageModal } from '@/components/admin/send-message-modal'
-import { ARCHETYPES, BUSINESS_PLAYS, buildPlanMessage, type BusinessPlay } from '@/lib/campaigns'
+import { ARCHETYPES, buildPlanMessage, TIER_META, CAMPAIGN_STATUS_META, type CampaignIdea } from '@/lib/campaigns'
 import type { ConversionOpportunity } from '@/lib/types'
-
-const STATUS_META: Record<BusinessPlay['status'], { label: string; color: string }> = {
-  sponsor: { label: 'sponsor', color: '#fbbf24' },
-  prospecto: { label: 'prospecto', color: '#38bdf8' },
-  cliente: { label: 'cliente', color: '#4ade80' },
-}
 
 interface PlanModal {
   businessName: string
@@ -19,24 +14,51 @@ interface PlanModal {
   message: string
 }
 
+const FILTERS = ['activas', 'idea', 'lista', 'pitched', 'won', 'archived'] as const
+type Filter = typeof FILTERS[number]
+
 export function CampanasView({
   opportunities,
   phones,
+  ideas,
 }: {
   opportunities: ConversionOpportunity[]
   phones: Record<string, string | null>
+  ideas: CampaignIdea[]
 }) {
+  const router = useRouter()
   const [modal, setModal] = useState<PlanModal | null>(null)
+  const [filter, setFilter] = useState<Filter>('activas')
+  const [showNew, setShowNew] = useState(false)
+  const [copied, setCopied] = useState<string | null>(null)
+  const [busy, setBusy] = useState<string | null>(null)
 
-  function planFromPlay(play: BusinessPlay) {
+  async function patchIdea(id: string, updates: Record<string, unknown>) {
+    setBusy(id)
+    try {
+      await fetch('/api/admin/campaigns', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, ...updates }),
+      })
+      router.refresh()
+    } finally {
+      setBusy(null)
+    }
+  }
+
+  function copyDraft(idea: CampaignIdea) {
+    if (!idea.draft) return
+    navigator.clipboard.writeText(idea.draft)
+    setCopied(idea.id)
+    setTimeout(() => setCopied(null), 1500)
+  }
+
+  function sendIdea(idea: CampaignIdea) {
     setModal({
-      businessName: play.business,
-      phone: null,
-      message: buildPlanMessage({
-        businessName: play.business,
-        campaignName: play.campaignName,
-        hook: play.hook,
-      }),
+      businessName: idea.business_name || idea.title,
+      phone: idea.place_id ? phones[idea.place_id] || null : null,
+      message: idea.draft || idea.hook || '',
     })
   }
 
@@ -53,16 +75,132 @@ export function CampanasView({
     })
   }
 
-  const archetypeById = Object.fromEntries(ARCHETYPES.map((a) => [a.id, a]))
+  const visible = ideas.filter(i =>
+    filter === 'activas' ? i.status !== 'archived' && i.status !== 'won' : i.status === filter
+  )
 
   return (
     <div className="max-w-4xl">
-      <h1 className="text-xl font-bold mb-1">🎬 Campañas</h1>
+      <div className="flex items-center justify-between gap-3 mb-1">
+        <h1 className="text-xl font-bold">🎬 Campañas</h1>
+        <button
+          onClick={() => setShowNew(true)}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#38bdf8] text-[#0f172a] hover:bg-[#7dd3fc] transition-colors cursor-pointer"
+        >
+          <Plus size={13} />
+          Nueva idea
+        </button>
+      </div>
       <p className="text-[#64748b] text-sm mb-6">
-        Vendemos campañas con meta, no publicaciones. El plan de una página es gratis — la ejecución es la Vitrina.
+        Vendemos campañas con meta, no publicaciones. Las ideas no se pierden: viven aquí hasta que el timing vuelva.
       </p>
 
-      {/* ── Qualifies NOW (live bot demand) ── the surprise: actionable swipe file ── */}
+      {/* ── Banco de Campañas (persistente, reusable) ── */}
+      <section className="mb-8">
+        <div className="flex items-center gap-2 mb-2 flex-wrap">
+          <h2 className="text-sm font-semibold text-[#fbbf24] uppercase tracking-wider">🏦 Banco de Campañas</h2>
+          <span className="text-[11px] text-[#475569]">cada una con su POR QUÉ AHORA</span>
+          <div className="flex gap-1 ml-auto">
+            {FILTERS.map(f => (
+              <button
+                key={f}
+                onClick={() => setFilter(f)}
+                className={`px-2 py-1 rounded text-[11px] font-medium transition-colors cursor-pointer ${
+                  filter === f ? 'bg-[#fbbf24]/15 text-[#fbbf24]' : 'text-[#64748b] hover:text-white'
+                }`}
+              >
+                {f}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {visible.length === 0 ? (
+          <div className="bg-[#1e293b] rounded-xl border border-[#334155] p-5 text-sm text-[#64748b]">
+            Nada en este filtro.
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {visible.map(idea => {
+              const tier = TIER_META[idea.tier] || TIER_META.custom
+              const st = CAMPAIGN_STATUS_META[idea.status] || CAMPAIGN_STATUS_META.idea
+              const arch = ARCHETYPES.find(a => a.id === idea.archetype)
+              const phone = idea.place_id ? phones[idea.place_id] : null
+              return (
+                <div key={idea.id} className="rounded-xl border border-[#334155] bg-[#1e293b] p-4">
+                  <div className="flex items-center gap-2 flex-wrap mb-1">
+                    <span className="font-semibold text-sm text-white">{idea.title}</span>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ backgroundColor: tier.color + '22', color: tier.color }}>
+                      {tier.label}
+                    </span>
+                    <span className="text-[10px] px-2 py-0.5 rounded-full" style={{ backgroundColor: st.color + '18', color: st.color }}>
+                      {st.label}
+                    </span>
+                    {arch && <span className="text-[10px] text-[#64748b]">{arch.emoji} {arch.name}</span>}
+                  </div>
+                  {idea.business_name && (
+                    <p className="text-xs text-[#94a3b8] mb-1">{idea.business_name}</p>
+                  )}
+                  {idea.trigger_reason && (
+                    <p className="text-xs text-[#fb923c] mb-1">
+                      ⏰ <span className="text-[#64748b]">Por qué ahora:</span> {idea.trigger_reason}
+                      {idea.trigger_window && <span className="text-[#64748b]"> · {idea.trigger_window}</span>}
+                    </p>
+                  )}
+                  {idea.hook && <p className="text-xs text-[#cbd5e1] italic mb-2">{idea.hook}</p>}
+                  {idea.draft && (
+                    <details className="mb-2">
+                      <summary className="text-[11px] text-[#64748b] cursor-pointer select-none hover:text-[#94a3b8]">ver draft completo</summary>
+                      <p className="text-xs text-[#94a3b8] whitespace-pre-wrap bg-[#0f172a] border border-[#334155] rounded-lg p-3 mt-1">{idea.draft}</p>
+                    </details>
+                  )}
+                  <div className="flex items-center gap-2 flex-wrap pt-1">
+                    {idea.draft && (
+                      <button
+                        onClick={() => copyDraft(idea)}
+                        className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-[#334155] hover:bg-[#475569] text-[#94a3b8] transition-colors cursor-pointer"
+                      >
+                        {copied === idea.id ? <Check size={11} className="text-[#4ade80]" /> : <Copy size={11} />}
+                        {copied === idea.id ? 'Copiado' : 'Copiar'}
+                      </button>
+                    )}
+                    {idea.draft && (
+                      <button
+                        onClick={() => sendIdea(idea)}
+                        className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-[#22c55e]/20 text-[#4ade80] hover:bg-[#22c55e]/30 transition-colors cursor-pointer"
+                      >
+                        <Send size={11} />
+                        Enviar{phone ? '' : ' (sin tel)'}
+                      </button>
+                    )}
+                    {st.next && (
+                      <button
+                        disabled={busy === idea.id}
+                        onClick={() => patchIdea(idea.id, { status: st.next })}
+                        className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-[#38bdf8]/15 text-[#38bdf8] hover:bg-[#38bdf8]/25 transition-colors cursor-pointer disabled:opacity-50"
+                      >
+                        <ArrowRight size={11} />
+                        {CAMPAIGN_STATUS_META[st.next].label.replace(/^[^\s]+ /, '')}
+                      </button>
+                    )}
+                    {idea.status !== 'archived' && (
+                      <button
+                        disabled={busy === idea.id}
+                        onClick={() => patchIdea(idea.id, { status: 'archived' })}
+                        className="ml-auto flex items-center gap-1 px-2 py-1.5 rounded-lg text-[11px] text-[#64748b] hover:text-[#94a3b8] transition-colors cursor-pointer disabled:opacity-50"
+                      >
+                        <Archive size={11} />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
+      </section>
+
+      {/* ── Qualifies NOW (live bot demand) ── */}
       <section className="mb-8">
         <div className="flex items-center gap-2 mb-1">
           <Sparkles size={16} className="text-[#f87171]" />
@@ -103,41 +241,6 @@ export function CampanasView({
         )}
       </section>
 
-      {/* ── Curated plays (oportunidades escondidas) ── */}
-      <section className="mb-8">
-        <h2 className="text-sm font-semibold text-[#94a3b8] uppercase tracking-wider mb-3">Oportunidades escondidas — planes listos</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          {BUSINESS_PLAYS.map((play) => {
-            const arch = archetypeById[play.archetypeId]
-            const st = STATUS_META[play.status]
-            return (
-              <div key={play.business} className="rounded-xl border border-[#334155] bg-[#1e293b] p-4 flex flex-col gap-2">
-                <div className="flex items-center gap-2">
-                  <span>{play.emoji}</span>
-                  <span className="font-semibold text-sm text-white">{play.business}</span>
-                  <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full" style={{ backgroundColor: st.color + '22', color: st.color }}>
-                    {st.label}
-                  </span>
-                </div>
-                <div className="text-xs" style={{ color: arch?.accent }}>
-                  {arch?.emoji} {arch?.name} — “{play.campaignName}”
-                </div>
-                <p className="text-xs text-[#94a3b8]"><span className="text-[#64748b]">Oportunidad:</span> {play.hiddenOpportunity}</p>
-                <p className="text-xs text-[#94a3b8]"><span className="text-[#64748b]">Meta:</span> {play.metric}</p>
-                <p className="text-xs text-[#cbd5e1] italic">“{play.hook}”</p>
-                <button
-                  onClick={() => planFromPlay(play)}
-                  className="mt-1 self-start flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#334155] hover:bg-[#475569] transition-colors cursor-pointer text-white"
-                >
-                  <Send size={12} />
-                  Generar plan de 1 página
-                </button>
-              </div>
-            )
-          })}
-        </div>
-      </section>
-
       {/* ── The 6 archetypes (reference) ── */}
       <section>
         <h2 className="text-sm font-semibold text-[#94a3b8] uppercase tracking-wider mb-3">Los 6 arquetipos</h2>
@@ -169,6 +272,63 @@ export function CampanasView({
           onClose={() => setModal(null)}
         />
       )}
+
+      {showNew && <NewIdeaModal onClose={() => { setShowNew(false); router.refresh() }} />}
+    </div>
+  )
+}
+
+function NewIdeaModal({ onClose }: { onClose: () => void }) {
+  const [form, setForm] = useState({ title: '', business_name: '', tier: '799', archetype: '', hook: '', draft: '', trigger_reason: '', trigger_window: '' })
+  const [saving, setSaving] = useState(false)
+
+  async function save() {
+    if (!form.title.trim()) return
+    setSaving(true)
+    try {
+      await fetch('/api/admin/campaigns', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form),
+      })
+      onClose()
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const inputCls = 'w-full bg-[#0f172a] border border-[#334155] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#38bdf8] placeholder:text-[#475569]'
+
+  return (
+    <div className="fixed inset-0 bg-black/60 z-50 flex items-end sm:items-center justify-center p-4" onClick={onClose}>
+      <div className="bg-[#1e293b] border border-[#334155] rounded-xl w-full max-w-lg p-5 space-y-3 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+        <h3 className="font-bold text-sm text-white">Nueva idea de campaña</h3>
+        <input className={inputCls} placeholder="Título *" value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} />
+        <input className={inputCls} placeholder="Negocio (opcional)" value={form.business_name} onChange={e => setForm({ ...form, business_name: e.target.value })} />
+        <div className="flex gap-2">
+          <select className={inputCls} value={form.tier} onChange={e => setForm({ ...form, tier: e.target.value })}>
+            <option value="799">$799</option>
+            <option value="1800">$1,800</option>
+            <option value="5000">$5,000</option>
+            <option value="renewal">Retención</option>
+            <option value="custom">Custom</option>
+          </select>
+          <select className={inputCls} value={form.archetype} onChange={e => setForm({ ...form, archetype: e.target.value })}>
+            <option value="">Arquetipo…</option>
+            {ARCHETYPES.map(a => <option key={a.id} value={a.id}>{a.emoji} {a.name}</option>)}
+          </select>
+        </div>
+        <input className={inputCls} placeholder="⏰ Por qué AHORA (noticia, temporada, data)" value={form.trigger_reason} onChange={e => setForm({ ...form, trigger_reason: e.target.value })} />
+        <input className={inputCls} placeholder="Ventana (ej. Jun-Nov 2026)" value={form.trigger_window} onChange={e => setForm({ ...form, trigger_window: e.target.value })} />
+        <textarea className={inputCls} rows={2} placeholder="Hook / ángulo" value={form.hook} onChange={e => setForm({ ...form, hook: e.target.value })} />
+        <textarea className={inputCls} rows={4} placeholder="Draft completo (WhatsApp-ready)" value={form.draft} onChange={e => setForm({ ...form, draft: e.target.value })} />
+        <div className="flex gap-2 pt-1">
+          <button onClick={onClose} className="flex-1 px-4 py-2 rounded-lg text-sm bg-[#334155] hover:bg-[#475569] text-[#94a3b8] transition-colors cursor-pointer">Cancelar</button>
+          <button onClick={save} disabled={saving || !form.title.trim()} className="flex-1 px-4 py-2 rounded-lg text-sm font-semibold bg-[#38bdf8] text-[#0f172a] hover:bg-[#7dd3fc] disabled:opacity-50 transition-colors cursor-pointer">
+            {saving ? 'Guardando…' : 'Guardar idea'}
+          </button>
+        </div>
+      </div>
     </div>
   )
 }

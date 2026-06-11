@@ -1,8 +1,29 @@
 import { getBotIntelligence, getMessageFeedback } from '@/lib/admin-queries'
+import { createSupabaseAdminClient } from '@/lib/supabase-server'
 import { DailyVolumeChart, UserGrowthChart } from './bot-charts'
 import { QueryActions } from './query-actions'
 
 export const dynamic = 'force-dynamic'
+
+interface CanaryFailure {
+  inbound_at: string
+  phone_last4: string
+  phone_e164: string
+  conversation_id: string
+  query: string
+  bot_intent: string
+  bot_reply: string
+  rephrase: string | null
+  failure_type: string
+  channel: string
+}
+
+const FAILURE_META: Record<string, { label: string; color: string; hint: string }> = {
+  search_fallback: { label: 'búsqueda falló', color: '#f87171', hint: 'el bot no encontró nada — ¿falta keyword o negocio?' },
+  lk_swallow: { label: 'local_knowledge se lo tragó', color: '#fb923c', hint: 'contestó con un dato histórico en vez de buscar' },
+  ai_dead_end: { label: 'callejón sin salida', color: '#f87171', hint: 'la conversación murió sin resolver' },
+  rephrase: { label: 'usuario re-preguntó', color: '#fbbf24', hint: 'la primera respuesta no le sirvió' },
+}
 
 function generateInsights(intel: Awaited<ReturnType<typeof getBotIntelligence>>) {
   const insights: { type: 'success' | 'warning' | 'action'; text: string }[] = []
@@ -57,9 +78,13 @@ function generateInsights(intel: Awaited<ReturnType<typeof getBotIntelligence>>)
 }
 
 export default async function BotPage() {
-  const [intel, feedback] = await Promise.all([
+  const supabase = await createSupabaseAdminClient()
+  const [intel, feedback, canary] = await Promise.all([
     getBotIntelligence(),
     getMessageFeedback('pending'),
+    Promise.resolve(supabase.rpc('bot_health_canary_detect', { hours_back: 24 }))
+      .then(r => (Array.isArray(r.data) ? r.data : []) as CanaryFailure[])
+      .catch(() => [] as CanaryFailure[]),
   ])
 
   const totalMessages = intel.daily_volume.reduce((sum, d) => sum + d.inbound + d.outbound, 0)
@@ -126,6 +151,51 @@ export default async function BotPage() {
             {failIsGood ? 'HEALTHY' : 'DEGRADED'}
           </div>
         </div>
+      </div>
+
+      {/* Fallas de las últimas 24h — accionables, con responder directo */}
+      <div className="bg-[#1e293b] rounded-xl border border-[#334155] p-5 mb-6">
+        <h2 className="text-sm font-semibold text-[#94a3b8] uppercase tracking-wider mb-1">
+          🚑 Fallas últimas 24h ({canary.length})
+        </h2>
+        <p className="text-xs text-[#64748b] mb-3">
+          Conversaciones donde el bot no resolvió. Responde tú directo — cada una es un vecino (o un lead) esperando.
+        </p>
+        {canary.length === 0 ? (
+          <p className="text-[#4ade80] text-sm py-3 text-center">✓ Sin fallas detectadas en 24h</p>
+        ) : (
+          <div className="space-y-3">
+            {canary.slice(0, 10).map((f, i) => {
+              const meta = FAILURE_META[f.failure_type] || { label: f.failure_type, color: '#94a3b8', hint: '' }
+              const waLink = `https://wa.me/${f.phone_e164.replace(/\D/g, '')}`
+              return (
+                <div key={i} className="bg-[#0f172a] border border-[#334155] rounded-xl p-3">
+                  <div className="flex items-center gap-2 flex-wrap mb-1">
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ backgroundColor: meta.color + '22', color: meta.color }}>
+                      {meta.label}
+                    </span>
+                    <span className="text-[10px] text-[#64748b]">
+                      {new Date(f.inbound_at).toLocaleString('es-PR', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true, timeZone: 'America/Puerto_Rico' })}
+                      {' · '}{f.channel} · …{f.phone_last4}
+                    </span>
+                    <a
+                      href={waLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="ml-auto text-[11px] font-semibold px-2.5 py-1 rounded-lg bg-[#22c55e]/20 text-[#4ade80] hover:bg-[#22c55e]/30 transition-colors"
+                    >
+                      Responder →
+                    </a>
+                  </div>
+                  <p className="text-sm text-white mb-0.5">&ldquo;{f.query}&rdquo;</p>
+                  <p className="text-xs text-[#94a3b8] line-clamp-2">Bot: {f.bot_reply}</p>
+                  {f.rephrase && <p className="text-xs text-[#fbbf24] mt-0.5">Re-preguntó: &ldquo;{f.rephrase}&rdquo;</p>}
+                  {meta.hint && <p className="text-[10px] text-[#64748b] mt-1">{meta.hint}</p>}
+                </div>
+              )
+            })}
+          </div>
+        )}
       </div>
 
       {/* Intent Distribution */}

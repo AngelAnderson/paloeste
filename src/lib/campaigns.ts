@@ -178,6 +178,45 @@ export function buildPlanMessage(opts: {
     `Se me ocurrió una campaña para ti: "${campaignName}". ${hook} ` +
     `No es pagar por publicaciones — es una campaña con una meta clara. ` +
     `¿Te mando el plan de una página pa' que lo veas? Si no es pa' ti, sin problema, sigue tu camino. ` +
-    `— Angel | Menos revolú, más sistema, mejor vida.`
+    `- Angel | Menos revolú, más sistema, mejor vida.`
   )
+}
+
+// ── Banco de Campañas (tabla campaign_ideas) ──────────────────────────────
+
+export type CampaignTier = '799' | '1800' | '5000' | 'renewal' | 'custom'
+export type CampaignStatus = 'idea' | 'lista' | 'pitched' | 'won' | 'archived'
+
+export interface CampaignIdea {
+  id: string
+  title: string
+  business_name: string | null
+  place_id: string | null
+  archetype: string | null
+  tier: string
+  hook: string | null
+  draft: string | null
+  trigger_reason: string | null
+  trigger_window: string | null
+  status: string
+  reusable: boolean
+  source: string
+  created_at: string
+  updated_at: string
+}
+
+export const TIER_META: Record<string, { label: string; color: string }> = {
+  '799': { label: '$799', color: '#38bdf8' },
+  '1800': { label: '$1,800', color: '#a78bfa' },
+  '5000': { label: '$5,000', color: '#fbbf24' },
+  renewal: { label: 'retención', color: '#4ade80' },
+  custom: { label: 'custom', color: '#94a3b8' },
+}
+
+export const CAMPAIGN_STATUS_META: Record<string, { label: string; color: string; next?: CampaignStatus }> = {
+  idea: { label: '💡 idea', color: '#94a3b8', next: 'lista' },
+  lista: { label: '✅ lista pa enviar', color: '#4ade80', next: 'pitched' },
+  pitched: { label: '📤 pitched', color: '#38bdf8', next: 'won' },
+  won: { label: '🏆 ganada', color: '#fbbf24' },
+  archived: { label: '📦 archivada', color: '#475569' },
 }
