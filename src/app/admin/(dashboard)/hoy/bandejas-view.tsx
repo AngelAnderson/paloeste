@@ -69,9 +69,13 @@ export function BandejasView({ bandejas }: { bandejas: Bandejas }) {
         <div className="mb-5 rounded-xl border border-[#38bdf8]/40 bg-[#38bdf8]/5 p-4">
           <div className="text-[11px] text-[#38bdf8] uppercase tracking-wider mb-1">Si solo haces 1 cosa hoy</div>
           <div className="flex items-center gap-3 flex-wrap">
-            <span className="font-bold text-white">{laUna.title}</span>
+            {laUna.href ? (
+              <Link href={laUna.href} className="font-bold text-white hover:text-[#38bdf8] transition-colors">{laUna.title}</Link>
+            ) : (
+              <span className="font-bold text-white">{laUna.title}</span>
+            )}
             <AgeBadge days={laUna.ageDays} />
-            {laUna.phone && (
+            {laUna.phone ? (
               <button
                 onClick={() => act(laUna)}
                 className="ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#38bdf8] text-[#0f172a] hover:bg-[#7dd3fc] transition-colors cursor-pointer"
@@ -79,7 +83,15 @@ export function BandejasView({ bandejas }: { bandejas: Bandejas }) {
                 <Send size={12} />
                 {laUna.cta || 'Mensaje'}
               </button>
-            )}
+            ) : laUna.href ? (
+              <Link
+                href={laUna.href}
+                className="ml-auto flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#38bdf8] text-[#0f172a] hover:bg-[#7dd3fc] transition-colors"
+              >
+                {laUna.cta || 'Ver'}
+                <ChevronRight size={12} />
+              </Link>
+            ) : null}
           </div>
           {laUna.costo && <p className="text-xs text-[#f87171] mt-1">{laUna.costo}</p>}
         </div>
