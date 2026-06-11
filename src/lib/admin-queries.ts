@@ -532,7 +532,7 @@ export async function getUpcomingEventsWithoutContent(): Promise<{ id: string; t
   const { data, error } = await supabase
     .from('events')
     .select('id, title, start_time, category, location_name')
-    .in('status', ['active', 'approved', 'published'])
+    .eq('status', 'published')
     .gt('start_time', new Date().toISOString())
     .order('start_time', { ascending: true })
   if (error) throw error
