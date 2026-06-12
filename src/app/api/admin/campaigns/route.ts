@@ -41,6 +41,27 @@ export async function PATCH(req: NextRequest) {
   const { id, ...updates } = body
   if (!id) return NextResponse.json({ error: 'id required' }, { status: 400 })
   updates.updated_at = new Date().toISOString()
+
+  // Status changes and feedback get logged to the campaign's history timeline.
+  if (updates.status || updates.feedback) {
+    const { data: current } = await supabase
+      .from('campaign_ideas')
+      .select('status, history')
+      .eq('id', id)
+      .single()
+    if (current) {
+      const history = Array.isArray(current.history) ? current.history : []
+      const fecha = new Date().toISOString().slice(0, 10)
+      if (updates.status && updates.status !== current.status) {
+        history.push({ fecha, evento: `Status: ${current.status} → ${updates.status}`, source: 'admin' })
+      }
+      if (updates.feedback) {
+        history.push({ fecha, evento: 'Angel dejó feedback', source: 'admin' })
+      }
+      updates.history = history
+    }
+  }
+
   const { data, error } = await supabase
     .from('campaign_ideas')
     .update(updates)

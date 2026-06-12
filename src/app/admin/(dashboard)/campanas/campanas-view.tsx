@@ -154,6 +154,58 @@ export function CampanasView({
                       <p className="text-xs text-[#cbd5e1] whitespace-pre-wrap bg-[#0f172a] border border-[#fbbf24]/30 rounded-lg p-3 mt-1">{idea.plan}</p>
                     </details>
                   )}
+                  {Array.isArray(idea.copy_bank) && idea.copy_bank.length > 0 && (
+                    <details className="mb-2">
+                      <summary className="text-[11px] text-[#4ade80] cursor-pointer select-none hover:text-[#86efac] font-semibold">
+                        📝 Mes 1 ya escrito ({idea.copy_bank.length} posts)
+                      </summary>
+                      <div className="bg-[#0f172a] border border-[#4ade80]/30 rounded-lg p-3 mt-1 space-y-3">
+                        {idea.copy_bank.map(c => (
+                          <div key={c.semana}>
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="text-[10px] font-bold uppercase text-[#4ade80]">Semana {c.semana} · {c.angulo}</span>
+                              <button
+                                onClick={() => { navigator.clipboard.writeText(c.texto); setCopied(`${idea.id}-s${c.semana}`); setTimeout(() => setCopied(null), 1500) }}
+                                className="flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] bg-[#334155] hover:bg-[#475569] text-[#94a3b8] transition-colors cursor-pointer"
+                              >
+                                {copied === `${idea.id}-s${c.semana}` ? <Check size={9} className="text-[#4ade80]" /> : <Copy size={9} />}
+                                {copied === `${idea.id}-s${c.semana}` ? 'Copiado' : 'Copiar'}
+                              </button>
+                            </div>
+                            <p className="text-xs text-[#cbd5e1] whitespace-pre-wrap">{c.texto}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </details>
+                  )}
+                  {Array.isArray(idea.history) && idea.history.length > 0 && (
+                    <details className="mb-2">
+                      <summary className="text-[11px] text-[#94a3b8] cursor-pointer select-none hover:text-white font-semibold">
+                        🕓 Historia ({idea.history.length})
+                      </summary>
+                      <ul className="bg-[#0f172a] border border-[#334155] rounded-lg p-3 mt-1 space-y-1">
+                        {idea.history.map((h, i) => (
+                          <li key={i} className="text-xs text-[#94a3b8]">
+                            <span className="text-[#64748b] font-mono">{h.fecha}</span> · {h.evento}
+                          </li>
+                        ))}
+                      </ul>
+                    </details>
+                  )}
+                  <div className="flex items-center gap-2 flex-wrap mb-1">
+                    <a
+                      href={`/admin/campanas/${idea.id}/plan`}
+                      target="_blank"
+                      className="text-[11px] text-[#38bdf8] hover:text-[#7dd3fc] font-semibold"
+                    >
+                      📄 One-pager (imprimir/PDF)
+                    </a>
+                    {Array.isArray(idea.assets) && idea.assets.map((a, i) => (
+                      <a key={i} href={a.href} target="_blank" className="text-[11px] text-[#38bdf8] hover:text-[#7dd3fc]">
+                        📎 {a.label}
+                      </a>
+                    ))}
+                  </div>
                   {idea.draft && (
                     <details className="mb-2">
                       <summary className="text-[11px] text-[#64748b] cursor-pointer select-none hover:text-[#94a3b8]">ver draft completo</summary>

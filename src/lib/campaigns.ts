@@ -187,6 +187,25 @@ export function buildPlanMessage(opts: {
 export type CampaignTier = '799' | '1800' | '5000' | 'renewal' | 'custom'
 export type CampaignStatus = 'idea' | 'lista' | 'pitched' | 'won' | 'archived'
 
+export interface CampaignCopyItem {
+  semana: number
+  angulo: string
+  slot?: string
+  texto: string
+}
+
+export interface CampaignHistoryItem {
+  fecha: string
+  evento: string
+  source?: string
+}
+
+export interface CampaignAsset {
+  label: string
+  href: string
+  tipo?: string
+}
+
 export interface CampaignIdea {
   id: string
   title: string
@@ -201,6 +220,9 @@ export interface CampaignIdea {
   plan: string | null
   feedback: string | null
   feedback_at: string | null
+  copy_bank: CampaignCopyItem[]
+  history: CampaignHistoryItem[]
+  assets: CampaignAsset[]
   status: string
   reusable: boolean
   source: string
