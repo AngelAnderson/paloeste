@@ -148,6 +148,12 @@ export function CampanasView({
                     </p>
                   )}
                   {idea.hook && <p className="text-xs text-[#cbd5e1] italic mb-2">{idea.hook}</p>}
+                  {idea.plan && (
+                    <details className="mb-2">
+                      <summary className="text-[11px] text-[#fbbf24] cursor-pointer select-none hover:text-[#fde68a] font-semibold">📋 Plan de ataque</summary>
+                      <p className="text-xs text-[#cbd5e1] whitespace-pre-wrap bg-[#0f172a] border border-[#fbbf24]/30 rounded-lg p-3 mt-1">{idea.plan}</p>
+                    </details>
+                  )}
                   {idea.draft && (
                     <details className="mb-2">
                       <summary className="text-[11px] text-[#64748b] cursor-pointer select-none hover:text-[#94a3b8]">ver draft completo</summary>
@@ -193,6 +199,11 @@ export function CampanasView({
                       </button>
                     )}
                   </div>
+                  <IdeaFeedback
+                    idea={idea}
+                    saving={busy === idea.id}
+                    onSave={(text) => patchIdea(idea.id, { feedback: text, feedback_at: new Date().toISOString() })}
+                  />
                 </div>
               )
             })}
@@ -274,6 +285,77 @@ export function CampanasView({
       )}
 
       {showNew && <NewIdeaModal onClose={() => { setShowNew(false); router.refresh() }} />}
+    </div>
+  )
+}
+
+function IdeaFeedback({
+  idea,
+  saving,
+  onSave,
+}: {
+  idea: CampaignIdea
+  saving: boolean
+  onSave: (text: string) => void
+}) {
+  const [editing, setEditing] = useState(false)
+  const [text, setText] = useState(idea.feedback || '')
+
+  if (!editing) {
+    return (
+      <div className="mt-2 pt-2 border-t border-[#334155]/60">
+        {idea.feedback ? (
+          <div className="flex items-start gap-2">
+            <p className="flex-1 text-xs text-[#a5b4fc] whitespace-pre-wrap">
+              💬 <span className="text-[#64748b]">Feedback de Angel:</span> {idea.feedback}
+              {idea.feedback_at && (
+                <span className="text-[#475569]"> · {new Date(idea.feedback_at).toLocaleDateString('es-PR', { day: 'numeric', month: 'short' })}</span>
+              )}
+            </p>
+            <button
+              onClick={() => setEditing(true)}
+              className="shrink-0 text-[11px] text-[#64748b] hover:text-[#94a3b8] cursor-pointer"
+            >
+              editar
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={() => setEditing(true)}
+            className="text-[11px] text-[#64748b] hover:text-[#a5b4fc] cursor-pointer"
+          >
+            💬 Dejar feedback pa&apos; Claude…
+          </button>
+        )}
+      </div>
+    )
+  }
+
+  return (
+    <div className="mt-2 pt-2 border-t border-[#334155]/60 space-y-2">
+      <textarea
+        autoFocus
+        rows={3}
+        value={text}
+        onChange={e => setText(e.target.value)}
+        placeholder="Qué cambiar, qué no te cuadra, qué falta… Claude lo lee en la próxima sesión."
+        className="w-full bg-[#0f172a] border border-[#6366f1]/40 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-[#6366f1] placeholder:text-[#475569]"
+      />
+      <div className="flex gap-2">
+        <button
+          disabled={saving}
+          onClick={() => { onSave(text.trim()); setEditing(false) }}
+          className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#6366f1]/25 text-[#a5b4fc] hover:bg-[#6366f1]/40 transition-colors cursor-pointer disabled:opacity-50"
+        >
+          {saving ? 'Guardando…' : 'Guardar feedback'}
+        </button>
+        <button
+          onClick={() => { setText(idea.feedback || ''); setEditing(false) }}
+          className="px-3 py-1.5 rounded-lg text-xs text-[#64748b] hover:text-[#94a3b8] cursor-pointer"
+        >
+          Cancelar
+        </button>
+      </div>
     </div>
   )
 }

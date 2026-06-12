@@ -198,6 +198,9 @@ export interface CampaignIdea {
   draft: string | null
   trigger_reason: string | null
   trigger_window: string | null
+  plan: string | null
+  feedback: string | null
+  feedback_at: string | null
   status: string
   reusable: boolean
   source: string
