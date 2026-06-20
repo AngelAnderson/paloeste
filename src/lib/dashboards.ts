@@ -20,8 +20,12 @@ export function getAllDashboards(): DashMeta[] {
 }
 
 export function getDashboard(slug: string): Dash | null {
-  const file = path.join(DIR, `${slug}.html`)
-  if (!fs.existsSync(file)) return null
+  // Path-traversal guard: slug comes from the URL. Only allow simple names,
+  // and verify the resolved path stays inside DIR before reading.
+  if (!/^[a-z0-9-]+$/i.test(slug)) return null
+  const resolved = path.resolve(DIR, `${slug}.html`)
+  if (!resolved.startsWith(path.resolve(DIR) + path.sep)) return null
+  if (!fs.existsSync(resolved)) return null
   const t = TITLES[slug] || { title: slug, emoji: '📊' }
-  return { slug, ...t, html: fs.readFileSync(file, 'utf-8') }
+  return { slug, ...t, html: fs.readFileSync(resolved, 'utf-8') }
 }
