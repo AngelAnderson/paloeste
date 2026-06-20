@@ -1,0 +1,722 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tablero de Mando · La semana no se improvisa</title>
+<style>
+  :root{
+    --ink:#17211f;--muted:#5a6763;--line:#d8dfdc;--bg:#f7f8f5;--panel:#fff;--soft:#eef4f2;
+    --hoy:#0f766e;--dia:#2563eb;--ciclo:#b7791f;--civico:#b42318;--falta:#7c3aed;--vida:#0891b2;
+    --domingo:#475569;--lunes:#2563eb;--martes:#0f766e;--miercoles:#0891b2;--jueves:#b7791f;--viernes:#ea580c;--sabado:#7c3aed;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--ink);background:var(--bg);line-height:1.5;}
+  a{color:var(--hoy);}
+  .wrap{max-width:1180px;margin:0 auto;padding:0 20px;}
+  header{background:#11201d;color:#fff;padding:38px 0 28px;}
+  h1{margin:0;font-size:clamp(26px,4.5vw,46px);line-height:1.02;}
+  .manifesto{margin:12px 0 0;font-size:18px;color:#cfe0db;max-width:760px;}
+  .onecosa{margin:16px 0 0;background:#0f766e;color:#fff;border-radius:10px;padding:14px 16px;font-size:17px;font-weight:700;}
+  nav{position:sticky;top:0;z-index:10;background:#fff;border-bottom:1px solid var(--line);padding:9px 0;overflow-x:auto;white-space:nowrap;}
+  nav a{display:inline-block;margin-right:6px;padding:7px 12px;border:1px solid var(--line);border-radius:999px;font-size:13px;font-weight:700;text-decoration:none;color:var(--ink);}
+  section{padding:28px 0 6px;}
+  h2{font-size:23px;margin:0 0 4px;}
+  .lead{color:var(--muted);margin:0 0 16px;max-width:780px;}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px;}
+  .panel.vida{border-top:6px solid var(--vida);} .panel.dia{border-top:6px solid var(--dia);}
+  .panel h3{margin:0 0 10px;font-size:17px;}
+  .checklist{list-style:none;margin:0;padding:0;}
+  .checklist li{display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid var(--line);font-size:15px;}
+  .checklist input{width:20px;height:20px;margin-top:1px;accent-color:var(--hoy);flex:0 0 auto;cursor:pointer;}
+  .checklist label{cursor:pointer;} .checklist .done{color:var(--muted);text-decoration:line-through;}
+  .cap{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px;border-top:6px solid var(--muted);}
+  .cap.todos{border-top-color:var(--hoy);}.cap.pordia{border-top-color:var(--dia);}.cap.porciclo{border-top-color:var(--ciclo);}
+  .cap h3{margin:0 0 4px;font-size:17px;} .cap .tagline{color:var(--muted);font-size:12px;margin-bottom:8px;}
+  .cap ul{margin:0;padding-left:18px;font-size:13px;} .cap li{margin-bottom:4px;}
+  .kwbar{display:inline-block;background:var(--soft);color:var(--hoy);font-weight:800;border-radius:999px;padding:8px 16px;font-size:15px;margin-bottom:12px;}
+  .weekstrip{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;}
+  .d{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px;border-top:5px solid var(--muted);min-height:120px;}
+  .d.domingo{border-top-color:var(--domingo);}.d.lunes{border-top-color:var(--lunes);}.d.martes{border-top-color:var(--martes);}.d.miercoles{border-top-color:var(--miercoles);}.d.jueves{border-top-color:var(--jueves);}.d.viernes{border-top-color:var(--viernes);}.d.sabado{border-top-color:var(--sabado);}
+  .d.hoy{box-shadow:0 0 0 3px var(--hoy);}
+  .d .dn{font-weight:800;font-size:12px;} .d .tema{font-size:11px;color:var(--muted);margin:4px 0;} .d .pieza{font-size:12px;font-weight:700;}
+  .prox{list-style:none;margin:0;padding:0;} .prox li{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid var(--line);font-size:15px;}
+  .prox .dd{font-weight:800;color:var(--hoy);font-variant-numeric:tabular-nums;white-space:nowrap;}
+  .weekcal{display:grid;gap:10px;}
+  .dcard{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px;border-left:6px solid var(--muted);}
+  .dcard.domingo{border-left-color:var(--domingo);}.dcard.lunes{border-left-color:var(--lunes);}.dcard.martes{border-left-color:var(--martes);}.dcard.miercoles{border-left-color:var(--miercoles);}.dcard.jueves{border-left-color:var(--jueves);}.dcard.viernes{border-left-color:var(--viernes);}.dcard.sabado{border-left-color:var(--sabado);}
+  .dcard.hoy{box-shadow:0 0 0 3px var(--hoy);}
+  .dcard .dh{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:8px;}
+  .dcard .dnum{font-weight:800;font-size:15px;} .dcard .dtema{font-size:12px;color:var(--muted);font-weight:700;}
+  .dcard .dkw{font-size:11px;background:var(--soft);color:var(--hoy);border-radius:999px;padding:2px 9px;font-weight:800;}
+  .post{display:flex;gap:8px;align-items:flex-start;padding:7px 0;border-top:1px solid var(--line);font-size:13px;}
+  .post .lab{font-size:10px;font-weight:800;text-transform:uppercase;color:var(--muted);flex:0 0 64px;padding-top:2px;}
+  .post .txt{flex:1;} .post .cp{background:var(--hoy);color:#fff;border:0;border-radius:6px;padding:5px 9px;font-weight:700;cursor:pointer;flex:0 0 auto;font-size:12px;}
+  .dcard .extra{margin-top:8px;background:#fff7e6;border-radius:8px;padding:8px 10px;font-size:12.5px;color:#7a5b12;}
+  .accion{margin-top:10px;list-style:none;padding:0;} .accion li{padding:6px 0;border-top:1px solid var(--line);font-size:14px;}
+  .monthbox{background:linear-gradient(180deg,#fff, #f4faf8);border:1px solid var(--line);border-left:6px solid var(--vida);border-radius:10px;padding:18px;}
+  .monthbox .m{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:800;}
+  .monthbox .t{font-size:22px;font-weight:800;margin:4px 0;} .monthbox p{margin:0;color:var(--muted);}
+  .pcounters{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+  .pc{background:#fff;border:1px solid var(--line);border-top:6px solid var(--vida);border-radius:10px;padding:14px;text-align:center;}
+  .pc .big{font-size:34px;font-weight:800;color:var(--vida);font-variant-numeric:tabular-nums;line-height:1;}
+  .pc .lbl{font-size:13px;color:var(--muted);margin-top:6px;}
+  .histgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .histsum{background:#fff;border:1px solid var(--line);border-left:6px solid var(--hoy);border-radius:10px;padding:14px 16px;margin-bottom:14px;font-size:15px;}
+  .histsum b{color:var(--hoy);}
+  .dcard .miss{font-size:12.5px;color:var(--civico);background:#fdecec;border-radius:8px;padding:7px 10px;margin-top:4px;}
+  .dcard .allgood{font-size:12.5px;color:var(--hoy);font-weight:700;margin-top:4px;}
+  .counters{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+  .counter{background:#fff;border:1px solid var(--line);border-top:6px solid var(--civico);border-radius:10px;padding:14px;}
+  .counter .big{font-size:34px;font-weight:800;color:var(--civico);font-variant-numeric:tabular-nums;line-height:1;}
+  .counter .lbl{font-weight:700;margin-top:6px;font-size:14px;} .counter .sub{color:var(--muted);font-size:12px;margin-top:4px;}
+  .slots{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;}
+  .slot{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:11px;font-size:13px;}
+  .slot b{display:block;color:var(--hoy);} .slot .c{font-size:10px;font-weight:800;text-transform:uppercase;color:var(--hoy);} .slot .c.o{color:var(--ciclo);}
+  .box{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px;}
+  .box.falta{border-top:6px solid var(--falta);} .box.sobra{border-top:6px solid var(--ciclo);}
+  .box h3{margin:0 0 8px;} .box ul{margin:0;padding-left:18px;font-size:14px;} .box li{margin-bottom:5px;}
+  .steps{counter-reset:s;list-style:none;margin:0;padding:0;}
+  .steps li{counter-increment:s;position:relative;padding:10px 0 10px 38px;border-bottom:1px solid var(--line);font-size:15px;}
+  .steps li::before{content:counter(s);position:absolute;left:0;top:8px;width:26px;height:26px;background:var(--civico);color:#fff;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:13px;}
+  textarea{width:100%;min-height:90px;border:1px solid var(--line);border-radius:8px;padding:10px;font-family:inherit;font-size:14px;}
+  button{background:var(--hoy);color:#fff;border:0;border-radius:8px;padding:10px 14px;font-weight:700;cursor:pointer;margin-top:8px;}
+  .links{display:flex;flex-wrap:wrap;gap:10px;} .links a{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px 14px;text-decoration:none;color:var(--ink);font-weight:700;font-size:14px;}
+  .prio{background:#0f766e;color:#fff;border-radius:10px;padding:13px 15px;margin:0 0 14px;}
+  .prio b{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.05em;opacity:.85;margin-bottom:7px;}
+  .prio ul{list-style:none;margin:0;padding:0;} .prio li{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:5px 0;font-size:15px;}
+  .prio button{background:rgba(255,255,255,.22);color:#fff;margin:0;padding:4px 10px;font-size:12px;}
+  .ayerwrap .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:10px 0;border-bottom:1px solid var(--line);font-size:14px;}
+  .ayerwrap .row:last-child{border-bottom:0;}
+  .ayerwrap .row .t{flex:1;min-width:150px;}
+  .miniact{border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:6px;padding:5px 10px;font-size:12px;font-weight:700;cursor:pointer;margin:0;}
+  .miniact.go{background:var(--hoy);color:#fff;border-color:var(--hoy);}
+  .miniact.warn{background:#fff7e6;color:#7a5b12;border-color:#f0d9a8;}
+  footer{padding:26px 0 50px;color:var(--muted);font-size:13px;}
+  @media(max-width:900px){.grid2,.grid3,.weekstrip,.slots,.counters,.pcounters{grid-template-columns:1fr 1fr;}}
+  @media(max-width:560px){.grid2,.grid3,.weekstrip,.slots,.counters,.pcounters,.histgrid{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <h1>Tablero de Mando · Cabo Rojo</h1>
+  <p class="manifesto">La semana no se improvisa. Se planifica, se prepara, se decide. Para mí, para los míos, y para quien quiera aprender.</p>
+  <div class="onecosa" id="onecosa"></div>
+</div></header>
+
+<nav><div class="wrap">
+  <a href="#niveles">5 Niveles</a><a href="#hoy">Hoy</a><a href="#ayer">Ayer</a><a href="#copyhoy">Copy de Hoy</a><a href="#historial">Historial</a><a href="#pulso">Pulso Veci</a><a href="#kpis">KPIs</a><a href="#manos">Tus Manos</a><a href="#pendientes">Pendientes</a><a href="#bd">Buenos Días</a><a href="#capas">Las 3 Capas</a><a href="#semana">Esta Semana</a><a href="#domingo">El Domingo</a><a href="#prox">Próximos</a><a href="#mes">Tema del Mes</a><a href="#dia">El Día</a><a href="#tus">Tus Contadores</a><a href="#civico">Cívicos</a><a href="#faltasobra">Falta/Sobra</a><a href="#presion">Presión</a><a href="#notas">Notas</a>
+</div></nav>
+
+<main class="wrap">
+
+<section id="niveles">
+  <h2>Los 5 Niveles del Sistema · una puerta a todo</h2>
+  <p class="lead">Tu sistema completo, de lo más amplio a lo más fino. Cada nivel es una vista distinta de la misma máquina. Empieza arriba (por qué) y baja hasta el día.</p>
+  <div class="grid3">
+    <a class="panel" style="text-decoration:none;color:inherit;border-top:6px solid var(--falta)" href="./Tablero-Decision-Problemas-CaboRojo.html">
+      <h3>🔭 1 · El Por Qué</h3><div style="font-size:13px;color:var(--muted)">Rack &amp; Stack. Qué problema atacar: motor de audiencia vs motor de dinero. De aquí sale el keyword.</div></a>
+    <a class="panel" style="text-decoration:none;color:inherit;border-top:6px solid var(--ciclo)" href="../CaboRojo/EL-CATALOGO-INDICE-2026-06-16.html">
+      <h3>💰 2 · Quién Paga</h3><div style="font-size:13px;color:var(--muted)">El Catálogo. Negocios que faltan = demanda atrapada = tu pipeline de pitch (3 Pagos).</div></a>
+    <a class="panel" style="text-decoration:none;color:inherit;border-top:6px solid var(--dia)" href="./Calendario-30-Dias-2026-06.html">
+      <h3>📅 3 · El Mes</h3><div style="font-size:13px;color:var(--muted)">Calendario 30 Días. Los 4 ciclos de 14 días. El zoom-out.</div></a>
+    <a class="panel" style="text-decoration:none;color:inherit;border-top:6px solid var(--civico)" href="./Semana-2-AIRE-2026-06-21.html">
+      <h3>🗓️ 4 · La Semana</h3><div style="font-size:13px;color:var(--muted)">Semana AIRE (Jun 21-27). Copy completo, 5 slots/día, ya escrito.</div></a>
+    <a class="panel" style="text-decoration:none;color:inherit;border-top:6px solid var(--hoy)" href="#hoy">
+      <h3>🎯 5 · El Día</h3><div style="font-size:13px;color:var(--muted)">Este Tablero. El cockpit: hoy, KPIs, pulso, lo que toca. Estás aquí.</div></a>
+  </div>
+</section>
+
+<section id="hoy">
+  <h2 id="hoyHead">Hoy</h2>
+  <p class="lead">Lo que de verdad mueve el día. Marca lo hecho (se guarda solo). La vida y el negocio se reinician mañana; lo que rescates de ayer se queda como prioridad.</p>
+  <div id="prioBox"></div>
+  <div class="grid2">
+    <div class="panel vida">
+      <h3>Mi vida (todos los días)</h3>
+      <ul class="checklist" id="habitos"></ul>
+    </div>
+    <div class="panel dia">
+      <h3>El negocio hoy</h3>
+      <ul class="checklist" id="negocioHoy"></ul>
+    </div>
+  </div>
+</section>
+
+<section id="ayer">
+  <h2 id="ayerHead">Ayer · ponte al día</h2>
+  <p class="lead">Lo que quedó sin marcar ayer. Dime qué pasó con cada cosa: la hiciste, se te olvidó, o la pasas para hoy. No se queda colgando.</p>
+  <div class="panel ayerwrap" id="ayerBox"></div>
+</section>
+
+<section id="copyhoy">
+  <h2 id="copyHoyHead">El copy de hoy · listo para pegar</h2>
+  <p class="lead">Todo lo que se publica hoy, ya escrito (Buenos Días, Recibo del Veci, LA pieza, caption). Dale Copiar y pégalo. No tienes que pensar nada.</p>
+  <div class="panel" id="copyHoyBox"></div>
+</section>
+
+<section id="historial">
+  <h2>Historial · qué hice y qué no hice</h2>
+  <p class="lead">Lo que marcaste los días anteriores (tu vida + el negocio), reconstruido de lo que guardaste en este navegador. La racha 🔥 son días seguidos. "Faltó" = lo que no marcaste ese día. "Sin registro" = no abriste el tablero o no marcaste nada.</p>
+  <div id="streakBox" class="pcounters" style="margin-bottom:14px"></div>
+  <div id="histSum"></div>
+  <div class="histgrid" id="histBox"></div>
+</section>
+
+<section id="pulso">
+  <h2>Pulso del Veci · en vivo</h2>
+  <p class="lead">La demanda real de los últimos 7 días, directo del *7711. Esto decide el keyword. Se actualiza solo cada día.</p>
+  <div id="pulsoBox"><p style="color:var(--muted)">Cargando el pulso del Veci...</p></div>
+</section>
+
+<section id="kpis">
+  <h2>KPIs del Negocio · los números que deciden</h2>
+  <p class="lead">No reach (ese es prestado, sube y baja). Estos 4 deciden si la rueda compone. La métrica madre es la lista propia. Se actualiza solo cada día.</p>
+  <div id="kpiBox"><p style="color:var(--muted)">Cargando los KPIs...</p></div>
+</section>
+
+<section id="manos">
+  <h2>Lo único que requiere tus manos</h2>
+  <p class="lead">El resto lo adelanto yo. Esto es lo único que solo tú puedes hacer esta semana.</p>
+  <div class="panel"><ul class="checklist" id="manosBox"></ul></div>
+</section>
+
+<section id="pendientes">
+  <h2>Decisiones pendientes · esperando por ti</h2>
+  <p class="lead">Lo que está colgando. Resuélvelo antes de que se enfríe.</p>
+  <div class="panel"><ul class="checklist" id="pendientesBox"></ul></div>
+</section>
+
+<section id="bd">
+  <h2>Buenos Días · 3 opciones para hoy</h2>
+  <p class="lead">Escoge una y prográmala. Cambian según el día de la semana. Dale "copiar".</p>
+  <div class="panel" id="bdBox"></div>
+</section>
+
+<section id="capas">
+  <h2>Las 3 Capas</h2>
+  <p class="lead">Lo que pasa SIEMPRE, lo que cambia por día, y los hitos del ciclo. No se confunden.</p>
+  <div class="grid3">
+    <div class="cap todos"><h3>1 · Siempre (no falla nunca)</h3><div class="tagline">Pase lo que pase, esto sale.</div><ul><li>Buenos Días (6 AM)</li><li>Recibo del Veci con el 787-417-7711 (8 AM)</li><li>Un negocio aparece</li><li>El keyword presente, empujando a un activo</li></ul></div>
+    <div class="cap pordia"><h3>2 · Cambia por día</h3><div class="tagline">La columna vertebral de la semana.</div><ul><li>El tema madre del día (ver "Esta Semana" abajo)</li><li>El formato de LA pieza de las 10 AM</li><li>Cadencia 5-3-5 (unos días 5 posts, otros 3)</li></ul></div>
+    <div class="cap porciclo"><h3>3 · El ciclo de 14 días</h3><div class="tagline">Hitos del negocio, no posts sueltos.</div><ul><li>Día 1 Señal → 7 Medir → 10 Vender → 14 Decidir</li><li>1 keyword por semana (el que manda el Veci)</li><li>Domingo: el bloque de operador (planificar)</li></ul></div>
+  </div>
+</section>
+
+<section id="semana">
+  <h2>Esta Semana · El Calendario con Copy</h2>
+  <p class="lead">Lunes a domingo, con el número, el tema y la publicación sugerida de cada día, copy listo. La de Día de los Padres ya colocada donde va. Las fechas se calculan solas; el copy se regenera el domingo.</p>
+  <div id="kwbar"></div>
+  <div class="weekcal" id="weekcal"></div>
+</section>
+
+<section id="domingo">
+  <h2 id="domHead">El Domingo · Lo que ya hice por ti</h2>
+  <p class="lead">No tienes que escribir ni buscar nada. Yo adelanté el trabajo. Tú solo programas.</p>
+  <div class="panel" id="domingoLista"></div>
+</section>
+
+<section id="prox">
+  <h2>Próximos · Para No Improvisar</h2>
+  <p class="lead">Cumpleaños, días importantes y feriados que vienen. Para preparar el contenido y la familia con tiempo.</p>
+  <div id="convBox"></div>
+  <div class="panel"><ul class="prox" id="proxLista"></ul></div>
+</section>
+
+<section id="mes">
+  <h2>El Tema del Mes</h2>
+  <p class="lead">Cada mes ya tiene una conversación en la mente de la gente. No inventamos una nueva, nos unimos a la que ya existe.</p>
+  <div class="monthbox" id="monthbox"></div>
+</section>
+
+<section id="dia">
+  <h2>La Estructura del Día</h2>
+  <p class="lead">Menú 5-3-5. Los 3 CORE siempre. El 2 PM y 6-8 PM solo si pasan el gate. Silencio antes que relleno.</p>
+  <div class="slots">
+    <div class="slot"><span class="c">Core</span><b>6 AM</b>Buenos Días</div>
+    <div class="slot"><span class="c">Core</span><b>8 AM</b>Recibo del Veci (número)</div>
+    <div class="slot"><span class="c">Core</span><b>10 AM</b>LA pieza (Señal del Día)</div>
+    <div class="slot"><span class="c o">Opcional</span><b>2 PM</b>Utilidad Silenciosa</div>
+    <div class="slot"><span class="c o">Opcional</span><b>6-8 PM</b>Conversación</div>
+  </div>
+</section>
+
+<section id="tus">
+  <h2>Tus Contadores</h2>
+  <p class="lead">Mientras hay cosas cerradas hace años, tú estás construyendo. El contraste es el punto.</p>
+  <div class="pcounters" id="pcounters"></div>
+</section>
+
+<section id="civico">
+  <h2>Contadores Cívicos</h2>
+  <p class="lead">El número es la presión, no el ataque. Suben solos. <a href="./Cabo-Rojo-Contador-Civico.html">Ver la página pública →</a></p>
+  <div class="counters" id="counters"></div>
+</section>
+
+<section id="faltasobra">
+  <h2>Lo Que Falta / Lo Que Sobra</h2>
+  <p class="lead">"No abras otro igual. Abre lo que falta." Y ojo al comprador: hay dos tipos, el que tiene cash y gasta sin ojo, y el de poder adquisitivo bajo. Hoy bajo, pero va a cambiar.</p>
+  <div class="grid2">
+    <div class="box falta"><h3>Falta (carriles abiertos)</h3><ul><li>Reparación de electrodomésticos, cerrajería 24h, handyman</li><li>Acceso a especialistas + cuido de envejecientes</li><li>Catering, repostería por encargo, escuela de manejo</li><li>Digital: Google Business, reservas, ATH/Stripe</li><li>Anti-fuga: ropa por ocasión, bebé, Airbnb</li><li>Experiencias: tours, mercado de agricultores real</li></ul></div>
+    <div class="box sobra"><h3>Sobra (no vender growth)</h3><ul><li>Food trucks, bares, car wash, boutiques</li><li>Patrón: barrera baja + cash inmediato + copiable</li><li>Abrir por dinero ≠ vale la pena. Sin plan = hamster wheel</li><li>La verdad: no falta gente, falta una economía con carriles</li></ul></div>
+  </div>
+</section>
+
+<section id="presion">
+  <h2>Cómo Metemos Presión Bien</h2>
+  <p class="lead">Sin política, sin partido, sin nombre para atacar. La presión sale de la luz: dato + récord público.</p>
+  <div class="panel"><ol class="steps">
+    <li><b>Documentar con número y fecha.</b> El dato es la presión.</li>
+    <li><b>Solicitud de información pública (Ley 141-2019).</b> Preguntar oficial, publicar la respuesta o el silencio.</li>
+    <li><b>Ir a la Legislatura Municipal</b> como residente (turno de expresión ciudadana).</li>
+    <li><b>Dos Verdades siempre.</b> Sin veredicto, sin partido.</li>
+    <li><b>Celebrar al que SÍ construye.</b> Por cada problema, un ejemplo bueno.</li>
+  </ol></div>
+</section>
+
+<section id="notas">
+  <h2>Notas para Claude</h2>
+  <p class="lead">Escribe aquí lo que quieres cambiar o mejorar del tablero. Se guarda solo. Cuando vuelvas a Claude, dale "copiar" y pégamelo.</p>
+  <div class="panel">
+    <textarea id="fb" placeholder="Ej: el bloque del domingo debería tener X. Quiero un contador de Y. El tema del mes de julio en realidad es..."></textarea>
+    <button onclick="copiarFb()">Copiar para Claude</button>
+    <span id="fbmsg" style="margin-left:10px;color:var(--muted);font-size:13px;"></span>
+  </div>
+</section>
+
+<section id="docs">
+  <h2>Documentos</h2>
+  <div class="links">
+    <a href="../Estrategia/Sistema-Publicacion-Universal-2026-06-12.md">Canon del Sistema</a>
+    <a href="./Calendario-30-Dias-2026-06.html">Calendario 30 Días</a>
+    <a href="./Cabo-Rojo-Contador-Civico.html">Página Pública de Contadores</a>
+    <a href="../CaboRojo/Lo-Que-Falta-y-Lo-Que-Sobra-2026-06-14.md">Lo Que Falta / Sobra</a>
+    <a href="../CaboRojo/Emails-Solicitud-Info-Municipio.md">Emails al Municipio</a>
+  </div>
+</section>
+
+</main>
+<footer><div class="wrap">Tablero de Mando · CaboRojo.com · La semana no se improvisa. <span id="stamp"></span></div></footer>
+
+<script>
+/*
+  TABLERO DE MANDO — sync cross-device (añadido 2026-06-16)
+  -------------------------------------------------------------
+  · Checks se guardan en localStorage al instante (offline-first), key:
+      tab_<año-mes-dia>_<seccion>_<indice> = "1"|"0"   (mes/dia SIN cero a la izq)
+  · Capa de sync (var SYNC abajo): write-through a Supabase edge fn `tablero`.
+      - POST {day:ISO, checks:{seccion_idx:0|1}}  (merge jsonb con || en RPC tablero_upsert)
+      - GET ?since=ISO  -> baja y mergea (Supabase gana). Backfill 1 vez (flag tab_synced_v1).
+  · Tabla Supabase: tablero_log(day text pk, checks jsonb). Proyecto vprjteqgmanntvisjrvp.
+  · PIN = shared secret de bajo valor (solo escribe al tracker personal). Rotar:
+      setear secret TABLERO_PIN en Supabase + cambiar SYNC.pin aquí.
+  · Historial (seccion #historial) se RECONSTRUYE: hábitos y negocio son deterministas
+      por día de semana (habitosFor / negocioFor). NO tocar esos índices sin migrar el mapeo.
+  · El Morning Dispatch lee el historial: select day,checks from tablero_log order by day desc.
+*/
+(function(){
+  var MES=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  var MESL=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  var DIA=['domingo','lunes','martes','miercoles','jueves','viernes','sabado'];
+  var DIAUP=['DOM','LUN','MAR','MIÉ','JUE','VIE','SÁB'];
+  var hoy=new Date(); hoy.setHours(0,0,0,0);
+  var dk=hoy.getFullYear()+'-'+(hoy.getMonth()+1)+'-'+hoy.getDate();
+  function days(s){return Math.floor((hoy-new Date(s+'T00:00:00'))/86400000);}
+  function fmt(n){return n.toLocaleString('en-US');}
+  function el(id){return document.getElementById(id);}
+
+  // ---- Sync con Supabase (cross-device, no rompe el modo offline) ----
+  var SYNC={url:'https://vprjteqgmanntvisjrvp.supabase.co/functions/v1/tablero', pin:'tab_442a1268c1434e3894779d73', on:true};
+  function iso(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+  function applyLocal(key,val){localStorage.setItem(key,val);var box=document.getElementById(key);if(box){box.checked=(val==='1');var lab=box.parentNode&&box.parentNode.querySelector('label');if(lab)lab.className=(val==='1')?'done':'';}}
+  function syncPush(k,v,day){if(!SYNC.on)return;var o={};o[k]=Number(v);fetch(SYNC.url,{method:'POST',headers:{'Content-Type':'application/json','x-tablero-pin':SYNC.pin},body:JSON.stringify({day:day||iso(hoy),checks:o})}).catch(function(){});}
+
+  // ---- Checklist con memoria (localStorage por día) ----
+  function checklist(containerId, items, persist){
+    var c=el(containerId); c.innerHTML='';
+    items.forEach(function(it,i){
+      // persist=true -> clave estable (no se reinicia con el día): para decisiones/manos que cuelgan hasta hacerse
+      var key=persist ? 'tab_persist_'+containerId+'_'+i : 'tab_'+dk+'_'+containerId+'_'+i;
+      var on=localStorage.getItem(key)==='1';
+      var li=document.createElement('li');
+      li.innerHTML='<input type="checkbox" id="'+key+'"'+(on?' checked':'')+'><label for="'+key+'"'+(on?' class="done"':'')+'>'+it+'</label>';
+      var box=li.querySelector('input'), lab=li.querySelector('label');
+      box.addEventListener('change',function(){var v=box.checked?'1':'0';localStorage.setItem(key,v);lab.className=box.checked?'done':'';if(!persist)syncPush(containerId+'_'+i,v);if((containerId==='habitos'||containerId==='negocioHoy')&&typeof renderHist==='function')renderHist();});
+      c.appendChild(li);
+    });
+  }
+
+  // ---- Builders deterministas (sirven para HOY y para el HISTORIAL) ----
+  var MOV=['Correr (domingo)','TRX / fuerza','Correr','Descanso activo / caminar','TRX / fuerza','Correr','TRX / fuerza'];
+  function habitosFor(d){var g=d.getDay();return ['Caminar 20 min','Hanging 60 seg','Push-ups (set)','Fuerza: '+MOV[g],'Vitaminas con el café','Cena con Noelia','Angelito sin pantalla'];}
+  var KW=['PLOMERO','AIRE','COMIDA','FARMACIA','ELECTRICISTA','COSTURA','MÉDICO','EVENTOS'];
+  var cycleStart=new Date('2026-06-14T00:00:00');
+  function kwFor(d){var s=new Date(d.getFullYear(),d.getMonth(),d.getDate());s.setDate(s.getDate()-s.getDay());var w=Math.floor((s-cycleStart)/(7*86400000));return KW[((w%KW.length)+KW.length)%KW.length];}
+  function negocioFor(d){var k=kwFor(d);return [
+    ['Buenos Días programado','Planificar la semana (bloque de operador)','Preparar la Señal del lunes con el keyword'],
+    ['Buenos Días','Lanzar el keyword '+k+' (Señal 10 AM)','Recibo del Veci con caso real'],
+    ['Buenos Días','Spotlight de un negocio (Quién Resuelve)','Recibo del Veci'],
+    ['Buenos Días','1 Minuto de Paz + lista guardable','Recibo del Veci'],
+    ['Buenos Días','Cívico + Matemática (dato con número)','Pregunta ¿Qué Hace Falta? (alimenta el keyword del lunes)'],
+    ['Buenos Días','Lista del fin de semana / eventos','Recibo del Veci'],
+    ['Buenos Días','1 Minuto de Paz (3 PM)','Recibo del Veci']
+  ][d.getDay()];}
+  var sun=new Date(hoy); sun.setDate(hoy.getDate()-hoy.getDay());
+  var kw=kwFor(hoy);
+  checklist('habitos',habitosFor(hoy));
+  checklist('negocioHoy',negocioFor(hoy));
+
+  // ---- Una cosa hoy ----
+  var unaCosa=['Planifica la semana: deja todo listo para no improvisar el lunes.','Lanza el keyword '+kw+'. El lunes abre el ciclo.','Dale spotlight a un negocio que SÍ resuelve.','Baja el revolú: una lista que la gente guarde.','Saca un dato con número que cambie una decisión.','Organiza el fin de semana de la gente.','Cabo Rojo se vive: un minuto de paz.'][hoy.getDay()];
+  el('onecosa').textContent='Si solo haces 1 cosa hoy: '+unaCosa;
+  el('hoyHead').textContent='Hoy · '+DIA[hoy.getDay()].charAt(0).toUpperCase()+DIA[hoy.getDay()].slice(1)+' '+hoy.getDate()+' de '+MESL[hoy.getMonth()];
+
+  // ---- Esta semana ----
+  var sat=new Date(sun); sat.setDate(sun.getDate()+6);
+  el('kwbar').innerHTML='<span class="kwbar">Keyword: '+kw+' &nbsp;·&nbsp; '+sun.getDate()+' '+MES[sun.getMonth()]+' - '+sat.getDate()+' '+MES[sat.getMonth()]+'</span>';
+  var SEMANA=[
+    {tema:'Revisión y preparación', slots:[
+      ['6a · Buenos Días','Buenos días, Cabo Rojo. Si no revisas, repites. Diez minutos hoy te ahorran el revolú del lunes.'],
+      ['8a · Recibo del Veci','Ayer un vecino necesitaba saber qué estaba abierto un domingo. El Veci le contestó con opciones. El domingo también se resuelve: 787-417-7711.'],
+      ['10a · LA pieza · Revisión','Lo que sirvió esta semana en Cabo Rojo: un nombre, un número, una decisión. Guárdalo antes de que te haga falta.'],
+      ['2p · Utilidad','Antes de que la semana te coja ajorao, ten guardados: plomero, electricista, técnico de aire, farmacia cercana, y dónde comer sin cocinar.'],
+      ['6p · Conversación','¿Qué servicio local crees que todo cabrorrojeño debería tener guardado en el teléfono? No pa’ chismear, pa’ resolver.']
+    ]},
+    {tema:'Lo que el pueblo buscó · LANZA '+kw, slots:[
+      ['6a · Buenos Días','Buenos días, Cabo Rojo. Lunes. Primero va lo que cambia el día. Lo demás que espere.'],
+      ['8a · Recibo del Veci','Ayer alguien escribió: "necesito un plomero". El Veci le contestó en menos de un minuto. Escríbele '+kw+' al 787-417-7711.'],
+      ['10a · Señal del ciclo','Esta semana mucha gente buscó plomero. No mañana, ya. Escríbele '+kw+' al 787-417-7711 y te decimos quién resuelve.'],
+      ['2p · Utilidad','Guarda 5 contactos antes de la emergencia: plomero, electricista, aire, cerrajero, farmacia. El problema no avisa; la preparación sí.'],
+      ['6p · Conversación','¿A quién llamas cuando se revienta una tubería un domingo? Comparte el nombre, alguien lo busca ahora mismo.']
+    ]},
+    {tema:'Quién Resuelve · Spotlight', slots:[
+      ['6a · Buenos Días','Buenos días. El buen trabajo no hace ruido, pero deja huella.'],
+      ['8a · Recibo del Veci','Otra persona escribió: "plomero en Cabo Rojo". El Veci ya tiene quién. Escríbele '+kw+' al 787-417-7711.'],
+      ['10a · Spotlight','Taíno Plumbing, plomería verificada en Cabo Rojo. Guarda el contacto antes de la emergencia, no en el medio de ella.'],
+      ['2p · Utilidad','Antes de llamar al plomero, ten claro: qué se dañó, hace cuánto, y si gotea o está tapado. Ahorra la visita y el dinero.'],
+      ['6p · Conversación','¿Cuál es el oficio más difícil de conseguir bueno en Cabo Rojo? Dilo, lo organizamos.']
+    ]},
+    {tema:'Menos revolú', slots:[
+      ['6a · Buenos Días','Buenos días. Menos revolú también es progreso. Resolver antes de que explote se siente en la paz.'],
+      ['8a · Recibo del Veci','Una nevera no se daña cuando estás listo, se daña con la compra adentro. Pa’ eso está el Veci: 787-417-7711.'],
+      ['10a · 1 Minuto de Paz + lista','1 minuto de Cabo Rojo. Respira. + Lista guardable: 5 cosas que debes tener antes de una emergencia en casa.'],
+      ['2p · Utilidad','Lista que deberías tener antes de necesitarla: técnico de aire, electricista, plomero, reparación de neveras, cerrajero.'],
+      ['6p · Conversación','¿Qué resolviste hoy antes de que se convirtiera en problema? Eso también cuenta.']
+    ]},
+    {tema:'Dato que cambia decisión', evento:'Evento hoy: Cabo Rojo Jam, 9no aniversario. Música en vivo.', slots:[
+      ['6a · Buenos Días','Buenos días. La queja sirve cuando cambia una decisión. Si solo repite el problema, es rutina.'],
+      ['8a · Recibo del Veci','Esta semana se repitió la pregunta del plomero. La demanda es real. Escríbele '+kw+' al 787-417-7711.'],
+      ['10a · Cívico + Matemática','La matemática de esperar: una filtración pequeña hoy cuesta poco; la misma en tres meses te daña el gabinete y la pared. Prevenir sale más barato que reaccionar.'],
+      ['2p · Utilidad','Guarda 3 números hoy: plomero, electricista, técnico de aire. El día que los necesites no vas a querer empezar de cero.'],
+      ['6p · Conversación · ¿Qué Hace Falta?','¿Qué servicio te falta encontrar en Cabo Rojo? Comenta. Esto decide de qué hablamos la semana que viene.']
+    ]},
+    {tema:'Fin de semana organizado', evento:'DÍA DE LOS PADRES (dom 21). Festival Jueyero de Guánica (sáb 20). Retreta Banda Cultural en Cabo Rojo (dom 21).', slots:[
+      ['6a · Buenos Días','Buenos días, Cabo Rojo. El fin de semana también se decide. Si no lo organizas, llegas tarde o pagas de más.'],
+      ['8a · Recibo del Veci','Alguien preguntó dónde comer con los nenes este finde. El Veci le dio opciones. Escríbele COMIDA al 787-417-7711.'],
+      ['10a · Lista','El plan del fin de semana de Día de los Padres: dónde llevar a papá. Festival Jueyero en Guánica el sábado, Retreta de la Banda Cultural en Cabo Rojo el domingo. caborojo.com'],
+      ['2p · Utilidad','Sitios pa’ llevar a papá a comer en Cabo Rojo: Carlito’s, La Romana, Saltéalo. Guárdalo.'],
+      ['6p · Conversación','¿Dónde vas a llevar a papá este domingo? Cuenta, que alguien anda buscando idea.']
+    ]},
+    {tema:'Cabo Rojo se vive · 1MdP 3 PM', evento:'Festival Jueyero de Guánica hoy. Mañana es Día de los Padres.', slots:[
+      ['6a · Buenos Días','Buenos días, Cabo Rojo. Sábado. Hoy se vive el pueblo, sin prisa.'],
+      ['8a · Recibo del Veci','Sábado y ya alguien pregunta por una playa con poca gente. El Veci sabe. Escríbele al 787-417-7711.'],
+      ['3p · 1 Minuto de Paz','1 minuto de Cabo Rojo. El Faro. Mañana es su día. (Video, caption de 10 palabras o menos.)'],
+      ['2p · Utilidad','Tres playas con sombra natural pa’l calor: Boquerón, Combate y Buyé. Guárdalo.'],
+      ['6p · Conversación','Mañana es Día de los Padres. ¿Qué plan tranquilo tienes con papá?']
+    ]}
+  ];
+  var cal=''; var flat=[];
+  for(var i=0;i<7;i++){var d=new Date(sun);d.setDate(sun.getDate()+i);var h=(d.getTime()===hoy.getTime());var s=SEMANA[i];
+    var ps=s.slots.map(function(sl){flat.push(sl[1]);return '<div class="post"><span class="lab">'+sl[0]+'</span><span class="txt">'+sl[1].replace(/</g,'&lt;')+'</span><button class="cp">Copiar</button></div>';}).join('');
+    cal+='<div class="dcard '+DIA[i]+(h?' hoy':'')+'"><div class="dh"><span class="dnum">'+DIAUP[i]+' '+d.getDate()+' '+MES[d.getMonth()]+(h?' · HOY':'')+'</span><span class="dtema">'+s.tema+'</span><span class="dkw">'+kw+'</span></div>'+ps+(s.evento?'<div class="extra">📅 '+s.evento+'</div>':'')+'</div>';}
+  el('weekcal').innerHTML=cal;
+  var wb=document.querySelectorAll('#weekcal .cp');
+  wb.forEach(function(b,idx){b.addEventListener('click',function(){copiar(flat[idx],b);});});
+
+  // ---- El copy de hoy (todos los slots de hoy, listos para pegar) ----
+  (function(){
+    var td=SEMANA[hoy.getDay()];
+    var rows=td.slots.map(function(sl){
+      return '<div class="post"><span class="lab">'+sl[0].split('·')[0].trim()+'</span><span class="txt">'+sl[1].replace(/</g,'&lt;')+'</span><button class="cp">Copiar</button></div>';
+    }).join('');
+    if(td.evento)rows+='<div class="extra">📅 '+td.evento+'</div>';
+    el('copyHoyBox').innerHTML=rows;
+    var btns=el('copyHoyBox').querySelectorAll('.cp');
+    Array.prototype.forEach.call(btns,function(b,idx){b.addEventListener('click',function(){copiar(td.slots[idx][1],b);});});
+    el('copyHoyHead').textContent='El copy de hoy ('+DIAUP[hoy.getDay()]+' '+hoy.getDate()+' '+MES[hoy.getMonth()]+') · listo para pegar';
+  })();
+
+  // ---- El domingo (accionable) ----
+  el('domHead').textContent=(hoy.getDay()===0)?'El Domingo · Lo que ya hice por ti (es hoy)':'El Domingo · Lo que ya hice por ti';
+  var yaHecho=[
+    'Revisé los keywords (últimos 21 días): comida 10 · plomero 7 · aire 5 · electrodomésticos 4 · electricista 4.',
+    'Keyword de esta semana: <b>PLOMERO</b>. El de la semana que viene: <b>AIRE</b> (ya pre-cargada con copy completo).',
+    'Los 7 Buenos Días de la semana ya están escritos arriba en el calendario, con botón Copiar.',
+    'LA pieza del lunes (la Señal de PLOMERO) lista para copiar.',
+    'El negocio del spotlight ya escogido: Taíno Plumbing (verificado).'
+  ];
+  var teToca=['Copiar y programar los posts del calendario de arriba.','Confirmar el nombre de Taíno Plumbing contra el directorio.','Mandar los dos emails al municipio (si no los has enviado).'];
+  el('domingoLista').innerHTML=
+    '<div style="margin-bottom:14px"><div style="font-weight:800;color:var(--hoy);margin-bottom:8px">✅ Ya lo hice por ti</div>'+
+    yaHecho.map(function(t){return '<div style="padding:6px 0 6px 26px;position:relative;font-size:15px;border-bottom:1px solid var(--line)"><span style="position:absolute;left:0;color:var(--hoy);font-weight:800">✓</span>'+t+'</div>';}).join('')+'</div>'+
+    '<div style="font-weight:800;margin-bottom:6px">👉 Lo único que te toca</div><ul class="checklist" id="domTuParte"></ul>';
+  checklist('domTuParte', teToca, true);
+
+  // ---- Proximos (cumpleaños + feriados, se calculan solos) ----
+  var fechas=[
+    {m:2,d:22,t:'Cumpleaños de Angelito'},{m:3,d:7,t:'Cumpleaños Titi Gladys y Titi Irma'},{m:3,d:20,t:'Tu cumpleaños'},
+    {m:7,d:29,t:'Cumpleaños William'},{m:7,d:31,t:'Cumpleaños Keila'},{m:8,d:9,t:'Cumpleaños de Noelia'},
+    {m:8,d:31,t:'Cumpleaños Diego'},{m:9,d:17,t:'Cumpleaños Abuelo Francis'},
+    {m:1,d:1,t:'Año Nuevo'},{m:1,d:6,t:'Día de Reyes'},{m:7,d:4,t:'4 de Julio'},{m:7,d:25,t:'Día de la Constitución de PR'},
+    {m:12,d:25,t:'Navidad'},{m:12,d:24,t:'Nochebuena'},{m:11,d:19,t:'Descubrimiento de PR'}
+  ];
+  // Dia de las Madres (2do dom mayo) y Padres (3er dom junio)
+  function nthSunday(year,month,n){var d=new Date(year,month-1,1);var add=(7-d.getDay())%7;d.setDate(1+add+(n-1)*7);return d;}
+  var yr=hoy.getFullYear();
+  [{d:nthSunday(yr,5,2),t:'Día de las Madres'},{d:nthSunday(yr,6,3),t:'Día de los Padres'},{d:nthSunday(yr+1,5,2),t:'Día de las Madres'},{d:nthSunday(yr+1,6,3),t:'Día de los Padres'}].forEach(function(x){fechas.push({m:x.d.getMonth()+1,d:x.d.getDate(),t:x.t,yr:x.d.getFullYear()});});
+  var listo=fechas.map(function(f){
+    var y=f.yr||yr; var dt=new Date(y,f.m-1,f.d);
+    if(dt<hoy) dt=new Date(y+1,f.m-1,f.d);
+    return {t:f.t,dt:dt,dias:Math.round((dt-hoy)/86400000)};
+  }).filter(function(x){return x.dias<=45;}).sort(function(a,b){return a.dt-b.dt;});
+  el('proxLista').innerHTML = listo.length? listo.map(function(x){return '<li><span>'+x.t+' · '+x.dt.getDate()+' '+MES[x.dt.getMonth()]+'</span><span class="dd">'+(x.dias===0?'HOY':'en '+x.dias+'d')+'</span></li>';}).join('') : '<li><span>Nada importante en los próximos 45 días. Respira.</span></li>';
+
+  // ---- Tema del mes ----
+  var temas=['Año nuevo, propósitos, empezar distinto','Amor y amistad, regreso a clases 2do semestre','Primavera, preparar Semana Santa','Semana Santa, turismo fuerte, familia','Día de las Madres, graduaciones','Día de los Padres, graduaciones, arranca el verano','Verano pleno, 4 de julio, fiestas patronales','Regreso a clases, uniformes, rutina','Aniversario de María, temporada de huracanes, prevención','Recta final del año, organizarse','Acción de Gracias, compras, compra local','Navidad, la diáspora regresa, comprar local'];
+  var TEMAS_ACCION=[
+    ['Propósitos con sistema, no con suerte','Lo que cambió y lo que no del año pasado','Organízate antes de que el año te organice a ti'],
+    ['Amor y amistad: detalles locales','Regreso a clases 2do semestre','San Valentín: dónde comer / qué regalar local'],
+    ['Preparar Semana Santa (hospedaje, comida)','Primavera: limpieza y mantenimiento de casa','Fechas: empieza a avisar lo del finde largo'],
+    ['Semana Santa: turismo fuerte, qué abre','Guía del visitante para el finde largo','Dónde comer pescado / sin fila'],
+    ['Día de las Madres: dónde llevar a mamá','Graduaciones: celebrar, repostería, fotógrafo','Arranca la temporada de playa'],
+    ['Día de los Padres: lista de sitios para papá + qué regalar local','Graduaciones: dónde celebrar, repostería por encargo, fotógrafo','Arranca el verano: playas que abren, qué hacer, guía del visitante'],
+    ['Verano pleno: playas, qué abre, turismo','4 de Julio: dónde ver, qué hacer','Fiestas patronales / actividades de agua'],
+    ['Regreso a clases: uniformes, listas, dónde conseguir','Rutina nueva: organizar la semana','Fin del verano: último jangueo'],
+    ['Aniversario de María: prevención, no drama','Temporada de huracanes: qué tener listo','Mantenimiento pre-tormenta (cisterna, planta, techo)'],
+    ['Recta final del año: organízate','Negocios: prepararse para Navidad','Salud: lo que dejaste para después'],
+    ['Acción de Gracias: compra local','Black Friday: por qué comprar aquí','Empieza la temporada alta de diáspora'],
+    ['Navidad: compra local, regalos de aquí','La diáspora regresa: qué hacer en familia','Cena navideña: dónde conseguir lo local']
+  ];
+  var acc=TEMAS_ACCION[hoy.getMonth()].map(function(a){return '<li>'+a+'</li>';}).join('');
+  el('monthbox').innerHTML='<div class="m">'+MESL[hoy.getMonth()]+'</div><div class="t">'+temas[hoy.getMonth()]+'</div><p>La conversación que ya está en la mente de la gente este mes. Nos unimos a ella, no inventamos una nueva.</p><ul class="accion">'+acc+'</ul>';
+
+  // ---- Tus contadores ----
+  var construyendo=days('2026-06-14'); if(construyendo<0)construyendo=0;
+  var prox=listo[0];
+  var finAno=Math.round((new Date(yr,11,31)-hoy)/86400000);
+  el('pcounters').innerHTML=
+    '<div class="pc"><div class="big">'+fmt(construyendo)+'</div><div class="lbl">días construyendo el sistema</div></div>'+
+    '<div class="pc"><div class="big">'+(prox?prox.dias:'-')+'</div><div class="lbl">días para '+(prox?prox.t.toLowerCase():'lo próximo')+'</div></div>'+
+    '<div class="pc"><div class="big">'+finAno+'</div><div class="lbl">días que quedan del año</div></div>'+
+    '<div class="pc"><div class="big">'+(7-hoy.getDay())+'</div><div class="lbl">días para cerrar la semana</div></div>';
+
+  // ---- Contadores civicos ----
+  var C=[
+    {lbl:'Coliseo Rebekah Colberg',since:'2017-09-20',sub:'desde María. FEMA $6.2M, sin reapertura.'},
+    {lbl:'Faro de Los Morrillos',since:'2017-09-20',sub:'interior cerrado; el terreno se visita.'},
+    {lbl:'Isla Ratones (muelle)',since:'2017-09-20',sub:'sin muelle; en 2026 dijeron que no lo reconstruyen.'},
+    {lbl:'Cabañas Balneario Boquerón',since:'2017-09-20',sub:'cerradas y en ruinas desde María.'}
+  ];
+  el('counters').innerHTML=C.map(function(c){var d=days(c.since);return '<div class="counter"><div class="big">'+fmt(d)+'</div><div class="lbl">'+c.lbl+'</div><div class="sub">días cerrado · '+c.sub+'</div></div>';}).join('');
+
+  // ---- Notas / feedback ----
+  var fb=el('fb'); fb.value=localStorage.getItem('tab_feedback')||'';
+  fb.addEventListener('input',function(){localStorage.setItem('tab_feedback',fb.value);});
+  window.copiarFb=function(){fb.select();document.execCommand('copy');el('fbmsg').textContent='Copiado. Pégalo en el chat con Claude.';};
+
+  // ---- Buenos Días: 3 opciones por día ----
+  var BD=[
+    ['El domingo no es para correr, es para mirar la semana. Una cosa lista hoy = un lunes sin ajoro.','Si no revisas, repites. Diez minutos hoy te ahorran el revolú del lunes.','La semana que se planifica rinde el doble. ¿Qué una cosa dejas lista hoy?'],
+    ['Lunes. Primero va lo que cambia el día. Lo demás que espere.','La gente ya está buscando lo que tú resuelves. La pregunta es si te encuentran.','Hoy guarda un contacto útil antes de necesitarlo. Menos revolú.'],
+    ['Hoy le damos luz a alguien que sí resuelve en Cabo Rojo.','El buen trabajo no hace ruido, pero deja huella.','Un buen negocio escondido no ayuda a nadie. Hoy sacamos uno.'],
+    ['Menos revolú también es progreso. Resolver antes de que explote se siente en la paz.','Lo urgente cuesta más que lo preparado.','Hoy una cosa menos en la cabeza. Eso también cuenta.'],
+    ['La queja sirve cuando cambia una decisión. Si solo repite el problema, es rutina.','Un número honesto vale más que mil opiniones.','Hoy un dato que te puede ahorrar dinero o tiempo.'],
+    ['El fin de semana también se decide. Si no lo organizas, llegas tarde o pagas de más.','Viernes. Disfrutar también requiere un poco de plan.','Hoy te dejamos el finde resuelto. Menos vueltas.'],
+    ['Sábado. Hoy se vive el pueblo, sin prisa.','Disfrutar también es una decisión. El que planifica un poco, disfruta más.','Un sábado tranquilo también es ganar.']
+  ][hoy.getDay()];
+  function copiar(t,btn){var ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();btn.textContent='Copiado';setTimeout(function(){btn.textContent='Copiar';},1500);}
+  var bdHtml=BD.map(function(t,i){return '<div style="display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--line)"><div style="flex:1"><b>Opción '+(i+1)+':</b> Buenos días, Cabo Rojo. '+t+'</div><button class="bdc" data-t="Buenos días, Cabo Rojo. '+t.replace(/"/g,'&quot;')+'">Copiar</button></div>';}).join('');
+  el('bdBox').innerHTML=bdHtml;
+  Array.prototype.forEach.call(document.querySelectorAll('.bdc'),function(b){b.style.cssText='background:var(--hoy);color:#fff;border:0;border-radius:6px;padding:7px 11px;font-weight:700;cursor:pointer;flex:0 0 auto;';b.addEventListener('click',function(){copiar(b.getAttribute('data-t'),b);});});
+
+  // ---- La conversación que viene (antes del feriado) ----
+  var CONV={
+    'Día de los Padres':{fb:'Lista de sitios para llevar a papá a comer (Día de los Padres).',veci:'Textea COMIDA al 787-417-7711 y te recomienda dónde.',news:'Guía del fin de semana de Padres.',negocio:'Un restaurante familiar (Carlito\'s Best Sandwiches, La Romana).'},
+    'Día de las Madres':{fb:'Dónde llevar a mamá: brunch, flores, postre.',veci:'Textea y te busca el sitio.',news:'Guía del Día de las Madres.',negocio:'Floristería / repostería / restaurante.'},
+    '4 de Julio':{fb:'Qué playas, qué abre, dónde ver. El finde del 4 organizado.',veci:'Textea PLAYA o COMIDA.',news:'El fin de semana del 4, sin dar vueltas.',negocio:'Food truck / marina / restaurante de playa.'},
+    'Navidad':{fb:'Compra local: regalos y comida de aquí.',veci:'Textea para encontrar el regalo local.',news:'Guía de Navidad local.',negocio:'Tienda local / repostería / artesano.'},
+    'Nochebuena':{fb:'Dónde conseguir lo de la cena, local.',veci:'Textea LECHON o COMIDA.',news:'La cena resuelta, local.',negocio:'Lechonera / panadería / colmado.'}
+  };
+  var conv=null;
+  for(var j=0;j<listo.length;j++){ if(CONV[listo[j].t] && listo[j].dias<=12){conv=listo[j];break;} }
+  if(conv){var c=CONV[conv.t];
+    el('convBox').innerHTML='<div class="monthbox" style="border-left-color:var(--ciclo)"><div class="m">La conversación que viene · empieza YA</div><div class="t">'+conv.t+' · en '+conv.dias+' días</div><p>Ya está en la mente de la gente. Hablar de esto ANTES del día es lo fácil.<br><b>FB:</b> '+c.fb+'<br><b>El Veci:</b> '+c.veci+'<br><b>Newsletter:</b> '+c.news+'<br><b>Negocio a resaltar:</b> '+c.negocio+'</p></div>';
+  }
+
+  // ---- Pulso del Veci (en vivo, desde el snapshot publico) ----
+  fetch('https://vprjteqgmanntvisjrvp.supabase.co/storage/v1/object/public/contenido-semanal/pulso.json?t=' + Date.now())
+    .then(function(r){ return r.json(); })
+    .then(function(s){
+      var top = (s.top||[]).slice(0,6).map(function(t){ return '<li><span>'+t.keyword+'</span><span class=\"dd\">'+t.n+'</span></li>'; }).join('') || '<li><span>semana floja, poca demanda</span></li>';
+      var fecha = s.generated_at ? new Date(s.generated_at) : null;
+      var kwUse=(s.top_keyword&&s.top_keyword!=='-')?s.top_keyword:'el más buscado';
+      var accion='<div class=\"panel\" style=\"margin-top:10px;border-left:6px solid var(--hoy)\"><b>👉 Qué haces con esto (esto es lo único que requiere tus manos)</b>'+
+        '<ol style=\"margin:8px 0 0;padding-left:20px;font-size:14px;line-height:1.6\">'+
+        '<li>Lanza <b>'+kwUse+'</b> como la Señal del lunes (10 AM). Es lo que el pueblo está pidiendo.</li>'+
+        '<li>Escribe el Recibo del Veci con un caso real de '+kwUse+'.</li>'+
+        '<li>¿Hay un negocio que resuelve '+kwUse+' y NO paga Vitrina? Ese es el pitch de la semana.</li>'+
+        ((s.fails&&s.fails>0)?'<li style=\"color:var(--civico)\"><b>'+s.fails+' fallo(s):</b> el Veci no encontró algo. Revisa qué fue y arréglalo (keyword o negocio que falta).</li>':'')+
+        '</ol></div>';
+      el('pulsoBox').innerHTML =
+        '<div class=\"pcounters\">'+
+          '<div class=\"pc\"><div class=\"big\">'+(s.inbound_total||0)+'</div><div class=\"lbl\">mensajes (7 días)</div></div>'+
+          '<div class=\"pc\"><div class=\"big\">'+(s.leads||0)+'</div><div class=\"lbl\">leads del bot (7d)</div></div>'+
+          '<div class=\"pc\"><div class=\"big\">'+((s.fails!=null&&s.fails>=0)?s.fails:'-')+'</div><div class=\"lbl\">fallos (7d)</div></div>'+
+          '<div class=\"pc\"><div class=\"big\" style=\"font-size:18px;line-height:1.2\">'+(s.top_keyword||'-')+'</div><div class=\"lbl\">keyword sugerido</div></div>'+
+        '</div>'+
+        '<div class=\"panel\" style=\"margin-top:10px\"><b>Lo más buscado (7 días)</b><ul class=\"prox\" style=\"margin-top:6px\">'+top+'</ul>'+
+        (fecha?'<p style=\"color:var(--muted);font-size:12px;margin:8px 0 0\">Actualizado: '+fecha.getDate()+' '+MES[fecha.getMonth()]+'</p>':'')+'</div>'+
+        accion;
+    })
+    .catch(function(){
+      el('pulsoBox').innerHTML = '<div class=\"panel\"><p style=\"color:var(--muted);margin:0\">No pude cargar el pulso en vivo ahora. <a href=\"https://vprjteqgmanntvisjrvp.supabase.co/storage/v1/object/public/contenido-semanal/pulso.json\" target=\"_blank\">Ver los datos crudos</a>. Corre solo cada día a las 5am.</p></div>';
+    });
+
+  // ---- KPIs del negocio (kpis.json publico, se genera diario) ----
+  fetch('https://vprjteqgmanntvisjrvp.supabase.co/storage/v1/object/public/contenido-semanal/kpis.json?t='+Date.now())
+    .then(function(r){return r.json();})
+    .then(function(k){
+      function card(big,lbl,why,color,alert){
+        return '<div class="counter" style="border-top-color:'+color+'"><div class="big" style="color:'+color+'">'+big+'</div><div class="lbl">'+lbl+'</div><div class="sub">'+why+'</div>'+(alert?'<div class="sub" style="color:var(--civico);font-weight:700;margin-top:4px">'+alert+'</div>':'')+'</div>';
+      }
+      var subsAlert = (k.subs_nuevos_7d===0)?'🚨 la fuga: nadie nuevo en la lista':'';
+      var dmsAlert  = (k.dms_enviados===0)?'🚨 el dinero sin cerrar: 0 DMs':'';
+      var failColor = (k.fail_rate_pct<5)?'var(--hoy)':'var(--civico)';
+      el('kpiBox').innerHTML =
+        '<div class="counters">'+
+          card('+'+(k.subs_nuevos_7d||0), 'suscriptores nuevos (7d)', 'la métrica MADRE. la lista es tuya, el reach no.', (k.subs_nuevos_7d>0?'var(--hoy)':'var(--civico)'), subsAlert)+
+          card((k.clics_7d||0), 'clics en posts', 'intención real, no likes.', 'var(--dia)', '')+
+          card((k.dms_enviados||0)+'/'+(k.ciclos_activos||0), 'DMs de venta / ciclos', 'el paso que cobra (dia-10).', (k.dms_enviados>0?'var(--hoy)':'var(--civico)'), dmsAlert)+
+          card((k.fail_rate_pct||0)+'%', 'fail rate del Veci', 'si pasa 5%, alguien no regresa.', failColor, '')+
+        '</div>'+
+        '<div class="histsum" style="margin-top:12px">Lo que dicen: la audiencia y los clics funcionan ('+(k.clics_7d||0)+' clics, '+(k.inbound_7d||0)+' mensajes). Pero <b>0 suscriptores nuevos</b> y <b>0 DMs de venta</b> = la rueda gira pero no acumula ni cobra. Esos dos son la prioridad. '+((k.vitrinas_cerradas||0)>0?'Vitrinas cerradas: '+k.vitrinas_cerradas:'')+'</div>';
+    })
+    .catch(function(){ el('kpiBox').innerHTML='<div class="panel"><p style="color:var(--muted);margin:0">No pude cargar los KPIs ahora. Corren solos cada día.</p></div>'; });
+
+  // ---- Lo único que requiere tus manos ----
+  checklist('manosBox', [
+    'Grabar el 1 Minuto de Paz del miércoles (video corto de un POI, caption de 10 palabras o menos). El caption ya está abajo en "El copy de hoy".',
+    'Grabar el 1 Minuto de Paz del sábado (3 PM): Faro, Boquerón o Combate.',
+    'Si haces visita de spotlight: foto o video del negocio bregando de verdad (nada de stock). Si no vas, el spotlight sale igual con foto del directorio.'
+  ], true);
+
+  // ---- Decisiones pendientes (esperando por ti) ----
+  checklist('pendientesBox', [
+    'Decidir el keyword del lunes: plomero (tendencia + dinero) o comida (señal fresca + Día de los Padres).',
+    'Enviar los 2 emails al municipio: balneario (DRNA) y Coliseo (Legislatura).',
+    'Pre-flight: textear PLOMERO al 787-417-7711 y confirmar que el Veci responde con los plomeros.',
+    'Confirmar nombre y horario de Taíno Plumbing contra el directorio.'
+  ], true);
+
+  // ---- Historial: qué hice y qué no hice ----
+  function dkOf(d){return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();}
+  function doneOn(d,sec,i){return localStorage.getItem('tab_'+dkOf(d)+'_'+sec+'_'+i)==='1';}
+  var CATS=[
+    {key:'Caminar',ico:'🏃',m:function(l){return l.indexOf('Caminar')===0;}},
+    {key:'Hanging',ico:'🧗',m:function(l){return l.indexOf('Hanging')===0;}},
+    {key:'Push-ups',ico:'💪',m:function(l){return l.indexOf('Push-ups')===0;}},
+    {key:'Noelia',ico:'🍽️',m:function(l){return l.indexOf('Noelia')>=0;}}
+  ];
+  function habitDone(d,cat){var labs=habitosFor(d);for(var i=0;i<labs.length;i++){if(cat.m(labs[i]))return doneOn(d,'habitos',i);}return false;}
+  function streakOf(cat){var s=0;var d=new Date(hoy);if(!habitDone(hoy,cat))d.setDate(d.getDate()-1);while(habitDone(d,cat)){s++;d.setDate(d.getDate()-1);}return s;}
+  function weekOf(cat){var c=0;for(var i=0;i<7;i++){var d=new Date(hoy);d.setDate(hoy.getDate()-i);if(habitDone(d,cat))c++;}return c;}
+  function rec(d){var hl=habitosFor(d),nl=negocioFor(d),hd=0,nd=0,hm=[],nm=[],any=false;
+    hl.forEach(function(l,i){var v=localStorage.getItem('tab_'+dkOf(d)+'_habitos_'+i);if(v!==null)any=true;if(v==='1')hd++;else hm.push(l);});
+    nl.forEach(function(l,i){var v=localStorage.getItem('tab_'+dkOf(d)+'_negocioHoy_'+i);if(v!==null)any=true;if(v==='1')nd++;else nm.push(l);});
+    return {hd:hd,ht:hl.length,nd:nd,nt:nl.length,miss:hm.concat(nm),any:any};}
+  function renderHist(){
+    el('streakBox').innerHTML=CATS.map(function(c){var s=streakOf(c);return '<div class="pc"><div class="big">'+(s>0?'🔥'+s:'0')+'</div><div class="lbl">'+c.ico+' '+c.key+'<br>'+weekOf(c)+'/7 esta semana</div></div>';}).join('');
+    var hist='',th=0,tht=0,tn=0,tnt=0,tracked=0;
+    for(var hi=1;hi<=14;hi++){var hd2=new Date(hoy);hd2.setDate(hoy.getDate()-hi);var r=rec(hd2);var head=DIAUP[hd2.getDay()]+' '+hd2.getDate()+' '+MES[hd2.getMonth()];
+      if(!r.any){hist+='<div class="dcard"><div class="dh"><span class="dnum" style="color:var(--muted)">'+head+'</span><span class="dtema">— sin registro</span></div></div>';continue;}
+      tracked++;th+=r.hd;tht+=r.ht;tn+=r.nd;tnt+=r.nt;
+      hist+='<div class="dcard '+DIA[hd2.getDay()]+'"><div class="dh"><span class="dnum">'+head+'</span><span class="dtema">🌿 '+r.hd+'/'+r.ht+' · 💼 '+r.nd+'/'+r.nt+'</span></div>'+(r.miss.length?'<div class="miss">Faltó: '+r.miss.map(function(x){return x.replace(/</g,'&lt;');}).join(' · ')+'</div>':'<div class="allgood">✓ Todo hecho</div>')+'</div>';}
+    el('histBox').innerHTML=hist;
+    el('histSum').innerHTML = tracked? '<div class="histsum">En los últimos 14 días registraste <b>'+tracked+'</b> día(s). Vida: <b>'+th+'/'+tht+'</b> · Negocio: <b>'+tn+'/'+tnt+'</b>. Lo que no marcaste sale como "Faltó", por si quieres ser honesto contigo.</div>' : '<div class="histsum">Todavía no hay historial. Marca lo de hoy y mañana verás aquí qué hiciste y qué no. Ahora se sincroniza con tus otros equipos (iPhone, laptop) automáticamente.</div>';
+  }
+  renderHist();
+
+  // ---- Ayer · ponte al día  +  Prioridad de hoy (rescatado de ayer) ----
+  var ayer=new Date(hoy); ayer.setDate(hoy.getDate()-1);
+  var ydk=ayer.getFullYear()+'-'+(ayer.getMonth()+1)+'-'+ayer.getDate();
+  function prioKey(){return 'tab_prio_'+dk;}
+  function getPrio(){try{return JSON.parse(localStorage.getItem(prioKey())||'[]');}catch(e){return [];}}
+  function setPrio(a){localStorage.setItem(prioKey(),JSON.stringify(a));}
+  function renderPrio(){
+    var a=getPrio();
+    if(!a.length){el('prioBox').innerHTML='';return;}
+    el('prioBox').innerHTML='<div class="prio"><b>⭐ Prioridad de hoy · lo que rescataste de ayer</b><ul>'+
+      a.map(function(t,i){return '<li><span>'+t.replace(/</g,'&lt;')+'</span><button data-i="'+i+'">✓ hecho</button></li>';}).join('')+'</ul></div>';
+    Array.prototype.forEach.call(el('prioBox').querySelectorAll('button'),function(b){b.addEventListener('click',function(){var a=getPrio();a.splice(+b.getAttribute('data-i'),1);setPrio(a);renderPrio();});});
+  }
+  function renderAyer(){
+    var hl=habitosFor(ayer), nl=negocioFor(ayer), rows=[], anyRec=false;
+    function scan(list,sec){list.forEach(function(l,i){
+      var v=localStorage.getItem('tab_'+ydk+'_'+sec+'_'+i); if(v!==null)anyRec=true;
+      var acked=localStorage.getItem('tab_ack_'+ydk+'_'+sec+'_'+i)==='1';
+      if(v!=='1'&&!acked)rows.push({l:l,sec:sec,i:i});
+    });}
+    scan(hl,'habitos'); scan(nl,'negocioHoy');
+    el('ayerHead').textContent='Ayer ('+DIAUP[ayer.getDay()]+' '+ayer.getDate()+' '+MES[ayer.getMonth()]+') · ponte al día';
+    if(!anyRec){
+      el('ayerBox').innerHTML='<p style="margin:0;color:var(--muted)">Ayer no marcaste nada en el tablero. <button class="miniact" id="ayerShow">Mostrar la lista de ayer</button> para marcar lo que sí hiciste.</p>';
+      el('ayerShow').addEventListener('click',function(){localStorage.setItem('tab_'+ydk+'_habitos_0',localStorage.getItem('tab_'+ydk+'_habitos_0')||'0');renderAyer();});
+      return;
+    }
+    if(!rows.length){el('ayerBox').innerHTML='<p style="margin:0;color:var(--hoy);font-weight:700">🔥 Ayer cerraste todo. Sigue la racha.</p>';return;}
+    el('ayerBox').innerHTML=rows.map(function(r){
+      return '<div class="row" data-sec="'+r.sec+'" data-i="'+r.i+'"><span class="t">'+r.l.replace(/</g,'&lt;')+'</span>'+
+        '<button class="miniact go" data-act="done">✓ Lo hice</button>'+
+        '<button class="miniact warn" data-act="forgot">Se me olvidó</button>'+
+        '<button class="miniact" data-act="today">Pa\' hoy</button></div>';
+    }).join('');
+    Array.prototype.forEach.call(el('ayerBox').querySelectorAll('button'),function(b){
+      b.addEventListener('click',function(){
+        var row=b.parentNode, sec=row.getAttribute('data-sec'), i=row.getAttribute('data-i'), act=b.getAttribute('data-act'), lbl=row.querySelector('.t').textContent;
+        if(act==='done'){localStorage.setItem('tab_'+ydk+'_'+sec+'_'+i,'1');syncPush(sec+'_'+i,'1',iso(ayer));}
+        else if(act==='forgot'){localStorage.setItem('tab_ack_'+ydk+'_'+sec+'_'+i,'1');}
+        else if(act==='today'){localStorage.setItem('tab_ack_'+ydk+'_'+sec+'_'+i,'1');var a=getPrio();if(a.indexOf(lbl)<0)a.push(lbl);setPrio(a);renderPrio();}
+        renderAyer(); if(typeof renderHist==='function')renderHist();
+      });
+    });
+  }
+  renderPrio();
+  renderAyer();
+
+  // ---- Orquestación de sync: backfill (1 vez) + pull + merge ----
+  function syncInit(){
+    if(!SYNC.on)return;
+    if(localStorage.getItem('tab_synced_v1')!=='1'){
+      var byDay={};
+      for(var n=0;n<localStorage.length;n++){var k=localStorage.key(n);var mm=k&&k.match(/^tab_(\d{4})-(\d{1,2})-(\d{1,2})_([a-zA-Z]+)_(\d+)$/);if(!mm)continue;var isod=mm[1]+'-'+String(+mm[2]).padStart(2,'0')+'-'+String(+mm[3]).padStart(2,'0');(byDay[isod]=byDay[isod]||{})[mm[4]+'_'+mm[5]]=Number(localStorage.getItem(k));}
+      Object.keys(byDay).forEach(function(d){fetch(SYNC.url,{method:'POST',headers:{'Content-Type':'application/json','x-tablero-pin':SYNC.pin},body:JSON.stringify({day:d,checks:byDay[d]})}).catch(function(){});});
+      localStorage.setItem('tab_synced_v1','1');
+    }
+    var since=new Date(hoy);since.setDate(since.getDate()-40);
+    fetch(SYNC.url+'?since='+iso(since),{headers:{'x-tablero-pin':SYNC.pin}})
+      .then(function(r){return r.json();})
+      .then(function(j){
+        if(!j||!j.rows)return;
+        j.rows.forEach(function(row){var p=String(row.day).split('-');var pre='tab_'+(+p[0])+'-'+(+p[1])+'-'+(+p[2])+'_';var ch=row.checks||{};Object.keys(ch).forEach(function(kk){applyLocal(pre+kk,ch[kk]?'1':'0');});});
+        renderHist(); if(typeof renderAyer==='function')renderAyer();
+      }).catch(function(){});
+  }
+  syncInit();
+
+  el('stamp').textContent='· Hoy: '+hoy.getDate()+' '+MES[hoy.getMonth()]+' '+hoy.getFullYear();
+})();
+</script>
+</body>
+</html>
