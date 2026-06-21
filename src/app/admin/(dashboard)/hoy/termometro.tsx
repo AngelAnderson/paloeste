@@ -54,9 +54,9 @@ export function Termometro({ t }: { t: Termo }) {
           {t.dms_cerrados_7d === 0 && (
             <AlarmCard
               title="0 ventas cerradas"
-              sub="El dinero sin cerrar. Manda los recibos y marca el resultado."
-              cta="Ir a Decisiones de Hoy"
-              href="/admin/tablero/decisiones"
+              sub="El loop de DMs está arriba. Para cerrar más, busca a quién pitchar."
+              cta="Ver los leads más calientes"
+              href="/admin/dinero"
             />
           )}
         </div>

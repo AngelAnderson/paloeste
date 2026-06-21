@@ -6,9 +6,8 @@ export interface Dash extends DashMeta { html: string }
 
 const DIR = path.join(process.cwd(), 'src/content/admin-dashboards')
 const TITLES: Record<string, { title: string; emoji: string; order: number }> = {
-  decisiones: { title: 'Decisiones de Hoy', emoji: '📲', order: 0 },
-  tablero: { title: 'Tablero de Mando', emoji: '🛰️', order: 1 },
-  calendario: { title: 'Calendario de Contenido', emoji: '🗓️', order: 2 },
+  calendario: { title: 'Calendario de Contenido', emoji: '🗓️', order: 0 },
+  tablero: { title: 'Tablero de Mando (domingo)', emoji: '🛰️', order: 1 },
 }
 
 export function getAllDashboards(): DashMeta[] {
