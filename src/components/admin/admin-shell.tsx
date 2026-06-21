@@ -24,12 +24,13 @@ const NAV = [
   { href: '/admin/submissions', label: 'Submissions', icon: '\uD83D\uDCE8' },
   { href: '/admin/content', label: 'Contenido', icon: '\uD83D\uDCDD' },
   { href: '/admin/docs', label: 'Docs', icon: '\uD83D\uDCDA' },
+  { href: '/admin/tablero', label: 'Tableros', icon: '\uD83D\uDEF0\uFE0F' },
 ]
 
 // 6 grupos (panel cockpit): organiza las 18 secciones por trabajo, no por dato.
 const GROUPS: Record<string, string> = {
   '/admin/hoy': 'HOY',
-  '/admin/revenue': 'DINERO', '/admin/dinero': 'DINERO', '/admin/pipeline': 'DINERO', '/admin/campanas': 'DINERO',
+  '/admin/revenue': 'DINERO', '/admin/dinero': 'DINERO', '/admin/pipeline': 'DINERO', '/admin/campanas': 'DINERO', '/admin/tablero': 'DINERO',
   '/admin/decisiones': 'APROBACIONES', '/admin/inbox': 'APROBACIONES', '/admin/agentes': 'APROBACIONES',
   '/admin/contactos': 'CONTACTOS', '/admin/cartera': 'CONTACTOS',
   '/admin/content': 'CONTENIDO', '/admin/submissions': 'CONTENIDO', '/admin/edits': 'CONTENIDO',
