@@ -19,6 +19,14 @@
   .done{margin-top:8px;text-align:center;font-size:12px;color:var(--muted);}
   .pend{background:#fff8e6;border-left-color:var(--gold);}
   .pend .name{color:var(--gold);}
+  .res{margin-top:10px;padding-top:10px;border-top:1px dashed var(--line);display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+  .res-q{font-size:12px;font-weight:800;color:var(--muted);width:100%;margin-bottom:2px;}
+  .rb{flex:1;min-width:90px;border:1px solid var(--line);background:#fff;color:var(--ink);font-weight:700;font-size:13px;padding:10px 6px;border-radius:9px;cursor:pointer;}
+  .rb-si{border-color:var(--teal);color:var(--teal);}
+  .rb-win{border-color:var(--gold);color:var(--gold);}
+  .rb-no{color:var(--muted);}
+  .rb:active{opacity:.7;}
+  .res-ok{margin-top:10px;padding-top:10px;border-top:1px dashed var(--line);font-size:13px;font-weight:800;color:var(--teal);}
 </style></head>
 <body><div class="wrap">
   <h1>📲 Decisiones de Hoy</h1>
@@ -31,6 +39,12 @@
     <div class="msg" id="m1"></div>
     <a class="act" id="a1" target="_blank">📲 Mandar a Wiliche</a>
     <div class="done">No paga. Goodwill puro. 787-216-2562</div>
+    <div class="res" data-biz="Cafetería Wiliche" data-phone="787-216-2562" data-kw="sandwich">
+      <span class="res-q">¿Qué pasó después de mandar?</span>
+      <button class="rb rb-si" data-o="respondio">Respondió</button>
+      <button class="rb rb-win" data-o="cerro">Cerró $</button>
+      <button class="rb rb-no" data-o="silencio">Silencio</button>
+    </div>
   </div>
 
   <div class="card">
@@ -38,6 +52,12 @@
     <div class="msg" id="m2"></div>
     <a class="act" id="a2" target="_blank">📲 Mandar a Carlito's</a>
     <div class="done">No paga. 939-308-0886</div>
+    <div class="res" data-biz="Carlito's Best Sandwiches" data-phone="939-308-0886" data-kw="sandwich">
+      <span class="res-q">¿Qué pasó después de mandar?</span>
+      <button class="rb rb-si" data-o="respondio">Respondió</button>
+      <button class="rb rb-win" data-o="cerro">Cerró $</button>
+      <button class="rb rb-no" data-o="silencio">Silencio</button>
+    </div>
   </div>
 
   <div class="sec">🔧 Próximo · cosecha del lunes</div>
@@ -53,5 +73,33 @@
   document.getElementById('m2').textContent=M2;
   document.getElementById('a1').href='https://wa.me/17872162562?text='+encodeURIComponent(M1);
   document.getElementById('a2').href='https://wa.me/19393080886?text='+encodeURIComponent(M2);
+
+  // Loop acción→resultado: un toque registra qué pasó → /api/deals/outcome → alarma "0 cerrados".
+  document.querySelectorAll('.rb').forEach(function(b){
+    b.addEventListener('click',function(){
+      var row=b.closest('.res'); var o=b.getAttribute('data-o');
+      var amount=0;
+      if(o==='cerro'){
+        var v=prompt('¿Cuánto cerró? (solo el número)');
+        if(v===null) return;
+        amount=parseFloat(String(v).replace(/[^0-9.]/g,''))||0;
+      }
+      var btns=row.querySelectorAll('.rb');
+      btns.forEach(function(x){x.disabled=true;x.style.opacity=.4;});
+      fetch('/api/deals/outcome',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+        business_name:row.getAttribute('data-biz'),
+        contact_phone:row.getAttribute('data-phone'),
+        related_keyword:row.getAttribute('data-kw'),
+        outcome:o, amount:amount, source:'decisiones'
+      })}).then(function(r){
+        if(!r.ok) throw new Error('http');
+        var label=o==='respondio'?'✓ Respondió — anotado':(o==='cerro'?('✓ Cerró $'+amount+' — anotado'):'✓ Silencio — anotado');
+        var ok=document.createElement('div'); ok.className='res-ok'; ok.textContent=label; row.replaceWith(ok);
+      }).catch(function(){
+        btns.forEach(function(x){x.disabled=false;x.style.opacity=1;});
+        alert('No se pudo guardar. Reintenta.');
+      });
+    });
+  });
 </script>
 </div></body></html>

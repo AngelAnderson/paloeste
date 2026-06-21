@@ -1,0 +1,9 @@
+{
+  "buildCommand": "next build",
+  "deployCommand": "vercel --prod --yes",
+  "productionUrl": "https://www.paloeste.com",
+  "expectedContent": "Pal Oeste — Lo Mejor del Oeste",
+  "canonicalRoutes": ["/"],
+  "vercelProjectId": "prj_tCVFsaTN1rMMGkyENQuSDgvrK0CD",
+  "notes": "Apex paloeste.com returns 307 → www. Treat as known SEO debt; gate 4 should warn-not-block on this specific apex→www redirect."
+}
