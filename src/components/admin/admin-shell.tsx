@@ -8,7 +8,7 @@ import type { AdminBadges } from '@/lib/admin-badges'
 
 const NAV = [
   { href: '/admin/hoy', label: 'HOY', icon: '\uD83D\uDD25' },
-  { href: '/admin', label: 'Command Center', icon: '\u26A1' },
+  { href: '/admin/revenue', label: 'Command Center', icon: '\u26A1' },
   { href: '/admin/cartera', label: 'La Cartera', icon: '\uD83C\uDFE2' },
   { href: '/admin/agentes', label: 'Agentes', icon: '\uD83D\uDC65' },
   { href: '/admin/decisiones', label: 'Decisiones', icon: '\uD83D\uDCE5' },

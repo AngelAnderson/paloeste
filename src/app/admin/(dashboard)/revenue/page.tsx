@@ -1,103 +1,91 @@
-import { getConversionOpportunities, getRevenueByMonth, getUnbilledLeadsByBusiness } from '@/lib/admin-queries'
-import { RevenueCharts } from './charts'
+import { getUnbilledLeadsByBusiness, getConversionOpportunities, getSponsorROI, getPlacesMissingPhotos, getAdminOverview, getProspects, getBotIntelligence, getOverdueRelationships, getNightlyAgentRuns } from '@/lib/admin-queries'
+import { createSupabaseAdminClient } from '@/lib/supabase-server'
+import { RevenueDashboard } from '../revenue-dashboard'
 
 export const dynamic = 'force-dynamic'
 
-export default async function RevenuePage() {
-  const [opportunities, revenueByMonth, unbilled] = await Promise.all([
-    getConversionOpportunities(1),
-    getRevenueByMonth(),
+export default async function AdminDashboard() {
+  const [unbilled, opportunities, sponsors, missingPhotos, overview, prospects, botIntel, overdueRels, nightlyRuns] = await Promise.all([
     getUnbilledLeadsByBusiness(),
+    getConversionOpportunities(3),
+    getSponsorROI(),
+    getPlacesMissingPhotos(),
+    getAdminOverview(),
+    getProspects(),
+    getBotIntelligence(7).then(intel => {
+      if (!intel || !Array.isArray((intel as { daily_volume?: unknown }).daily_volume) || !Array.isArray((intel as { top_queries?: unknown }).top_queries) || !(intel as { fail_rate?: unknown }).fail_rate) {
+        return null
+      }
+      return intel
+    }).catch(() => null),
+    getOverdueRelationships().then(d => Array.isArray(d) ? d : []).catch(() => []),
+    getNightlyAgentRuns().then(d => Array.isArray(d) ? d : []).catch(() => []),
   ])
 
-  const totalUnbilled = unbilled.reduce((sum, b) => sum + b.total_cents, 0)
+  // Get vitrina tokens and slugs for sponsors
+  const sponsorMeta: Record<string, { token: string; slug: string; phone: string | null }> = {}
+  if (sponsors.length > 0) {
+    const supabase = await createSupabaseAdminClient()
+    const { data: sponsorRows } = await supabase
+      .from('places')
+      .select('id, slug, vitrina_token, phone')
+      .in('id', sponsors.map(s => s.place_id))
+    for (const row of sponsorRows || []) {
+      if (row.slug) {
+        sponsorMeta[row.id] = { token: row.vitrina_token || '', slug: row.slug, phone: row.phone || null }
+      }
+    }
+  }
+
+  // Enrich opportunities with phone from places
+  const opIds = opportunities.map(o => o.place_id)
+  const opPhones: Record<string, string | null> = {}
+  if (opIds.length > 0) {
+    const supabase = await createSupabaseAdminClient()
+    const { data: opPlaces } = await supabase
+      .from('places')
+      .select('id, phone, slug')
+      .in('id', opIds)
+    for (const p of opPlaces || []) {
+      opPhones[p.id] = p.phone
+    }
+  }
+
+  // Separate: sponsors (already paying) vs non-sponsors (need to collect)
+  const sponsorIds = new Set(sponsors.filter(s => s.sponsor_weight > 0).map(s => s.place_id))
+  const unbilledNonSponsors = unbilled.filter(u => !sponsorIds.has(u.business_id) && u.sponsor_weight === 0)
+  const totalUnbilled = unbilledNonSponsors.reduce((sum, u) => sum + u.total_cents, 0)
+
+  // Filter prospects: due today or overdue, active stages only
+  const today = new Date().toISOString().slice(0, 10)
+  const todayMs = new Date(today).getTime()
+  const activeStages = ['lead', 'contacted', 'pitched', 'negotiating']
+  const followUps = prospects
+    .filter(p => activeStages.includes(p.stage.replace('closed_', '')) && p.next_action_date && p.next_action_date.slice(0, 10) <= today)
+    .sort((a, b) => (a.next_action_date || '').localeCompare(b.next_action_date || ''))
+  const staleProspects = prospects
+    .filter(p => {
+      if (!activeStages.includes(p.stage.replace('closed_', ''))) return false
+      const lastTouch = p.last_contact_at || p.created_at
+      const days = Math.floor((todayMs - new Date(lastTouch).getTime()) / 86400000)
+      return days >= 7
+    })
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold mb-1">Revenue</h1>
-      <p className="text-[#64748b] text-sm mb-6">Follow the money. Find who should be paying.</p>
-
-      {/* Money Alert */}
-      {totalUnbilled > 0 && (
-        <div className="bg-[#f87171]/10 border border-[#f87171]/30 rounded-xl p-4 mb-6">
-          <div className="flex items-center gap-3">
-            <span className="text-2xl">💸</span>
-            <div>
-              <div className="text-[#f87171] font-bold text-lg">${(totalUnbilled / 100).toFixed(0)} sin cobrar</div>
-              <div className="text-[#94a3b8] text-sm">{unbilled.length} negocios con leads sin facturar</div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Unbilled Leads Table */}
-      <div className="bg-[#1e293b] rounded-xl border border-[#334155] p-5 mb-6">
-        <h2 className="text-sm font-semibold text-[#94a3b8] uppercase tracking-wider mb-4">Unbilled Leads by Business</h2>
-        {unbilled.length === 0 ? (
-          <p className="text-[#64748b] text-sm py-8 text-center">No unbilled leads. Bot lead tracking may not be active yet.</p>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="text-left text-[#64748b] text-xs uppercase tracking-wider">
-                  <th className="pb-3 pr-4">Business</th>
-                  <th className="pb-3 pr-4 text-right">Leads</th>
-                  <th className="pb-3 pr-4 text-right">Total</th>
-                  <th className="pb-3 pr-4">Oldest</th>
-                  <th className="pb-3">Newest</th>
-                </tr>
-              </thead>
-              <tbody>
-                {unbilled.map(b => (
-                  <tr key={b.business_id} className="border-t border-[#334155]">
-                    <td className="py-3 pr-4 font-medium">{b.business_name}</td>
-                    <td className="py-3 pr-4 text-right text-[#38bdf8] font-semibold">{b.lead_count}</td>
-                    <td className="py-3 pr-4 text-right text-[#fbbf24] font-semibold">${(b.total_cents / 100).toFixed(0)}</td>
-                    <td className="py-3 pr-4 text-[#64748b]">{new Date(b.oldest).toLocaleDateString()}</td>
-                    <td className="py-3 text-[#64748b]">{new Date(b.newest).toLocaleDateString()}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
-
-      {/* Revenue by Month Chart */}
-      {revenueByMonth.length > 0 && (
-        <div className="bg-[#1e293b] rounded-xl border border-[#334155] p-5 mb-6">
-          <h2 className="text-sm font-semibold text-[#94a3b8] uppercase tracking-wider mb-4">Revenue by Month</h2>
-          <RevenueCharts data={revenueByMonth} />
-        </div>
-      )}
-
-      {/* Conversion Opportunities — THE GOLD */}
-      <div className="bg-[#1e293b] rounded-xl border border-[#334155] p-5">
-        <h2 className="text-sm font-semibold text-[#94a3b8] uppercase tracking-wider mb-1">Conversion Opportunities</h2>
-        <p className="text-[#64748b] text-xs mb-4">Free businesses receiving bot leads — these should be paying.</p>
-        {opportunities.length === 0 ? (
-          <div className="text-center py-8">
-            <p className="text-[#64748b] text-sm">No conversion opportunities yet.</p>
-            <p className="text-[#475569] text-xs mt-1">This will populate once bot lead tracking is active.</p>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {opportunities.map((opp, i) => (
-              <div key={opp.place_id} className="flex items-center gap-4 p-3 bg-[#0f172a] rounded-lg">
-                <div className="text-lg font-bold text-[#fbbf24] w-8 text-center">{i + 1}</div>
-                <div className="flex-1 min-w-0">
-                  <div className="font-semibold truncate">{opp.name}</div>
-                  <div className="text-xs text-[#64748b]">{opp.category} · {opp.plan || 'free'}</div>
-                </div>
-                <div className="text-right shrink-0">
-                  <div className="text-[#4ade80] font-bold">{opp.lead_count} leads</div>
-                  <div className="text-xs text-[#64748b]">${(opp.total_value_cents / 100).toFixed(0)} potential</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
+    <RevenueDashboard
+      unbilled={unbilledNonSponsors}
+      totalUnbilled={totalUnbilled}
+      opportunities={opportunities}
+      opPhones={opPhones}
+      sponsors={sponsors}
+      sponsorMeta={sponsorMeta}
+      missingPhotos={missingPhotos}
+      overview={overview}
+      followUps={followUps}
+      staleCount={staleProspects.length}
+      botIntel={botIntel}
+      overdueRels={overdueRels}
+      nightlyRuns={nightlyRuns}
+    />
   )
 }
