@@ -3,6 +3,19 @@ import { createSupabaseAdminClient } from '@/lib/supabase-server'
 import { clasificarBandejas } from '@/lib/bandejas'
 import { BandejasView } from './bandejas-view'
 import { Termometro, type Termo } from './termometro'
+import { DecisionesHoy } from './decisiones-hoy'
+
+// Ventana de envío de DMs: Lun-Vie 9am a antes de 5pm AT (regla Angel 2026-06-21).
+function ventanaEnvio(): { open: boolean; reason: string } {
+  const at = new Date(Date.now() - 4 * 3600 * 1000) // AT = UTC-4 (sin DST en PR)
+  const dow = at.getUTCDay() // 0=dom .. 6=sáb
+  const hour = at.getUTCHours()
+  const weekday = dow >= 1 && dow <= 5
+  if (!weekday) return { open: false, reason: 'Fin de semana — los DMs se mandan Lun-Vie 9am a 5pm.' }
+  if (hour < 9) return { open: false, reason: 'Muy temprano — la ventana abre a las 9am (Lun-Vie).' }
+  if (hour >= 17) return { open: false, reason: 'Pasó la ventana — los DMs se mandan antes de las 5pm.' }
+  return { open: true, reason: '' }
+}
 
 export const dynamic = 'force-dynamic'
 
@@ -40,9 +53,12 @@ export default async function HoyPage() {
     .then(r => r.data as Termo | null)
     .catch(() => null)
 
+  const ventana = ventanaEnvio()
+
   return (
     <>
       {termo && <Termometro t={termo} />}
+      <DecisionesHoy windowOpen={ventana.open} reason={ventana.reason} />
       <BandejasView bandejas={bandejas} />
     </>
   )
