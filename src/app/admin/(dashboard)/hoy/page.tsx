@@ -2,6 +2,7 @@ import { getOverdueRelationships, getUnbilledLeadsByBusiness, getConversionOppor
 import { createSupabaseAdminClient } from '@/lib/supabase-server'
 import { clasificarBandejas } from '@/lib/bandejas'
 import { BandejasView } from './bandejas-view'
+import { Termometro, type Termo } from './termometro'
 
 export const dynamic = 'force-dynamic'
 
@@ -35,5 +36,14 @@ export default async function HoyPage() {
     prospectsSinFecha,
   })
 
-  return <BandejasView bandejas={bandejas} />
+  const termo = await Promise.resolve(supabase.rpc('get_cockpit_termometro'))
+    .then(r => r.data as Termo | null)
+    .catch(() => null)
+
+  return (
+    <>
+      {termo && <Termometro t={termo} />}
+      <BandejasView bandejas={bandejas} />
+    </>
+  )
 }
