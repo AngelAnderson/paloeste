@@ -26,6 +26,17 @@ const NAV = [
   { href: '/admin/docs', label: 'Docs', icon: '\uD83D\uDCDA' },
 ]
 
+// 6 grupos (panel cockpit): organiza las 18 secciones por trabajo, no por dato.
+const GROUPS: Record<string, string> = {
+  '/admin/hoy': 'HOY',
+  '/admin/revenue': 'DINERO', '/admin/dinero': 'DINERO', '/admin/pipeline': 'DINERO', '/admin/campanas': 'DINERO',
+  '/admin/decisiones': 'APROBACIONES', '/admin/inbox': 'APROBACIONES', '/admin/agentes': 'APROBACIONES',
+  '/admin/contactos': 'CONTACTOS', '/admin/cartera': 'CONTACTOS',
+  '/admin/content': 'CONTENIDO', '/admin/submissions': 'CONTENIDO', '/admin/edits': 'CONTENIDO',
+  '/admin/directorio': 'MANTENIMIENTO', '/admin/tareas': 'MANTENIMIENTO', '/admin/bot': 'MANTENIMIENTO', '/admin/docs': 'MANTENIMIENTO',
+}
+const GROUP_ORDER = ['HOY', 'DINERO', 'APROBACIONES', 'CONTACTOS', 'CONTENIDO', 'MANTENIMIENTO']
+
 export function AdminShell({ children, badges = {} }: { children: React.ReactNode; badges?: AdminBadges }) {
   const pathname = usePathname()
   const router = useRouter()
@@ -45,10 +56,13 @@ export function AdminShell({ children, badges = {} }: { children: React.ReactNod
         <p className="text-xs text-[#64748b]">Command Center</p>
       </div>
       <nav className="flex-1 p-2 space-y-0.5 overflow-y-auto">
-        {NAV.map(item => {
-          const active = item.href === '/admin'
-            ? pathname === '/admin'
-            : pathname.startsWith(item.href)
+        {GROUP_ORDER.map(group => (
+        <div key={group}>
+          {group !== 'HOY' && (
+            <p className="px-3 pt-4 pb-1 text-[10px] font-bold uppercase tracking-wider text-[#475569]">{group}</p>
+          )}
+          {NAV.filter(i => (GROUPS[i.href] || 'MANTENIMIENTO') === group).map(item => {
+          const active = pathname.startsWith(item.href)
           const count = badges[item.href] || 0
           return (
             <Link
@@ -76,6 +90,8 @@ export function AdminShell({ children, badges = {} }: { children: React.ReactNod
             </Link>
           )
         })}
+        </div>
+        ))}
       </nav>
       <div className="p-3 border-t border-[#334155]">
         <button
