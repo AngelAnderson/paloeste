@@ -175,7 +175,9 @@ const WEEKS=[
 ];
 const MONTHLY={1:['Marina'],3:['Marina','Jorge Pérez','Villa La Mela'],5:['Dra. Faudes']};
 const EVENTS={'6-21':'Día de los Padres','6-24':'Noche de San Juan','7-4':'4 de Julio'};
-const start=new Date(2026,5,15); const cutoff=new Date(2026,5,20); const today=new Date(2026,5,20);
+const start=new Date(2026,5,15);
+const today=new Date(); today.setHours(0,0,0,0);   // HOY real, dinámico (no más fechas pegadas)
+const cutoff=today;                                  // ocultar los días que ya pasaron
 function P(c,t){return '<div class="p"><i style="background:'+c+'"></i>'+t+'</div>';}
 function postsFor(dow,wk,dt){
   let a=[];
@@ -222,6 +224,9 @@ const CAPS=[
  ['Sáb 27','',['<b>6a Buenos Días:</b> Sábado. Hoy se vive el pueblo, sin prisa.','<b>3p 1 Minuto de Paz:</b> clip del mar.','<b>Luis David 2:</b> El aire no se daña en horario de oficina. Se daña el sábado con la casa llena. 787-672-7018.']],
  ['Dom 28','',['<b>6a Buenos Días (suave):</b> La semana no se improvisa. Se revisa.','<b>Dónde comer hoy:</b> Domingo, ¿quién abre? mapadecaborojo.com/categoria/restaurantes, o textea COMIDA al 787-417-7711.','<b>📖 Libro/La Hoja (mastiempo.net):</b> Yo me levanto con 14 cosas en la cabeza y hago la que menos importa. El Veci ahora te arma el día: textea HOJA al 787-417-7711, 6 preguntas, y te devuelve una hoja con lo que importa. Gratis. Esas preguntas salieron de mi libro AJORÁO NO ES UN PLAN ($9.99). La hoja sigue gratis.']]
 ];
-document.getElementById('caps').innerHTML=CAPS.map(d=>'<div class="capday'+(d[1]?' wend':'')+'"><div class="ch">'+d[0]+(d[1]?'<span class="evt">🎉 '+d[1]+'</span>':'')+'</div>'+d[2].map(l=>'<div class="cl">'+l+'</div>').join('')+'</div>').join('');
+// Solo el copy de HOY en adelante (los días que pasaron no se ven)
+const _td=today.getDate(), _tm=today.getMonth();
+const capsFuturo=CAPS.filter(d=>{const n=parseInt((String(d[0]).match(/\d+/)||['0'])[0]); return _tm>5?false:n>=_td;});
+document.getElementById('caps').innerHTML=(capsFuturo.length?capsFuturo:[['','',['El copy de esta ventana ya pasó. Toca regenerar el calendario para la semana nueva.']]]).map(d=>'<div class="capday'+(d[1]?' wend':'')+'"><div class="ch">'+d[0]+(d[1]?'<span class="evt">🎉 '+d[1]+'</span>':'')+'</div>'+d[2].map(l=>'<div class="cl">'+l+'</div>').join('')+'</div>').join('');
 </script>
 </div></body></html>
