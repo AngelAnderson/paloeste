@@ -107,7 +107,7 @@
 </div></header>
 
 <nav><div class="wrap">
-  <a href="#niveles">5 Niveles</a><a href="#hoy">Hoy</a><a href="#ayer">Ayer</a><a href="#copyhoy">Copy de Hoy</a><a href="#historial">Historial</a><a href="#pulso">Pulso Veci</a><a href="#kpis">KPIs</a><a href="#manos">Tus Manos</a><a href="#pendientes">Pendientes</a><a href="#bd">Buenos Días</a><a href="#capas">Las 3 Capas</a><a href="#semana">Esta Semana</a><a href="#domingo">El Domingo</a><a href="#prox">Próximos</a><a href="#mes">Tema del Mes</a><a href="#dia">El Día</a><a href="#tus">Tus Contadores</a><a href="#civico">Cívicos</a><a href="#faltasobra">Falta/Sobra</a><a href="#presion">Presión</a><a href="#notas">Notas</a>
+  <a href="#niveles">5 Niveles</a><a href="#hoy">Hoy</a><a href="#ayer">Ayer</a><a href="#historial">Historial</a><a href="#pulso">Pulso Veci</a><a href="#kpis">KPIs</a><a href="#manos">Tus Manos</a><a href="#pendientes">Pendientes</a><a href="#bd">Buenos Días</a><a href="#capas">Las 3 Capas</a><a href="#semana">Esta Semana</a><a href="#domingo">El Domingo</a><a href="#prox">Próximos</a><a href="#mes">Tema del Mes</a><a href="#dia">El Día</a><a href="#tus">Tus Contadores</a><a href="#civico">Cívicos</a><a href="#faltasobra">Falta/Sobra</a><a href="#presion">Presión</a><a href="#notas">Notas</a>
 </div></nav>
 
 <main class="wrap">
@@ -151,11 +151,6 @@
   <div class="panel ayerwrap" id="ayerBox"></div>
 </section>
 
-<section id="copyhoy">
-  <h2 id="copyHoyHead">El copy de hoy · listo para pegar</h2>
-  <p class="lead">Todo lo que se publica hoy, ya escrito (Buenos Días, Recibo del Veci, LA pieza, caption). Dale Copiar y pégalo. No tienes que pensar nada.</p>
-  <div class="panel" id="copyHoyBox"></div>
-</section>
 
 <section id="historial">
   <h2>Historial · qué hice y qué no hice</h2>
@@ -207,9 +202,8 @@
 
 <section id="semana">
   <h2>Esta Semana · El Calendario con Copy</h2>
-  <p class="lead">Lunes a domingo, con el número, el tema y la publicación sugerida de cada día, copy listo. La de Día de los Padres ya colocada donde va. Las fechas se calculan solas; el copy se regenera el domingo.</p>
-  <div id="kwbar"></div>
-  <div class="weekcal" id="weekcal"></div>
+  <p class="lead">El calendario completo con copy día por día vive en <b>Calendario de Contenido</b> (un solo lugar, no duplicado). Aquí en el Tablero te quedas con la demanda, los KPIs y la planificación del domingo.</p>
+  <a href="/admin/tablero/calendario" class="panel" style="display:block;text-align:center;font-weight:800;color:var(--hoy);text-decoration:none;padding:16px">🗓️ Abrir el Calendario de Contenido →</a>
 </section>
 
 <section id="domingo">
@@ -325,7 +319,8 @@
   var dk=hoy.getFullYear()+'-'+(hoy.getMonth()+1)+'-'+hoy.getDate();
   function days(s){return Math.floor((hoy-new Date(s+'T00:00:00'))/86400000);}
   function fmt(n){return n.toLocaleString('en-US');}
-  function el(id){return document.getElementById(id);}
+  // null-safe: si una sección se removió (dedup), los renderers que la apunten no-op sin romper el resto.
+  function el(id){return document.getElementById(id)||{innerHTML:'',textContent:'',querySelectorAll:function(){return[];},addEventListener:function(){},appendChild:function(){},style:{}};}
 
   // ---- Sync con Supabase (cross-device, no rompe el modo offline) ----
   var SYNC={url:'https://vprjteqgmanntvisjrvp.supabase.co/functions/v1/tablero', pin:'tab_442a1268c1434e3894779d73', on:true};
