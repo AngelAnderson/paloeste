@@ -68,6 +68,8 @@
 
   <div class="note"><b>Regla de avance:</b> el Negocio corre diario solo. La Persona tiene UN espacio protegido (jueves se escribe, lun/sem se publica). <b>Si la pieza de Persona no salió esta semana, ese es el flag #1 del lunes.</b> · <b>Regenera el keyword/cívico cada lunes</b> (la cuadrícula es guía, no jaula).</div>
 
+  <div class="note" style="background:#fff0e6;border-color:#e8590c;color:#7a3a12"><b>⭐ SPONSORS (OBLIGADO · revenue, NO se salta):</b> <b>Luis David Refrigeración 2x/sem</b> (mar + sáb · aire · 787-672-7018) · <b>Marina Puerto Real 1x/sem</b> (dom). El Content Cadence Enforcer (lun 9am) trae los drafts. Un sponsor olvidado no renueva. Esto va ANTES que cualquier reorganización.</div>
+
   <!-- LAS 3 ROTACIONES -->
   <div class="legend" style="margin:0 0 18px">
     <h3>Las 3 rotaciones del 🟦 Negocio (cada una con su trabajo)</h3>
@@ -218,14 +220,14 @@ function P(c,t){return '<div class="p"><i style="background:'+c+'"></i>'+t+'</di
 function postsFor(dow,wk){
   let a=[];
   if(dow===5){ // sábado
-    return [P(C.bd,'Buenos Días'),P(C.hero,'Hero: dónde comer / finde'),P(C.sp,'1 Minuto de Paz (3p)')].join('');
+    return [P(C.bd,'Buenos Días'),P(C.hero,'Hero: dónde comer / finde'),P(C.sp,'1 Minuto de Paz (3p)'),P(C.civ,'⭐ Luis David 2/2')].join('');
   }
   if(dow===6){ // domingo
-    return [P(C.bd,'Buenos Días (suave)'),P(C.hero,'Dónde comer / abierto'),P(C.veci,'Revisión + ganador persona→FB')].join('');
+    return [P(C.bd,'Buenos Días (suave)'),P(C.hero,'Dónde comer / abierto'),P(C.civ,'⭐ Marina Puerto Real'),P(C.veci,'Revisión + ganador persona→FB')].join('');
   }
   a.push(P(C.bd,'Buenos Días'),P(C.veci,'El Recibo del Veci'),P(C.hero,'Señal: '+wk.kw));
   if(dow===0) a.push(P(C.hero,'Dirección → pueblo-en-números'));     // lunes
-  if(dow===1) a.push(P(C.sp,'Salud + Familia'));                      // martes
+  if(dow===1) a.push(P(C.sp,'Salud + Familia'),P(C.civ,'⭐ Luis David 1/2')); // martes
   if(dow===2) a.push(P(C.sp,'1 Min de Paz'),P(C.q,'Subasta: ¿quién resuelve?')); // miércoles
   if(dow===3){a.push(P(C.q,'¿Qué Hace Falta?'));a.push(P(C.per,'🟧 PERSONA: escribe la pieza'));} // jueves
   if(dow===4){a.push(P(C.civ,'Cívico: '+wk.civ+' (trío)'));a.push(P(C.news,'🌉 Newsletter (envío 9a)'));} // viernes
