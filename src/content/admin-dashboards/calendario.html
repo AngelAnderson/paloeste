@@ -1,200 +1,218 @@
 <!DOCTYPE html>
 <html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Calendario Formal · Jun 20 → Ago 2 · Facebook</title>
+<title>Calendario de Contenido · 2 carriles</title>
 <style>
   :root{--ink:#1a1a1a;--muted:#8a9296;--line:#e3e8e9;--teal:#0b7285;
+        --neg:#1971c2;--per:#e8590c;--bri:#0891b2;
         --bd:#2b8a3e;--veci:#1971c2;--hero:#0ca678;--sp:#e8590c;--civ:#b42318;--q:#7048e8;--news:#0891b2;--ev:#d6336c;}
   *{box-sizing:border-box;margin:0;padding:0;}
   body{font-family:-apple-system,Segoe UI,Roboto,sans-serif;background:#eef1f2;color:var(--ink);padding:22px 14px 70px;}
   .wrap{max-width:1180px;margin:0 auto;}
   h1{text-align:center;color:var(--teal);font-size:23px;}
   .sub{text-align:center;color:var(--muted);font-size:13px;margin:3px 0 18px;}
+  .core{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin:0 0 18px;}
+  .core .c{background:#fff;border-radius:12px;padding:14px 16px;border-top:5px solid var(--teal);}
+  .core .c.neg{border-top-color:var(--neg);} .core .c.per{border-top-color:var(--per);} .core .c.bri{border-top-color:var(--bri);}
+  .core .lbl{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);}
+  .core .msg{font-size:14.5px;font-weight:700;line-height:1.4;margin-top:6px;color:var(--ink);}
+  .core .ev{font-size:11.5px;color:var(--muted);margin-top:7px;}
   .grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;}
   .dh{font-size:11px;font-weight:800;text-transform:uppercase;color:var(--muted);text-align:center;padding:4px;}
-  .cell{background:#fff;border:1px solid var(--line);border-radius:8px;padding:7px 8px;min-height:120px;}
+  .cell{background:#fff;border:1px solid var(--line);border-radius:8px;padding:7px 8px;min-height:132px;}
   .cell.wend{background:#f8f9fa;} .cell.empty{background:transparent;border:none;}
   .cell.today{box-shadow:0 0 0 3px var(--teal);}
   .dnum{font-weight:800;font-size:13px;margin-bottom:5px;} .dnum .kw{font-size:9px;font-weight:800;color:var(--hero);float:right;}
-  .ev{font-size:9.5px;font-weight:800;color:var(--ev);margin:-2px 0 4px;}
+  .ev2{font-size:9.5px;font-weight:800;color:var(--ev);margin:-2px 0 4px;}
   .p{font-size:10.5px;line-height:1.35;padding:1px 0;display:flex;gap:4px;align-items:baseline;}
   .p i{width:7px;height:7px;border-radius:2px;flex:none;margin-top:3px;}
   .wkrow{grid-column:1/-1;font-size:11px;font-weight:800;color:var(--teal);background:#e6fcf5;border-radius:6px;padding:4px 10px;margin-top:8px;}
   h2{color:var(--teal);font-size:18px;margin:26px 0 4px;text-align:center;}
   .lead{text-align:center;color:var(--muted);font-size:12.5px;margin-bottom:14px;}
-  .capday{background:#fff;border:1px solid var(--line);border-radius:10px;padding:13px 16px;margin-bottom:10px;border-left:5px solid var(--teal);}
-  .capday.wend{border-left-color:var(--ev);}
-  .ch{font-weight:800;font-size:14px;margin-bottom:7px;}
-  .ch .evt{font-size:11px;color:var(--ev);font-weight:800;margin-left:6px;}
-  .cl{font-size:13px;color:#444;line-height:1.5;padding:4px 0;border-top:1px dotted var(--line);}
-  .cl b{color:var(--teal);}
-  .legend{background:#fff;border:1px solid var(--line);border-radius:14px;padding:22px 26px;margin-top:26px;}
+  .legend{background:#fff;border:1px solid var(--line);border-radius:14px;padding:22px 26px;margin-top:22px;}
   .legend h3{font-size:15px;text-transform:uppercase;letter-spacing:1px;color:var(--teal);margin:0 0 8px;}
   .legrid{display:grid;grid-template-columns:1fr 1fr;gap:0 32px;}
-  .leg{display:flex;align-items:center;gap:11px;font-size:15px;padding:10px 0;border-bottom:1px solid #f0f3f4;}
+  .leg{display:flex;align-items:center;gap:11px;font-size:14px;padding:9px 0;border-bottom:1px solid #f0f3f4;}
   .leg .nm{flex:1;}
   .sw{width:15px;height:15px;border-radius:4px;flex:none;}
-  .freq{font-weight:800;color:#fff;background:var(--teal);font-size:11.5px;padding:3px 10px;border-radius:20px;white-space:nowrap;}
-  .pg{display:flex;gap:14px;align-items:baseline;padding:12px 0;border-bottom:1px solid #f0f3f4;font-size:15px;flex-wrap:wrap;}
-  .pg .url{font-weight:800;color:var(--teal);min-width:240px;text-decoration:none;}
+  .freq{font-weight:800;color:#fff;background:var(--teal);font-size:11px;padding:3px 10px;border-radius:20px;white-space:nowrap;}
+  .pg{display:flex;gap:14px;align-items:baseline;padding:11px 0;border-bottom:1px solid #f0f3f4;font-size:14.5px;flex-wrap:wrap;}
+  .pg .url{font-weight:800;color:var(--teal);min-width:200px;text-decoration:none;}
   .pg a.url:hover{text-decoration:underline;}
   .pg .desc{flex:1;color:#444;min-width:200px;}
-  .pg .rot{font-size:11.5px;font-weight:800;color:#fff;background:var(--civ);padding:3px 10px;border-radius:20px;white-space:nowrap;}
+  .pg .rot{font-size:11px;font-weight:800;color:#fff;background:var(--civ);padding:3px 10px;border-radius:20px;white-space:nowrap;}
   .pg .rot.u{background:var(--hero);}
-  @media(max-width:720px){.legrid{grid-template-columns:1fr;}}
+  .bucket{border-radius:10px;padding:13px 16px;margin-bottom:10px;border-left:5px solid var(--teal);background:#fafbfc;}
+  .bucket.nucleo{border-left-color:#2b8a3e;background:#ebfbee;} .bucket.season{border-left-color:#1971c2;background:#e7f5ff;}
+  .bucket.iman{border-left-color:#7048e8;background:#f3f0ff;} .bucket.park{border-left-color:#f59f00;background:#fff9db;}
+  .bucket .bt{font-weight:800;font-size:14px;margin-bottom:4px;} .bucket .bl{font-size:13px;color:#444;line-height:1.5;}
+  .bucket .bl b{color:var(--teal);}
+  @media(max-width:720px){.legrid{grid-template-columns:1fr;}.core{grid-template-columns:1fr;}}
   .fmt{border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin-bottom:12px;background:#fafbfc;}
   .fh{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:9px;font-size:15px;}
   .fh b{color:var(--teal);}
   .mold{background:#fff;border:1px solid var(--line);border-radius:8px;padding:11px 14px;font-family:ui-monospace,Menlo,monospace;font-size:13.5px;line-height:1.55;white-space:pre-wrap;color:#1a1a1a;margin:0 0 8px;}
   .ej{font-size:12.5px;color:var(--muted);}
   .ej::before{content:"Úsalo en: ";font-weight:800;color:#666;}
+  .note{background:#fff3bf;border:1px solid #ffe066;border-radius:10px;padding:12px 16px;font-size:13px;color:#664d03;margin:0 0 18px;}
 </style></head>
 <body><div class="wrap">
   <h1>Calendario de Contenido</h1>
-  <div class="sub">Sábado 20 jun → 2 ago · FB CaboRojo (la cuadrícula) + el Carril Angel (el libro, diario en tus perfiles)</div>
+  <div class="sub">2 carriles · 🟦 Negocio (diario) · 🟧 Persona (jueves) · 🌉 Puente (newsletter viernes)</div>
 
-  <div class="legend" style="margin:0 0 18px;border:2px solid #0a66c2">
-    <h3 style="color:#0a66c2">🆕 Carril Angel · el libro DIARIO en tus perfiles</h3>
-    <div class="pg"><span class="url" style="color:#0a66c2;min-width:200px">💼 LinkedIn + 𝕏 Twitter</span><span class="desc">El libro / PREPARA sale <b>todos los días</b> en tus perfiles, voz operador ("así lo construí"). Exento del 70/20/10 — aquí no quema porque la audiencia es profesional, no local. Fuente: el email 7:10am (cron <b>book-promo-daily</b>) ya te trae el draft de LinkedIn + el de Twitter listos.</span><span class="rot u">diario</span></div>
-    <div class="pg"><span class="url" style="color:#9c36b5;min-width:200px">→ Ganador a FB CaboRojo</span><span class="desc">El <b>domingo</b> el ganador de la semana (la pieza que más rindió en tus perfiles) cruza a FB. <b>Gana el ángulo, la voz se vuelve vecino</b> (utilidad, no "cómprame"). Ese es el slot "Libro/Mas Tiempo" del domingo abajo.</span><span class="rot" style="background:#9c36b5">1x/sem · dom</span></div>
-    <div class="pg"><span class="url" style="color:#b42318;min-width:200px">🆕 Jueves: Cívico+Mate operador</span><span class="desc">El mismo dato del Cívico+Matemática del jueves (que en CaboRojo va voz vecino) cruza a tu LinkedIn+Twitter en <b>voz operador</b> ("así leo el número"). El jueves tu carril pesa más en marca personal. <b>Mi marca = diaria en tus perfiles, no un día de CaboRojo.</b></span><span class="rot">jue</span></div>
-    <div style="font-size:13px;color:var(--muted);margin-top:10px">La regla: el libro se prueba diario en lo tuyo, el ganador gradúa a la audiencia grande. Otros sitios lo mencionan máx 1x/sem. Canon: <b>Sistema-Publicacion-Universal §7 (Puente jueves) + §10b</b>.</div>
+  <!-- LOS 3 MENSAJES (fijo arriba — el núcleo) -->
+  <div class="core">
+    <div class="c neg"><div class="lbl">🟦 Negocio · lo que repites</div><div class="msg">"En Cabo Rojo, el Veci te dice quién resuelve. Gratis."</div><div class="ev">Venta al que paga: "Si no te ven, no te compran."</div></div>
+    <div class="c per"><div class="lbl">🟧 Persona · lo que encarnas</div><div class="msg">"Haz primero lo que cambia tu día. El resto puede esperar."</div><div class="ev">"No es que no puedas. Es que nadie te enseñó."</div></div>
+    <div class="c bri"><div class="lbl">🎙️ La voz que envuelve todo</div><div class="msg">"Menos revolú, más sistema, mejor vida."</div><div class="ev">Tono, no producto. El alivio se entrega, no se anuncia.</div></div>
   </div>
 
+  <div class="note"><b>Regla de avance:</b> el Negocio corre diario solo. La Persona tiene UN espacio protegido (jueves se escribe, lun/sem se publica). <b>Si la pieza de Persona no salió esta semana, ese es el flag #1 del lunes.</b> · <b>Regenera el keyword/cívico cada lunes</b> (la cuadrícula es guía, no jaula).</div>
+
+  <!-- LAS 3 ROTACIONES -->
   <div class="legend" style="margin:0 0 18px">
-    <h3>Las 3 rotaciones de FB (son distintas, no se confunden)</h3>
-    <div class="pg"><span class="url" style="color:var(--hero)">1 · KEYWORD</span><span class="desc">El tema/negocio de la semana. Sirve al sponsor que <b>paga</b>.</span><span class="rot u">esta semana: AIRE (Luis David)</span></div>
-    <div class="pg"><span class="url" style="color:var(--civ)">2 · CÍVICO</span><span class="desc">La pieza de los viernes. Alimenta el moat (el árbitro del pueblo).</span><span class="rot">esta semana: AGUA</span></div>
-    <div class="pg"><span class="url" style="color:var(--q)">3 · SUBASTA</span><span class="desc">"¿Quién es el mejor X?" Destapa un negocio NUEVO que pague.</span><span class="rot" style="background:var(--q)">esta semana: PLOMERO → Taíno</span></div>
-    <div style="font-size:13px;color:var(--muted);margin-top:10px">Las 3 corren la misma semana, cada una con su trabajo. El keyword sirve al que paga, la subasta consigue uno nuevo, el cívico construye la confianza. Dirección completa: <b>La-Direccion-Para-Compartir-2026-06-20.md</b></div>
+    <h3>Las 3 rotaciones del 🟦 Negocio (cada una con su trabajo)</h3>
+    <div class="pg"><span class="url" style="color:var(--hero)">1 · KEYWORD</span><span class="desc"><b>Retener</b> al que YA paga. El tema/negocio del ciclo de 14 días.</span><span class="rot u">esta semana: AIRE → Luis David</span></div>
+    <div class="pg"><span class="url" style="color:var(--q)">2 · SUBASTA</span><span class="desc"><b>Conseguir</b> uno nuevo que pague. "¿Quién resuelve mejor X?" — <b>celebración, no concurso</b> (festeja al ganador, no compares).</span><span class="rot" style="background:var(--q)">esta semana: PLOMERO → Taíno</span></div>
+    <div class="pg"><span class="url" style="color:var(--civ)">3 · CÍVICO</span><span class="desc"><b>Construir confianza</b> (el moat). El trío de los viernes. Aquí vive el alivio al fatalista ("te programaron a creer que aquí no se puede").</span><span class="rot">esta semana: AGUA</span></div>
+    <div style="font-size:13px;color:var(--muted);margin-top:10px">Keyword + Subasta = las dos manos de la plata (una retiene, otra capta). Cívico = autoridad, no venta directa.</div>
   </div>
 
   <div class="grid" id="cal"></div>
 
-  <h2>El copy completo, día por día</h2>
-  <div class="lead">Esto es el pensamiento completo de cada publicación, listo para pegar. Desde hoy.</div>
+  <!-- ANATOMÍA DE LA SEMANA (evergreen, no se vence) -->
+  <h2>La semana, día por día (el trabajo de cada día)</h2>
+  <div class="lead">Esto no se vence: es el job fijo de cada día. El copy específico vive en los queue files diarios.</div>
   <div id="caps"></div>
 
+  <!-- QUÉ SE PUBLICA Y CUÁNTAS VECES -->
   <div class="legend">
-    <h3>Qué se publica y cuántas veces</h3>
+    <h3>Qué se publica y cuántas veces (reconciliado)</h3>
     <div class="legrid">
-      <div class="leg"><span class="sw" style="background:var(--bd)"></span><span class="nm">Buenos Días</span><span class="freq">diario</span></div>
-      <div class="leg"><span class="sw" style="background:var(--veci)"></span><span class="nm">El Veci de Ayer (+ *7711)</span><span class="freq">diario</span></div>
-      <div class="leg"><span class="sw" style="background:var(--hero)"></span><span class="nm">Hero del día (keyword)</span><span class="freq">diario</span></div>
-      <div class="leg"><span class="sw" style="background:var(--sp)"></span><span class="nm">Luis David (aire)</span><span class="freq">2x/sem</span></div>
-      <div class="leg"><span class="sw" style="background:var(--sp)"></span><span class="nm">1 Minuto de Paz (mié+sáb)</span><span class="freq">2x/sem</span></div>
-      <div class="leg"><span class="sw" style="background:var(--sp)"></span><span class="nm">Ana María, dentista (mar)</span><span class="freq">1x/sem</span></div>
-      <div class="leg"><span class="sw" style="background:var(--civ)"></span><span class="nm">Cívico, rota (vie)</span><span class="freq">1x/sem</span></div>
-      <div class="leg"><span class="sw" style="background:var(--q)"></span><span class="nm">Pregunta que AYUDA (jue)</span><span class="freq">1x/sem</span></div>
-      <div class="leg"><span class="sw" style="background:var(--news)"></span><span class="nm">Newsletter "3 Decisiones" (vie)</span><span class="freq">1x/sem</span></div>
-      <div class="leg"><span class="sw" style="background:#9c36b5"></span><span class="nm">Libro · ganador del Carril Angel → FB (dom)</span><span class="freq">1x/sem</span></div>
-      <div class="leg"><span class="sw" style="background:#0a66c2"></span><span class="nm">Carril Angel · libro en LinkedIn + Twitter</span><span class="freq">diario</span></div>
+      <div class="leg"><span class="sw" style="background:var(--bd)"></span><span class="nm">Buenos Días (bandera)</span><span class="freq">diario · 6a</span></div>
+      <div class="leg"><span class="sw" style="background:var(--veci)"></span><span class="nm">El Recibo del Veci (+ *7711)</span><span class="freq">diario-elegible · 8a</span></div>
+      <div class="leg"><span class="sw" style="background:var(--hero)"></span><span class="nm">Señal del Día (keyword)</span><span class="freq">diario · 10a</span></div>
+      <div class="leg"><span class="sw" style="background:var(--sp)"></span><span class="nm">1 Minuto de Paz</span><span class="freq">2x/sem · mié+sáb</span></div>
+      <div class="leg"><span class="sw" style="background:var(--per)"></span><span class="nm">🟧 Pieza de Persona (escribe jue)</span><span class="freq">1x/sem</span></div>
+      <div class="leg"><span class="sw" style="background:var(--civ)"></span><span class="nm">Cívico trío (vie)</span><span class="freq">1x/sem</span></div>
+      <div class="leg"><span class="sw" style="background:var(--q)"></span><span class="nm">¿Qué Hace Falta? (jue)</span><span class="freq">1x/sem</span></div>
+      <div class="leg"><span class="sw" style="background:var(--news)"></span><span class="nm">🌉 Newsletter "3 Decisiones"</span><span class="freq">envío 1x · vie 9a</span></div>
+      <div class="leg"><span class="sw" style="background:#9c36b5"></span><span class="nm">YouTube Menos Revolú (persona)</span><span class="freq">1x/sem</span></div>
+      <div class="leg"><span class="sw" style="background:#0a66c2"></span><span class="nm">LinkedIn personal (hogar)</span><span class="freq">1x/sem</span></div>
+      <div class="leg"><span class="sw" style="background:#0a66c2"></span><span class="nm">X personal (hooks → LinkedIn)</span><span class="freq">diario</span></div>
       <div class="leg"><span class="sw" style="background:var(--ev)"></span><span class="nm">Evento real para enganchar</span><span class="freq">según pasa</span></div>
-      <div class="leg"><span class="sw" style="background:var(--sp)"></span><span class="nm">Marina Puerto Real</span><span class="freq">2x/mes</span></div>
-      <div class="leg"><span class="sw" style="background:var(--sp)"></span><span class="nm">Jorge Pérez · Villa La Mela</span><span class="freq">1x/mes</span></div>
-      <div class="leg"><span class="sw" style="background:var(--sp)"></span><span class="nm">Dra. Faudes</span><span class="freq">1x/3mes</span></div>
     </div>
-
-    <h3 style="margin-top:22px">Páginas live · los destinos del Hero (clickeables)</h3>
-    <div class="pg"><a class="url" href="https://mapadecaborojo.com/quien-responde" target="_blank">⭐ /quien-responde</a><span class="desc">Quién te representa, de qué responde por ley, cómo lo contactas. La pieza ancla.</span><span class="rot">trío cívico · vie</span></div>
-    <div class="pg"><a class="url" href="https://mapadecaborojo.com/promesas" target="_blank">/promesas</a><span class="desc">El Promesómetro: lo que el alcalde dijo en cámara, tema por tema.</span><span class="rot">trío cívico · vie</span></div>
-    <div class="pg"><a class="url" href="https://mapadecaborojo.com/observatorio" target="_blank">/observatorio</a><span class="desc">Los problemas reales del pueblo: agua, luz, basura.</span><span class="rot">trío cívico · vie</span></div>
-    <div class="pg"><a class="url" href="https://mapadecaborojo.com/registro" target="_blank">/registro</a><span class="desc">6,370 especialistas médicos verificados (NPI).</span><span class="rot u">semana MÉDICO</span></div>
-    <div class="pg"><a class="url" href="https://mapadecaborojo.com/pueblo-en-numeros" target="_blank">/pueblo-en-numeros</a><span class="desc">El pueblo en data: TAM, farmacias, médicos.</span><span class="rot u">lunes (demanda)</span></div>
-    <div style="font-size:13.5px;color:var(--muted);margin-top:14px;line-height:1.6"><b>El trío cívico</b> rota junto los viernes: un post a uno cierra con <i>"y mira quién responde por esto: [link]"</i> y jala los otros dos.</div>
-
-    <h3 style="margin-top:22px">Links · captura, libro y newsletter</h3>
-    <div class="pg"><a class="url" href="https://wa.me/17874177711?text=HOLA" target="_blank">El Veci · 787-417-7711</a><span class="desc">Textea lo que necesitas (wa.me/17874177711).</span><span class="rot u">captura</span></div>
-    <div class="pg"><a class="url" href="https://wa.me/17874177711?text=SEMANAL" target="_blank">SEMANAL → lista del Veci</a><span class="desc">Opt-in a la lista semanal por WhatsApp.</span><span class="rot u">suscriptores</span></div>
-    <div class="pg"><a class="url" href="https://caborojo.com/email/" target="_blank">📬 Newsletter por email</a><span class="desc">Suscripción al "3 Decisiones": caborojo.com/email/. O SEMANAL al *7711 (WhatsApp).</span><span class="rot u">suscriptores</span></div>
-    <div class="pg"><a class="url" href="https://buy.stripe.com/aFa3cu5VOa0n0EpbAL0co0l" target="_blank">📖 Libro AJORÁO · $9.99</a><span class="desc">Stripe, pago directo.</span><span class="rot u">conversión</span></div>
-    <div class="pg"><a class="url" href="https://www.mastiempo.net/la-hoja-de-hoy.html" target="_blank">La Hoja gratis</a><span class="desc">El lead magnet (imprimible). mastiempo.net/la-hoja-de-hoy.html</span><span class="rot u">top funnel</span></div>
-    <div class="pg"><a class="url" href="https://www.mastiempo.net/empresas" target="_blank">Mas Tiempo · Mayoreo</a><span class="desc">Bulk del libro a equipos/negocios (B2B).</span><span class="rot u">B2B</span></div>
-    <div class="pg"><a class="url" href="https://caborojo.com/calendario" target="_blank">caborojo.com/calendario</a><span class="desc">Eventos del pueblo. Hero del jueves.</span><span class="rot u">eventos</span></div>
-    <div class="pg"><a class="url" href="https://mapadecaborojo.com/categoria/restaurantes" target="_blank">/categoria/restaurantes</a><span class="desc">Dónde comer. Hero sáb/dom.</span><span class="rot u">comida</span></div>
   </div>
 
+  <!-- EL CORTE DE TEMAS -->
   <div class="legend">
-    <h3>Formatos ganadores · los moldes (cómo se escribe cada post)</h3>
-    <p style="color:var(--muted);font-size:13px;margin-bottom:16px">Estos salieron del análisis de los logs. Cada slot del calendario usa un molde. Llena los ___ y publica. Convivencia y Crianza son <b>imán de audiencia</b> (Motor de Audiencia): no venden, pero construyen el público que después compra.</p>
+    <h3>Los temas: con cuáles seguimos, cuáles al parqueo</h3>
+    <p style="color:var(--muted);font-size:13px;margin-bottom:14px">Filtro: <b>demanda real × solvencia (quién paga) × estación.</b> "Sacar" = quitarlo de la rotación semanal. <b>NO se borra del directorio ni del Veci</b> — el Veci sigue contestando, solo deja de gastarle una semana.</p>
+    <div class="bucket nucleo"><div class="bt">🟢 Núcleo revenue · rotan todo el año (demanda alta + paga)</div><div class="bl">Aire · Plomero · Electricista · Dentista · Solar · Hospedaje/Anfitrión · Farmacia · Mecánico/Auto</div></div>
+    <div class="bucket season"><div class="bt">🔵 Estacionales · entran por temporada</div><div class="bl">Comida/Mariscos · Turismo/Playas · Eventos · Repostería <i>(verano, Navidad, Semana Santa)</i></div></div>
+    <div class="bucket iman"><div class="bt">🟣 Imán de audiencia · NO venden, construyen el público</div><div class="bl">Niños/Familia · La Paz del Vecino (convivencia) <i>(no los midas por plata)</i></div></div>
+    <div class="bucket park"><div class="bt">🟡 Al parqueo · salen de la rotación, quedan en directorio/Veci</div><div class="bl">Costura · Cerrajero · Veterinario · Servicios del Hogar · Legal/Notario · <b>Adultos Mayores</b> (vigilar: diáspora paga → Conserje) · <b>Médico/Especialista</b> (es moat de data NPI, no venta). Úsalos como relleno del molde "Cabo Rojo Resuelve" cuando aparezcan naturales.</div></div>
+  </div>
 
-    <div class="fmt"><div class="fh"><b>Cabo Rojo Resuelve · "Todavía sirve"</b><span class="rot u">sponsors / quién resuelve · Mié + Hero</span></div>
+  <!-- LINKS LIVE -->
+  <div class="legend">
+    <h3>Páginas live · destinos del Hero (clickeables)</h3>
+    <div class="pg"><a class="url" href="https://mapadecaborojo.com/quien-responde" target="_blank">⭐ /quien-responde</a><span class="desc">Quién te representa y de qué responde. La ancla del trío cívico.</span><span class="rot">cívico · vie</span></div>
+    <div class="pg"><a class="url" href="https://mapadecaborojo.com/promesas" target="_blank">/promesas</a><span class="desc">El Promesómetro del alcalde, tema por tema.</span><span class="rot">cívico · vie</span></div>
+    <div class="pg"><a class="url" href="https://mapadecaborojo.com/observatorio" target="_blank">/observatorio</a><span class="desc">Agua, luz, basura: los problemas reales.</span><span class="rot">cívico · vie</span></div>
+    <div class="pg"><a class="url" href="https://mapadecaborojo.com/registro" target="_blank">/registro</a><span class="desc">6,370 especialistas médicos NPI (moat de data).</span><span class="rot u">médico · moat</span></div>
+    <div class="pg"><a class="url" href="https://mapadecaborojo.com/pueblo-en-numeros" target="_blank">/pueblo-en-numeros</a><span class="desc">El pueblo en data. Hero del lunes (dirección).</span><span class="rot u">lunes</span></div>
+
+    <h3 style="margin-top:22px">Captura, libro y newsletter</h3>
+    <div class="pg"><a class="url" href="https://wa.me/17874177711?text=HOLA" target="_blank">El Veci · 787-417-7711</a><span class="desc">Textea lo que necesitas. La respuesta inmediata.</span><span class="rot u">captura</span></div>
+    <div class="pg"><a class="url" href="https://wa.me/17874177711?text=SEMANAL" target="_blank">SEMANAL → lista del Veci</a><span class="desc">Opt-in a la lista por WhatsApp.</span><span class="rot u">suscriptores</span></div>
+    <div class="pg"><a class="url" href="https://caborojo.com/email/" target="_blank">📬 Newsletter "3 Decisiones"</a><span class="desc">Envío viernes 9am. caborojo.com/email/</span><span class="rot u">🌉 puente</span></div>
+    <div class="pg"><a class="url" href="https://buy.stripe.com/aFa3cu5VOa0n0EpbAL0co0l" target="_blank">📖 Libro AJORÁO · $9.99</a><span class="desc">La cantera de la 🟧 pieza de persona.</span><span class="rot u">persona</span></div>
+    <div class="pg"><a class="url" href="https://www.mastiempo.net/la-hoja-de-hoy.html" target="_blank">La Hoja gratis</a><span class="desc">Lead magnet imprimible.</span><span class="rot u">top funnel</span></div>
+  </div>
+
+  <!-- FORMATOS GANADORES -->
+  <div class="legend">
+    <h3>Formatos ganadores · los moldes</h3>
+    <p style="color:var(--muted);font-size:13px;margin-bottom:16px">Cada slot usa un molde. Llena los ___ y publica. Todos pasan el <b>Test de los 5 Segundos: ¿quita peso o añade?</b></p>
+
+    <div class="fmt"><div class="fh"><b>Cabo Rojo Resuelve · "Todavía sirve"</b><span class="rot u">🟦 quién resuelve · mié + hero</span></div>
       <pre class="mold">Ese ______ que tienes guardado porque ______ todavía sirve.
 En Cabo Rojo hay quien lo resuelve.
 Antes de botarlo, pregunta.</pre>
-      <div class="ej">Costura, plomería, cerrajería, refrigeración, celulares, zapatos, mecánica, pintura, screens, electricidad.</div></div>
+      <div class="ej">Costura, plomería, cerrajería, refrigeración, celulares, zapatos, mecánica, screens. (Aquí caen los temas del 🟡 parqueo.)</div></div>
 
-    <div class="fmt"><div class="fh"><b>La Paz del Vecino · convivencia</b><span class="rot">imán de audiencia · Conversación 6p</span></div>
+    <div class="fmt"><div class="fh"><b>La Paz del Vecino · convivencia</b><span class="rot" style="background:var(--q)">🟣 imán · conversación 6p</span></div>
       <pre class="mold">La paz del vecino también cuenta.
 ______ no es "normal" si le daña el día a otro.
 Vivir en comunidad también es bajar el volumen.</pre>
-      <div class="ej">Perros, música, basura, estacionamientos, motoras, voceteo, Airbnb, filas, playas.</div></div>
+      <div class="ej">Perros, música, basura, estacionamientos, voceteo, Airbnb, filas, playas.</div></div>
 
-    <div class="fmt"><div class="fh"><b>Dos Verdades · cívico con matiz</b><span class="rot">cívico · Vie</span></div>
+    <div class="fmt"><div class="fh"><b>Dos Verdades · cívico con matiz</b><span class="rot">🟦 cívico · vie</span></div>
       <pre class="mold">Esto no es tan simple como ______ o ______.
 Una cosa puede ser cierta: ______.
 Y otra también: ______.
 El problema empieza cuando solo queremos mirar una.</pre>
-      <div class="ej">Permisos, basura, turismo, negocios, política local, estacionamientos, herederos, educación.</div></div>
+      <div class="ej">Permisos, basura, turismo, política local, herederos, educación.</div></div>
 
-    <div class="fmt"><div class="fh"><b>Criar Adultos · familia y límites</b><span class="rot">imán de audiencia · Dom / flex</span></div>
+    <div class="fmt"><div class="fh"><b>Criar Adultos · familia y límites</b><span class="rot" style="background:var(--q)">🟣 imán · dom / flex</span></div>
       <pre class="mold">Criar adultos empieza antes de que hagan falta.
 Si hoy le resuelves todo, mañana no sabe resolver nada.
 El amor también enseña.</pre>
-      <div class="ej">Jóvenes, escuela, dinero, puntualidad, celular, respeto, oficio, familia.</div></div>
+      <div class="ej">Jóvenes, escuela, dinero, puntualidad, celular, oficio.</div></div>
 
-    <div class="fmt"><div class="fh"><b>¿Qué Hace Falta? · demanda real</b><span class="rot u">la pregunta que ayuda · Jue</span></div>
+    <div class="fmt"><div class="fh"><b>¿Qué Hace Falta? · demanda real</b><span class="rot u">🟦 la pregunta que ayuda · jue</span></div>
       <pre class="mold">Pregunta seria:
 ¿Qué servicio hace falta en Cabo Rojo que tú usarías esta misma semana?</pre>
-      <div class="ej">Los comentarios → lista/directorio + el keyword del lunes. Plomeros, fisiatras, mecánicos, cuidadores, tutorías, delivery, adultos mayores.</div></div>
+      <div class="ej">Los comentarios → el keyword del lunes + negocios que faltan en el directorio.</div></div>
 
-    <div class="fmt"><div class="fh"><b>1 Minuto de Paz · reel de ambiente</b><span class="rot u">1MdP · Mié + Sáb</span></div>
+    <div class="fmt"><div class="fh"><b>1 Minuto de Paz · reel de ambiente</b><span class="rot u">🟦 1MdP · mié + sáb</span></div>
       <pre class="mold">1 minuto de Cabo Rojo.
 Respira.
 Después sigues.</pre>
-      <div class="ej">Playa, olas, lluvia, campo, café, atardecer, calle tranquila, plaza, negocio abriendo temprano.</div></div>
+      <div class="ej">Playa, olas, lluvia, café, atardecer, plaza, negocio abriendo temprano.</div></div>
 
-    <div class="fmt" style="border-color:#1098ad;border-width:2px"><div class="fh"><b>🆕 Lo Nuevo en Cabo Rojo · negocio/observación</b><span class="rot u">NUEVO · 1x/sem · alto share, top-of-mind</span></div>
-      <pre class="mold">¿Viste ______ nuevo en ______?
-______ [qué es / qué hace].
-Cabo Rojo se sigue moviendo. Dale chance al de aquí.</pre>
-      <div class="ej">Negocio que abrió, letrero nuevo, algo que cambió. (Probado: "¿Viste el letrero nuevo en la PR-103? Aceros Xpress" = 569 + 76 shares.) Goodwill gratis = el dueño queda top-of-mind sin que le cobres. La data: lo nuevo + lo cívico son tus 2 imanes de share.</div></div>
+    <div class="fmt" style="border-color:var(--per);border-width:2px"><div class="fh"><b>🆕 🟧 Pieza de Persona · "nadie te enseñó" (EL MOLDE QUE FALTABA)</b><span class="rot" style="background:var(--per)">persona · escribe jue</span></div>
+      <pre class="mold">No es que no puedas ______.
+Es que nadie te enseñó.
+Lo que a mí me funcionó: hacer primero ______ (lo que cambia el día).
+El resto puede esperar.</pre>
+      <div class="ej">Tiempo, paz, decidir vs reaccionar, reglas propias, menos revolú. Fuente: el libro AJORÁO. Voz de par, NO de gurú. (Este molde no existía — es el hueco que cerramos.)</div></div>
   </div>
 
 <script>
-const MES=['ene','feb','mar','abr','may','jun','jul','ago'];
+const MES=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
 const DH=['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
-const C={bd:'#2b8a3e',veci:'#1971c2',hero:'#0ca678',sp:'#e8590c',civ:'#b42318',q:'#7048e8',news:'#0891b2',libro:'#9c36b5'};
+const C={bd:'#2b8a3e',veci:'#1971c2',hero:'#0ca678',sp:'#e8590c',civ:'#b42318',q:'#7048e8',news:'#0891b2',per:'#e8590c'};
+// Keywords del calendario de 12 meses (Jun→Ago). Regenera el lunes si la estación cambió.
 const WEEKS=[
- {kw:'(finde)',civ:'',tema:''},                       // Jun 15-21 (solo sáb/dom activos)
- {kw:'AIRE',civ:'AGUA',tema:'verano arranca'},        // Jun 22-28
- {kw:'COMIDA',civ:'LUZ',tema:'4 de Julio'},           // Jun 29-Jul 5
- {kw:'VERANO',civ:'BASURA',tema:'playas'},            // Jul 6-12
- {kw:'ELECTR.',civ:'FARO',tema:'cerrar Oso'},         // Jul 13-19
- {kw:'MÉDICO',civ:'COLISEO',tema:'house-call'},       // Jul 20-26
- {kw:'COSTURA',civ:'I.RATONES',tema:''}               // Jul 27-Ago 2
+ {kw:'AIRE',civ:'AGUA',tema:'verano arranca'},
+ {kw:'ANFITRIÓN',civ:'LUZ',tema:'pico turista'},
+ {kw:'ANFITRIÓN',civ:'BASURA',tema:'playas llenas'},
+ {kw:'MARISCOS',civ:'FARO',tema:'comer cerca del mar'},
+ {kw:'MARISCOS',civ:'CARRETERAS',tema:'finde largo'},
+ {kw:'AIRE',civ:'AGUA',tema:'calor pico'},
+ {kw:'UNIFORME',civ:'ESCUELAS',tema:'back to school'}
 ];
-const MONTHLY={1:['Marina'],3:['Marina','Jorge Pérez','Villa La Mela'],5:['Dra. Faudes']};
-const EVENTS={'6-21':'Día de los Padres','6-24':'Noche de San Juan','7-4':'4 de Julio'};
-const start=new Date(2026,5,15);
-const today=new Date(); today.setHours(0,0,0,0);   // HOY real, dinámico (no más fechas pegadas)
-const cutoff=today;                                  // ocultar los días que ya pasaron
+const EVENTS={'7-4':'4 de Julio','7-25':'Constitución PR'};
+// Arranca el lunes de la semana actual (no se vence: oculta los días que pasaron)
+const today=new Date(); today.setHours(0,0,0,0);
+const start=new Date(today); start.setDate(today.getDate()-((today.getDay()+6)%7)); // lunes de esta semana
+const cutoff=today;
 function P(c,t){return '<div class="p"><i style="background:'+c+'"></i>'+t+'</div>';}
-function postsFor(dow,wk,dt){
+function postsFor(dow,wk){
   let a=[];
   if(dow===5){ // sábado
-    a.push(P(C.bd,'Buenos Días'),P(C.hero,'Hero: dónde comer/finde'),P(C.sp,'1 Minuto de Paz (3p)'));
-    if(wk.kw!=='(finde)') a.push(P(C.sp,'Luis David 2'));
-    return a.join('');
+    return [P(C.bd,'Buenos Días'),P(C.hero,'Hero: dónde comer / finde'),P(C.sp,'1 Minuto de Paz (3p)')].join('');
   }
   if(dow===6){ // domingo
-    return [P(C.bd,'Buenos Días (suave)'),P(C.hero,'Dónde comer/abierto'),P(C.libro,'Libro/La Hoja (mastiempo)'),P(C.veci,'Revisión')].join('');
+    return [P(C.bd,'Buenos Días (suave)'),P(C.hero,'Dónde comer / abierto'),P(C.veci,'Revisión + ganador persona→FB')].join('');
   }
-  const heroLink = (dow===0?' → pueblo-en-números':(wk.kw==='MÉDICO'?' → /registro':''));
-  a.push(P(C.bd,'Buenos Días'),P(C.veci,'El Veci de Ayer'),P(C.hero,'Hero: '+wk.kw+heroLink));
-  if(dow===1) a.push(P(C.sp,'Ana María'));
-  if(dow===2) a.push(P(C.sp,'Luis David'),P(C.sp,'1 Min de Paz'));
-  if(dow===3) a.push(P(C.q,'Pregunta que ayuda'));
-  if(dow===4){a.push(P(C.civ,'Cívico: '+wk.civ+' (trío)'));a.push(P(C.news,'Newsletter'));}
+  a.push(P(C.bd,'Buenos Días'),P(C.veci,'El Recibo del Veci'),P(C.hero,'Señal: '+wk.kw));
+  if(dow===0) a.push(P(C.hero,'Dirección → pueblo-en-números'));     // lunes
+  if(dow===1) a.push(P(C.sp,'Salud + Familia'));                      // martes
+  if(dow===2) a.push(P(C.sp,'1 Min de Paz'),P(C.q,'Subasta: ¿quién resuelve?')); // miércoles
+  if(dow===3){a.push(P(C.q,'¿Qué Hace Falta?'));a.push(P(C.per,'🟧 PERSONA: escribe la pieza'));} // jueves
+  if(dow===4){a.push(P(C.civ,'Cívico: '+wk.civ+' (trío)'));a.push(P(C.news,'🌉 Newsletter (envío 9a)'));} // viernes
   return a.join('');
 }
 let html=DH.map(d=>'<div class="dh">'+d+'</div>').join('');
@@ -204,29 +222,22 @@ for(let w=0;w<WEEKS.length;w++){
     if(dt<cutoff){ html+='<div class="cell empty"></div>'; continue; }
     const wend=(d>=5); const isToday=(dt.getTime()===today.getTime());
     const ek=(dt.getMonth()+1)+'-'+dt.getDate(); const ev=EVENTS[ek];
-    let extra='';
-    if(d===0 && MONTHLY[w]) extra=MONTHLY[w].map(m=>P(C.sp,m+' (mes)')).join('');
-    html+='<div class="cell'+(wend?' wend':'')+(isToday?' today':'')+'"><div class="dnum">'+dt.getDate()+' '+MES[dt.getMonth()]+'<span class="kw">'+(WEEKS[w].kw!=='(finde)'?WEEKS[w].kw:'')+'</span></div>'+(ev?'<div class="ev">🎉 '+ev+'</div>':'')+postsFor(d,WEEKS[w],dt)+extra+'</div>';
+    html+='<div class="cell'+(wend?' wend':'')+(isToday?' today':'')+'"><div class="dnum">'+dt.getDate()+' '+MES[dt.getMonth()]+'<span class="kw">'+WEEKS[w].kw+'</span></div>'+(ev?'<div class="ev2">🎉 '+ev+'</div>':'')+postsFor(d,WEEKS[w])+'</div>';
   }
-  if(WEEKS[w].kw!=='(finde)') html+='<div class="wkrow">'+WEEKS[w].kw+(WEEKS[w].tema?' · '+WEEKS[w].tema:'')+' · cívico: '+WEEKS[w].civ+'</div>';
+  html+='<div class="wkrow">'+WEEKS[w].kw+(WEEKS[w].tema?' · '+WEEKS[w].tema:'')+' · cívico: '+WEEKS[w].civ+'</div>';
 }
 document.getElementById('cal').innerHTML=html;
 
-// CAPS: copy completo Jun 20 -> Jun 28
-const CAPS=[
- ['Sáb 20','',['<b>6a Buenos Días:</b> Sábado. Hoy se vive el pueblo, sin prisa.','<b>3p 1 Minuto de Paz:</b> clip del mar, sin texto. Caption ≤10 palabras: "Un minuto de Cabo Rojo. Respira."','<b>Dónde comer hoy:</b> Domingo es de papá, pero el sábado se come rico. mapadecaborojo.com/categoria/restaurantes']],
- ['Dom 21','Día de los Padres',['<b>6a Buenos Días:</b> Feliz Día de los Padres. A los que están, a los que enseñaron con el ejemplo, y a los que hacen de papá sin serlo. Hoy: tiempo, no cosas.','<b>Dónde llevar a papá:</b> sitios pa comer con papá hoy. La lista en caborojo.com. Y si no sabes dónde, escríbele COMIDA al 787-417-7711.']],
- ['Lun 22','',['<b>6a Buenos Días:</b> La semana no se gana el viernes. Se gana el lunes, decidiendo qué va primero.','<b>8a El Veci de Ayer:</b> Ayer un vecino buscó quién le revisara el aire. El Veci le dio opciones. 787-417-7711.','<b>10a Hero AIRE:</b> El verano no avisa. Un día el aire enfría, al otro bota agua. ¿A quién llamas cuando muere? Escríbele AIRE al 787-417-7711.']],
- ['Mar 23','',['<b>6a Buenos Días:</b> La salud es la única cita que cuando la pospones, te cobra después.','<b>8a El Veci de Ayer:</b> caso real del bot + número.','<b>10a Hero salud + Ana María:</b> Hay quien lleva años sin ir al dentista por "no es pa tanto". La Dra. Ana María Ramírez abre agenda. 787-255-1665.']],
- ['Mié 24','Noche de San Juan',['<b>6a Buenos Días:</b> Hoy es San Juan. Esta noche mucha gente se tira al mar de espaldas 3 veces pa la buena suerte. Tradición, no chisme.','<b>Hero San Juan:</b> Las playas pa la noche de San Juan en Cabo Rojo: Boquerón, Combate, Buyé. Llega temprano. ¿Dónde vas? caborojo.com','<b>6p Luis David:</b> El que sabe de aires no improvisa. Revisa, limpia, te dice claro. Luis David Refrigeration · 787-672-7018.','<b>1 Minuto de Paz #2:</b> (necesita tu video)']],
- ['Jue 25','',['<b>6a Buenos Días:</b> Lo que no anotaste el lunes, hoy ya se te olvidó. Por eso se escribe.','<b>⭐ PREGUNTA QUE AYUDA:</b> "¿Qué servicio te falta encontrar en Cabo Rojo, que buscas y no aparece? Dilo abajo." → <b>Yo leo las respuestas y de ahí sale el keyword del lunes que viene + los negocios que faltan en el directorio.</b> Es la que nos da info pa decidir.']],
- ['Vie 26','',['<b>6a Buenos Días:</b> El fin de semana se disfruta mejor cuando el lunes ya está medio resuelto.','<b>1p Cívico AGUA (trío):</b> La AAA pierde 66% del agua que produce. Eso se reclama, no se aguanta. Los números: mapadecaborojo.com/observatorio. Y mira quién responde por esto: mapadecaborojo.com/quien-responde','<b>📬 NEWSLETTER (envío 9am + promo):</b> "Cada viernes mando 3 decisiones útiles pa tu semana en Cabo Rojo. Cortito, sin relleno. Suscríbete: [link] o escríbele SEMANAL al 787-417-7711." → sube suscriptores.']],
- ['Sáb 27','',['<b>6a Buenos Días:</b> Sábado. Hoy se vive el pueblo, sin prisa.','<b>3p 1 Minuto de Paz:</b> clip del mar.','<b>Luis David 2:</b> El aire no se daña en horario de oficina. Se daña el sábado con la casa llena. 787-672-7018.']],
- ['Dom 28','',['<b>6a Buenos Días (suave):</b> La semana no se improvisa. Se revisa.','<b>Dónde comer hoy:</b> Domingo, ¿quién abre? mapadecaborojo.com/categoria/restaurantes, o textea COMIDA al 787-417-7711.','<b>📖 Libro/La Hoja (mastiempo.net):</b> Yo me levanto con 14 cosas en la cabeza y hago la que menos importa. El Veci ahora te arma el día: textea HOJA al 787-417-7711, 6 preguntas, y te devuelve una hoja con lo que importa. Gratis. Esas preguntas salieron de mi libro AJORÁO NO ES UN PLAN ($9.99). La hoja sigue gratis.']]
+// ANATOMÍA EVERGREEN: el job fijo de cada día (no se vence)
+const SPINE=[
+ ['Lun','🟦','Dirección + Demanda','Lanza el keyword del ciclo. "Lo que el pueblo buscó el finde." Hero → pueblo-en-números.'],
+ ['Mar','🟦','Salud + Familia','Ángulo local (gimnasios, farmacias, eventos familiares). El imán Criar Adultos cae bien aquí.'],
+ ['Mié','🟦','Quién Resuelve','Molde "Cabo Rojo Resuelve" + 1 Minuto de Paz + Subasta (celebra al que resuelve, no compares).'],
+ ['Jue','🟦+🟧','Demanda Real + PERSONA','"¿Qué Hace Falta?" (saca el keyword del lunes). Y ESCRIBES la pieza de persona ("nadie te enseñó"). Cívico cruza a tu LinkedIn en voz operador.'],
+ ['Vie','🌉','Fin de Semana + Newsletter','Cívico trío (AGUA/LUZ/BASURA → quien-responde). Newsletter "3 Decisiones" envía 9am.'],
+ ['Sáb','🟦','1 Minuto de Paz','Ambient POI + dónde comer / finde. Identidad, no venta.'],
+ ['Dom','—','Revisión','Buenos Días suave + el ganador de la pieza de persona cruza a FB (voz vecino).']
 ];
-// Solo el copy de HOY en adelante (los días que pasaron no se ven)
-const _td=today.getDate(), _tm=today.getMonth();
-const capsFuturo=CAPS.filter(d=>{const n=parseInt((String(d[0]).match(/\d+/)||['0'])[0]); return _tm>5?false:n>=_td;});
-document.getElementById('caps').innerHTML=(capsFuturo.length?capsFuturo:[['','',['El copy de esta ventana ya pasó. Toca regenerar el calendario para la semana nueva.']]]).map(d=>'<div class="capday'+(d[1]?' wend':'')+'"><div class="ch">'+d[0]+(d[1]?'<span class="evt">🎉 '+d[1]+'</span>':'')+'</div>'+d[2].map(l=>'<div class="cl">'+l+'</div>').join('')+'</div>').join('');
+document.getElementById('caps').innerHTML=SPINE.map(s=>'<div class="bucket'+(s[1].includes('🟧')?' season':'')+'" style="border-left-color:'+(s[1]==='🟧'||s[1]==='🟦+🟧'?'var(--per)':s[1]==='🌉'?'var(--bri)':s[1]==='—'?'var(--muted)':'var(--neg)')+';background:#fafbfc"><div class="bt">'+s[1]+' '+s[0]+' · '+s[2]+'</div><div class="bl">'+s[3]+'</div></div>').join('');
 </script>
 </div></body></html>
