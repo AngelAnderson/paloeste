@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseAdminClient } from '@/lib/supabase-server'
+import { requireAdmin } from '@/lib/admin-auth'
 
 export async function GET(req: NextRequest) {
+  const denied = await requireAdmin(req)
+  if (denied) return denied
   const { searchParams } = new URL(req.url)
   const type = searchParams.get('type')
   const supabase = await createSupabaseAdminClient()
@@ -13,6 +16,8 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  const denied = await requireAdmin(req)
+  if (denied) return denied
   const body = await req.json()
   if (!body.name || !body.type) {
     return NextResponse.json({ error: 'name and type required' }, { status: 400 })

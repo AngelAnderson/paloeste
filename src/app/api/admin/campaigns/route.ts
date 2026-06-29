@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseAdminClient } from '@/lib/supabase-server'
+import { requireAdmin } from '@/lib/admin-auth'
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const denied = await requireAdmin(req)
+  if (denied) return denied
   const supabase = await createSupabaseAdminClient()
   const { data, error } = await supabase
     .from('campaign_ideas')
@@ -12,6 +15,8 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
+  const denied = await requireAdmin(req)
+  if (denied) return denied
   const supabase = await createSupabaseAdminClient()
   const body = await req.json()
   const { title, business_name, archetype, tier, hook, draft, trigger_reason, trigger_window } = body
@@ -36,6 +41,8 @@ export async function POST(req: NextRequest) {
 }
 
 export async function PATCH(req: NextRequest) {
+  const denied = await requireAdmin(req)
+  if (denied) return denied
   const supabase = await createSupabaseAdminClient()
   const body = await req.json()
   const { id, ...updates } = body

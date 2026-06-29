@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseServerClient, createSupabaseAdminClient } from '@/lib/supabase-server'
+import { requireAdmin } from '@/lib/admin-auth'
 
 export async function POST(req: NextRequest) {
-  // Identify the user who's flagging
+  const denied = await requireAdmin(req)
+  if (denied) return denied
+
+  // Identify the user who's flagging (for audit trail)
   const userClient = await createSupabaseServerClient()
   const { data: { user } } = await userClient.auth.getUser()
 

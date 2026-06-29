@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseAdminClient } from '@/lib/supabase-server'
+import { requireAdmin } from '@/lib/admin-auth'
 
 export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const denied = await requireAdmin(req)
+  if (denied) return denied
   const { id } = await params
   const body = await req.json()
   const supabase = await createSupabaseAdminClient()
@@ -19,9 +22,11 @@ export async function PATCH(
 }
 
 export async function DELETE(
-  _req: NextRequest,
+  req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const denied = await requireAdmin(req)
+  if (denied) return denied
   const { id } = await params
   const supabase = await createSupabaseAdminClient()
   const { error } = await supabase

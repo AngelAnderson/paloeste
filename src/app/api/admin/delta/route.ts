@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseAdminClient } from '@/lib/supabase-server'
+import { requireAdmin } from '@/lib/admin-auth'
 
 export const dynamic = 'force-dynamic'
 
 export async function GET(req: NextRequest) {
+  const denied = await requireAdmin(req)
+  if (denied) return denied
   const since = req.nextUrl.searchParams.get('since')
   if (!since || isNaN(new Date(since).getTime())) {
     return NextResponse.json({ error: 'invalid since' }, { status: 400 })
