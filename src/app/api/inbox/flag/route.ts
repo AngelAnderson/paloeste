@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseAdminClient } from '@/lib/supabase-server'
+import { requireAdmin } from '@/lib/admin-auth'
 
 // Quick-action flags for inbox conversations.
 // PATCH body: { conversationId: string, action: 'star' | 'unstar' | 'snooze' | 'unsnooze' |
@@ -7,6 +8,8 @@ import { createSupabaseAdminClient } from '@/lib/supabase-server'
 // Apr 29 2026 — added with the inbox quick-actions feature so Angel can mark each
 // conversation's state without typing. State persists in conversations columns.
 export async function PATCH(req: NextRequest) {
+  const denied = await requireAdmin(req)
+  if (denied) return denied
   const supabase = await createSupabaseAdminClient()
   const { conversationId, action, snoozeDays } = await req.json()
   if (!conversationId || !action) {

@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseAdminClient } from '@/lib/supabase-server'
+import { requireAdmin } from '@/lib/admin-auth'
 
 // Cierra el loop acción→resultado: registra qué pasó con un DM enviado.
 // Alimenta deals_closed → la alarma "0 DMs cerrados" + el termómetro del cockpit.
 // Gateado por el proxy del admin (mismo que /api/send-message).
 export async function POST(req: NextRequest) {
+  const denied = await requireAdmin(req)
+  if (denied) return denied
   const supabase = await createSupabaseAdminClient()
   const payload = await req.json().catch(() => ({}))
   const { business_name, contact_phone, outcome, amount, source, related_keyword } = payload

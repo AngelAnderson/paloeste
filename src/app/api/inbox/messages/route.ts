@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getConversationMessages, getInboxContact } from '@/lib/admin-queries'
 import { createSupabaseAdminClient } from '@/lib/supabase-server'
+import { requireAdmin } from '@/lib/admin-auth'
 
 export async function GET(req: NextRequest) {
+  const denied = await requireAdmin(req)
+  if (denied) return denied
   const conversationId = req.nextUrl.searchParams.get('conversationId')
   if (!conversationId) return NextResponse.json({ error: 'Missing conversationId' }, { status: 400 })
 
