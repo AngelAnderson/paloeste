@@ -4,7 +4,7 @@ export const runtime = 'nodejs'
 
 export async function POST() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+  const serviceKey = process.env.CABOROJO_CRON_SECRET || process.env.SUPABASE_SERVICE_ROLE_KEY
 
   if (!supabaseUrl || !serviceKey) {
     return NextResponse.json({ ok: false, error: 'Supabase env vars missing' }, { status: 500 })
@@ -18,7 +18,9 @@ export async function POST() {
         'Content-Type': 'application/json',
       },
     })
-    const data = await res.json()
+    const text = await res.text()
+    let data
+    try { data = JSON.parse(text) } catch { data = { ok: false, error: `admin-fix ${res.status}: ${text.slice(0, 200)}` } }
     return NextResponse.json(data, { status: res.status })
   } catch (e) {
     return NextResponse.json(
