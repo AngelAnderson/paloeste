@@ -72,6 +72,7 @@ export function OpsCard({ item }: { item: OpsItem }) {
       <div className="mt-3 flex flex-wrap items-center gap-2">
         {item.status === 'pending' && (
           <>
+            {item.kind !== 'note' && (
             <button
               onClick={() => run(approveOpsItem)}
               disabled={pending}
@@ -79,6 +80,7 @@ export function OpsCard({ item }: { item: OpsItem }) {
             >
               {pending ? 'Publicando…' : 'Publicar'}
             </button>
+            )}
             <button
               onClick={() => run(dismissOpsItem)}
               disabled={pending}
