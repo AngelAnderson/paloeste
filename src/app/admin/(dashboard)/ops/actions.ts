@@ -6,8 +6,8 @@ import { revalidatePath } from 'next/cache'
 const EXECUTOR_URL = 'https://vprjteqgmanntvisjrvp.supabase.co/functions/v1/caborojo-ops-executor'
 
 async function callExecutor(action: 'apply' | 'revert', id: string): Promise<{ ok: boolean; message: string }> {
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY
-  if (!key) return { ok: false, message: 'SUPABASE_SERVICE_ROLE_KEY missing' }
+  const key = process.env.OPS_ADMIN_KEY
+  if (!key) return { ok: false, message: 'OPS_ADMIN_KEY missing' }
   try {
     const r = await fetch(`${EXECUTOR_URL}?action=${action}&id=${encodeURIComponent(id)}`, {
       method: 'POST',
