@@ -13,7 +13,7 @@ interface OpsItem {
   status: string
   created_at: string
   payload: {
-    slug?: string; old_content?: string; new_content?: string; days_stale?: number
+    slug?: string; old_content?: string; new_content?: string; days_stale?: number; page_title?: string
     comment_id?: number; author?: string; comment_text?: string; reply_text?: string; post_title?: string; post_link?: string
   }
 }
@@ -107,6 +107,20 @@ export function OpsCard({ item }: { item: OpsItem }) {
             <div className="text-xs font-bold uppercase text-teal-700">Tu respuesta (edítala si quieres, la edición también le enseña)</div>
             <ReplyEditor id={item.id} initial={item.payload.reply_text || ''} />
           </div>
+        </div>
+      )}
+
+      {item.kind === 'page_create' && (
+        <div className="mt-3">
+          <button onClick={() => setShowDiff(!showDiff)} className="text-sm font-medium text-teal-700 underline">
+            {showDiff ? 'Cerrar preview' : 'Ver la página propuesta'}
+          </button>
+          {showDiff && (
+            <div className="mt-2 rounded-lg border border-green-200 bg-white p-3">
+              <div className="mb-1 text-xs font-bold uppercase text-green-700">{item.payload.page_title} · /{item.payload.slug}/</div>
+              <div className="max-h-72 overflow-y-auto whitespace-pre-wrap text-xs text-gray-700">{stripBlocks(item.payload.new_content || '')}</div>
+            </div>
+          )}
         </div>
       )}
 
