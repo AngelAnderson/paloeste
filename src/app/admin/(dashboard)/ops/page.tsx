@@ -1,5 +1,5 @@
 import { createSupabaseAdminClient } from '@/lib/supabase-server'
-import { OpsCard } from './ops-card'
+import { OpsCard, TeachBox } from './ops-card'
 
 export const dynamic = 'force-dynamic'
 
@@ -27,6 +27,8 @@ export default async function OpsPage() {
           Nada esperando tu dale. El executor corre todas las noches a las 6:30am.
         </div>
       )}
+
+      <TeachBox />
 
       {recent && recent.length > 0 && (
         <div>

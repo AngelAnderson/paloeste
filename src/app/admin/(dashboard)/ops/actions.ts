@@ -69,6 +69,35 @@ export async function revertOpsItem(id: string) {
   return res
 }
 
+// Memoria manual: Angel le enseña una lección directa al agente.
+export async function teachLesson(lesson: string) {
+  const clean = lesson.trim().slice(0, 500)
+  if (!clean) return { ok: false, message: 'Escribe la lección primero.' }
+  const supabase = await createSupabaseAdminClient()
+  const { error } = await supabase.from('ops_agent_memory').insert({ lesson: clean, source: 'manual' })
+  revalidatePath('/admin/ops')
+  return { ok: !error, message: error ? error.message : 'Aprendida. Entra al prompt de la próxima corrida.' }
+}
+
+// Editar el texto de una respuesta antes de publicarla (la edición también enseña).
+export async function editReplyText(id: string, newText: string) {
+  const clean = newText.trim()
+  if (!clean) return { ok: false, message: 'La respuesta no puede quedar vacía.' }
+  const supabase = await createSupabaseAdminClient()
+  const { data: item } = await supabase.from('ops_queue').select('payload, status').eq('id', id).single()
+  if (!item || item.status !== 'pending') return { ok: false, message: 'Item no editable.' }
+  const original = item.payload.reply_text
+  const { error } = await supabase.from('ops_queue').update({ payload: { ...item.payload, reply_text: clean } }).eq('id', id)
+  if (!error && original && original !== clean) {
+    await supabase.from('ops_agent_memory').insert({
+      lesson: `Angel editó una respuesta a vecino. Original: "${String(original).slice(0, 150)}" → Suya: "${clean.slice(0, 150)}". Imitar su versión.`,
+      source: 'manual',
+    })
+  }
+  revalidatePath('/admin/ops')
+  return { ok: !error, message: error ? error.message : 'Editada.' }
+}
+
 export async function dismissOpsItem(id: string) {
   const item = await getItemKind(id)
   const supabase = await createSupabaseAdminClient()
