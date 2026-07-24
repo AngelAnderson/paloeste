@@ -1,5 +1,5 @@
-import Link from 'next/link'
 import { getAllDocs } from '@/lib/docs'
+import { DocsList } from './docs-list'
 
 export const dynamic = 'force-dynamic'
 
@@ -10,26 +10,10 @@ export default function DocsPage() {
     <div className="space-y-4 max-w-3xl">
       <div>
         <h1 className="text-2xl font-bold text-white">Tutoriales</h1>
-        <p className="text-[#94a3b8] text-sm mt-1">Guias para usar el Command Center</p>
+        <p className="text-[#94a3b8] text-sm mt-1">Guías para usar el Command Center · {docs.length} disponibles</p>
       </div>
 
-      <div className="space-y-2">
-        {docs.map(doc => (
-          <Link
-            key={doc.slug}
-            href={`/admin/docs/${doc.slug}`}
-            className="block bg-[#1e293b] border border-[#334155] rounded-xl p-4 hover:border-[#38bdf8] transition-colors"
-          >
-            <div className="flex items-center gap-3">
-              <span className="text-2xl">{doc.emoji}</span>
-              <div>
-                <p className="text-white font-medium text-sm">{doc.title}</p>
-                <p className="text-[#64748b] text-xs mt-0.5">Tutorial {doc.order}</p>
-              </div>
-            </div>
-          </Link>
-        ))}
-      </div>
+      <DocsList docs={docs} />
     </div>
   )
 }
