@@ -20,14 +20,21 @@ export async function POST(req: NextRequest) {
   // Note: same contact may have separate WA + SMS conversations. We pick the one matching
   // the requested channel; if downgrade fires later, we re-find/create one for the new channel.
   let conversationId: string
-  const { data: existing } = await supabase
+  // 2026-07-27: las conversaciones de WhatsApp guardan contact = 'whatsapp:+1...';
+  // buscar solo el número pelado nunca las encontraba, el route creaba una
+  // conversación nueva sin inbound y TODO WA se degradaba a SMS ("Sin mensajes
+  // inbound previos"). Se buscan ambas formas y gana la del canal pedido.
+  const { data: convCandidates } = await supabase
     .from('conversations')
-    .select('id, contact, channel')
-    .eq('contact', phoneE164)
+    .select('id, contact, channel, last_message_at')
+    .in('contact', [phoneE164, `whatsapp:${phoneE164}`])
     .eq('line', '7711')
     .order('last_message_at', { ascending: false })
-    .limit(1)
-    .single()
+    .limit(5)
+  const requestedChannel = channel === 'whatsapp' ? 'whatsapp' : 'sms'
+  const existing = (convCandidates || []).find((c: any) => c.channel === requestedChannel)
+    || (convCandidates || [])[0]
+    || null
 
   if (existing) {
     conversationId = existing.id
@@ -121,13 +128,17 @@ export async function POST(req: NextRequest) {
   // If the conversation we picked was a different channel than effectiveChannel, the FK
   // on messages will fail. Find/create a conversation matching the post-fallback channel.
   if (existing && existing.channel !== effectiveChannel) {
-    const { data: matchingConv } = await supabase
+    // Mismo gotcha del prefijo: la conversación WA vive con contact='whatsapp:+1...'.
+    const contactForms = [phoneE164, `whatsapp:${phoneE164}`]
+    const { data: matchingConvs } = await supabase
       .from('conversations')
       .select('id')
-      .eq('contact', phoneE164)
+      .in('contact', contactForms)
       .eq('channel', effectiveChannel)
       .eq('line', '7711')
-      .maybeSingle()
+      .order('last_message_at', { ascending: false })
+      .limit(1)
+    const matchingConv = (matchingConvs || [])[0] || null
 
     if (matchingConv?.id) {
       conversationId = matchingConv.id
