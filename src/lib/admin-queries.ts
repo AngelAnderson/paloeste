@@ -442,13 +442,18 @@ export async function updateConversationStatus(conversationId: string, status: s
 
 // === Vitrina / Revenue Co-Pilot Queries ===
 
+// El token vive en place_secrets, no en places. places le da SELECT a `anon` en TODAS
+// sus columnas y la llave anon viaja en el JS del sitio, asi que un secreto guardado
+// ahi es un secreto publicado: cualquiera cosechaba los 34,376 tokens y entraba al
+// reporte privado de cualquier sponsor. place_secrets tiene RLS deny-all (service_role
+// solamente). Los valores se copiaron tal cual, asi que los links viejos siguen validos.
 export async function getVitrinaToken(placeId: string): Promise<string | null> {
   const supabase = await createSupabaseAdminClient()
   const { data, error } = await supabase
-    .from('places')
+    .from('place_secrets')
     .select('vitrina_token')
-    .eq('id', placeId)
-    .single()
+    .eq('place_id', placeId)
+    .maybeSingle()
   if (error) return null
   return data?.vitrina_token || null
 }
@@ -457,11 +462,17 @@ export async function getPlaceBySlugWithToken(slug: string): Promise<{ id: strin
   const supabase = await createSupabaseAdminClient()
   const { data, error } = await supabase
     .from('places')
-    .select('id, name, slug, category, hero_image_url, phone, website, description, plan, sponsor_weight, google_rating, google_review_count, opening_hours, one_liner, vitrina_token')
+    .select('id, name, slug, category, hero_image_url, phone, website, description, plan, sponsor_weight, google_rating, google_review_count, opening_hours, one_liner')
     .eq('slug', slug)
     .single()
-  if (error) return null
-  return data
+  if (error || !data) return null
+  // El token se busca aparte (ver getVitrinaToken): ya no vive en places.
+  const { data: secret } = await supabase
+    .from('place_secrets')
+    .select('vitrina_token')
+    .eq('place_id', data.id)
+    .maybeSingle()
+  return { ...data, vitrina_token: secret?.vitrina_token ?? null }
 }
 
 export async function getSponsorLeadsWeekly(placeId: string, weeks = 12): Promise<{ week_start: string; lead_count: number }[]> {

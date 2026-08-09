@@ -26,13 +26,16 @@ export default async function AdminDashboard() {
   const sponsorMeta: Record<string, { token: string; slug: string; phone: string | null }> = {}
   if (sponsors.length > 0) {
     const supabase = await createSupabaseAdminClient()
-    const { data: sponsorRows } = await supabase
-      .from('places')
-      .select('id, slug, vitrina_token, phone')
-      .in('id', sponsors.map(s => s.place_id))
+    const sponsorIds = sponsors.map(s => s.place_id)
+    // El token vive en place_secrets (RLS deny-all), no en places, que es publica.
+    const [{ data: sponsorRows }, { data: secretRows }] = await Promise.all([
+      supabase.from('places').select('id, slug, phone').in('id', sponsorIds),
+      supabase.from('place_secrets').select('place_id, vitrina_token').in('place_id', sponsorIds),
+    ])
+    const tokenByPlace = new Map((secretRows || []).map(r => [r.place_id, r.vitrina_token]))
     for (const row of sponsorRows || []) {
       if (row.slug) {
-        sponsorMeta[row.id] = { token: row.vitrina_token || '', slug: row.slug, phone: row.phone || null }
+        sponsorMeta[row.id] = { token: tokenByPlace.get(row.id) || '', slug: row.slug, phone: row.phone || null }
       }
     }
   }
