@@ -5,7 +5,7 @@ import { createClient } from '@supabase/supabase-js'
 // (not frozen at build time when the query may return 0 results)
 export const dynamic = 'force-dynamic'
 
-const BASE_URL = 'https://paloeste.com'
+const BASE_URL = 'https://www.paloeste.com'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Use service role key to bypass RLS and get all published places.

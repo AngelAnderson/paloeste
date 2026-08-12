@@ -3,7 +3,7 @@ import { CategoryInfo } from "./types";
 export const SITE_NAME = "Pal Oeste";
 export const SITE_DESCRIPTION =
   "Tu guía real del oeste de Puerto Rico. Negocios, cultura, música y turismo.";
-export const SITE_URL = "https://paloeste.com";
+export const SITE_URL = "https://www.paloeste.com";
 
 export const WEST_PR_CENTER = { lat: 18.0865, lng: -67.1457 };
 

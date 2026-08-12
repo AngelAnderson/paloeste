@@ -6,6 +6,6 @@ export default function robots(): MetadataRoute.Robots {
       userAgent: '*',
       allow: '/',
     },
-    sitemap: 'https://paloeste.com/sitemap.xml',
+    sitemap: 'https://www.paloeste.com/sitemap.xml',
   }
 }

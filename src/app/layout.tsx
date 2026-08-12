@@ -31,6 +31,9 @@ export const metadata: Metadata = {
   },
   description: SITE_DESCRIPTION,
   metadataBase: new URL(SITE_URL),
+  alternates: {
+    canonical: "./",
+  },
   openGraph: {
     type: "website",
     locale: "es_PR",
@@ -137,8 +140,8 @@ function JsonLd() {
     "@graph": [
       {
         "@type": "WebSite",
-        "@id": "https://paloeste.com/#website",
-        url: "https://paloeste.com",
+        "@id": "https://www.paloeste.com/#website",
+        url: "https://www.paloeste.com",
         name: "Pal Oeste",
         description: "Tu guia real del oeste de Puerto Rico. Negocios, cultura, musica y turismo.",
         inLanguage: "es-PR",
@@ -146,21 +149,22 @@ function JsonLd() {
           "@type": "SearchAction",
           target: {
             "@type": "EntryPoint",
-            urlTemplate: "https://paloeste.com/directorio?q={search_term_string}",
+            urlTemplate: "https://www.paloeste.com/directorio?q={search_term_string}",
           },
           "query-input": "required name=search_term_string",
         },
       },
       {
         "@type": "Organization",
-        "@id": "https://paloeste.com/#organization",
+        "@id": "https://www.paloeste.com/#organization",
         name: "PalOeste / CaboRojo.com",
-        url: "https://paloeste.com",
+        url: "https://www.paloeste.com",
         logo: {
           "@type": "ImageObject",
-          url: "https://paloeste.com/logo-dark-text.png",
+          url: "https://www.paloeste.com/logo-dark-text.png",
         },
-        sameAs: ["https://caborojo.com"],
+        parentOrganization: { "@id": "https://caborojo.com/#org" },
+        founder: { "@id": "https://www.angelanderson.com/#angel" },
         contactPoint: {
           "@type": "ContactPoint",
           telephone: "+1-787-417-7711",
@@ -171,6 +175,36 @@ function JsonLd() {
           "@type": "Place",
           name: "Cabo Rojo, Puerto Rico",
         },
+      },
+      {
+        "@type": "Organization",
+        "@id": "https://caborojo.com/#org",
+        name: "Caborojo.com",
+        url: "https://caborojo.com",
+        founder: { "@id": "https://www.angelanderson.com/#angel" },
+        sameAs: [
+          "https://www.facebook.com/caborojoweb",
+          "https://www.youtube.com/c/Caborojo",
+        ],
+        subOrganization: [
+          { "@type": "Organization", "@id": "https://www.mapadecaborojo.com/#org" },
+          { "@type": "Organization", "@id": "https://registromedicopr.com/#org" },
+          { "@type": "Organization", "@id": "https://puertoricosinfiltros.com/#org" },
+          { "@type": "Organization", "@id": "https://loquehayhoy.com/#org" },
+        ],
+      },
+      {
+        "@type": "Person",
+        "@id": "https://www.angelanderson.com/#angel",
+        name: "Angel F. Anderson",
+        url: "https://www.angelanderson.com",
+        sameAs: [
+          "https://www.linkedin.com/in/angelfanderson",
+          "https://x.com/angelfanderson",
+          "https://www.instagram.com/angelfanderson",
+          "https://www.facebook.com/angelfanderson",
+          "https://www.youtube.com/@AngelAnderson",
+        ],
       },
     ],
   };
