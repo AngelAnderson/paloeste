@@ -15,16 +15,28 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   )
 
+  // Scope de marca: Pal Oeste = el oeste. Sin este filtro, filas NPPES isla-completa
+  // (San Juan, Ponce...) se comían el 43.6% del sitemap. Misma lista canónica que el monolito.
+  const OESTE_MUNIS = ['Cabo Rojo', 'Mayagüez', 'San Germán', 'Sabana Grande', 'Añasco', 'Aguada', 'Aguadilla', 'Moca', 'San Sebastián', 'Lajas', 'Hormigueros', 'Las Marías', 'Maricao', 'Rincón', 'Isabela', 'Camuy', 'Quebradillas', 'Guánica', 'Yauco']
+
   // Fetch all published places regardless of status (open/closed).
-  // Removing the status filter increases coverage from ~3,909 to ~3,920 places.
-  const { data: places } = await supabase
-    .from('places')
-    .select('slug, updated_at, category')
-    .eq('visibility', 'published')
-    .not('slug', 'is', null)
-    .neq('slug', '')
-    .order('updated_at', { ascending: false })
-    .limit(5000)
+  // PAGINADO explícito: .limit(5000) mentía — PostgREST corta en 1,000 SIN avisar y el
+  // sitemap salía con 1,000 clavadas dejando ~6,686 páginas /negocio/ del oeste invisibles.
+  const places: { slug: string; updated_at: string | null; category: string | null }[] = []
+  for (let page = 0; page < 20; page++) {
+    const { data } = await supabase
+      .from('places')
+      .select('slug, updated_at, category')
+      .eq('visibility', 'published')
+      .in('municipality', OESTE_MUNIS)
+      .not('slug', 'is', null)
+      .neq('slug', '')
+      .order('updated_at', { ascending: false })
+      .range(page * 1000, (page + 1) * 1000 - 1)
+    if (!data || data.length === 0) break
+    places.push(...data)
+    if (data.length < 1000) break
+  }
 
   const businessPages: MetadataRoute.Sitemap = (places ?? []).map((place) => ({
     url: `${BASE_URL}/negocio/${place.slug}`,
@@ -34,7 +46,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }))
 
   // Unique category pages for directory filtering
-  const categories = [...new Set((places ?? []).map((p) => p.category).filter(Boolean))]
+  const categories = [...new Set((places ?? []).map((p) => p.category).filter((c): c is string => Boolean(c)))]
   const categoryPages: MetadataRoute.Sitemap = categories.map((cat) => ({
     url: `${BASE_URL}/directorio?categoria=${encodeURIComponent(cat)}`,
     lastModified: new Date(),
