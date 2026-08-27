@@ -1,45 +1,24 @@
-# PalOeste.com
+# PalOeste
 
-**The digital magazine and business directory for western Puerto Rico.**
+**Estado: en sunset. El sitio público ya no se promociona desde mayo 2026.**
 
-Find local businesses, discover events, and support your community — all in one place. Built and run by one person, powered by AI.
+Lo que sigue vivo de este repo es el panel de administración que opera el substrato compartido (negocios, eventos, relaciones) detrás de las propiedades activas.
 
-## What's Included
+El trabajo se movió a:
 
-- **162+ local businesses** across 11 categories (restaurants, services, health, retail, and more)
-- **WhatsApp bot** — text [\*787-417-7711](https://wa.me/17874177711) and get instant business recommendations
-- **Digital magazine** with local stories, cultural routes, and a musicians directory
-- **Events calendar** — what's happening this week in the west
-- **Physical + digital editions** distributed across Cabo Rojo and surrounding towns
-- **15 active sponsors** supporting local journalism and discovery
+| | |
+|---|---|
+| [**caborojo.com**](https://www.caborojo.com) | La publicación local |
+| [**mapadecaborojo.com**](https://www.mapadecaborojo.com) | Mapa y directorio de Cabo Rojo |
+| [**registromedicopr.com**](https://registromedicopr.com/registro) | Especialistas médicos de PR pareados contra NPPES |
+| **El Veci** | Textea al **787-417-7711** ([WhatsApp](https://wa.me/17874177711)) |
 
-## For Business Owners
+El motor y las reglas de verificación viven en [MapaDeCaboRojo-v1.0](https://github.com/AngelAnderson/MapaDeCaboRojo-v1.0).
 
-Get your business in front of thousands of locals and visitors.
+## Stack
 
-| Tier | Price | What You Get |
-|------|-------|-------------|
-| Free | $0 | Basic listing in the directory and bot |
-| Basico | $299/yr | Enhanced profile + priority in bot results |
-| Pro | $699/yr | Featured placement + magazine content + analytics |
-| Enterprise | $1,200/yr | Full partnership — magazine, bot, social, events |
+Next.js · TypeScript · Supabase (Postgres + RLS) · Vercel · Twilio
 
-**Ready to get listed?** Message us on WhatsApp: [wa.me/17874177711](https://wa.me/17874177711)
+---
 
-## For Entrepreneurs
-
-Want a system like this for YOUR town? The entire platform — directory, magazine, WhatsApp bot, sponsor tiers — was built and deployed by one person using AI.
-
-If you're interested in licensing or building something similar, reach out: [wa.me/17874177711](https://wa.me/17874177711)
-
-## Live
-
-**[paloeste.com](https://paloeste.com)**
-
-## Tech Stack
-
-Next.js 16 / Supabase / Stripe / Shadcn/ui / Vercel / Twilio WhatsApp API
-
-## Built By
-
-[Angel Anderson](https://github.com/angelfanderson) — Cabo Rojo, Puerto Rico
+Hecho en Cabo Rojo por [Angel Anderson](https://angelanderson.com), una persona, con AI.
