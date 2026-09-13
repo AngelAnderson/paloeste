@@ -6,7 +6,12 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { BOT_PHONE, BOT_WHATSAPP_URL, SITE_URL, FOUNDER_SLUGS } from "@/lib/constants";
 
-export const revalidate = 3600;
+// 86400 (24h), no 3600. Esta ruta tiene 8,292 paginas y solo ~1,000 se pre-generan
+// (getAllSlugs no pagina, y en Supabase el default de 1,000 filas corta sin avisar).
+// Las otras ~7,292 se renderizan bajo demanda: con TTL de 1 hora, un crawler que barre
+// el sitemap completo costaba 8,292 invocaciones por hora. Un negocio del directorio no
+// cambia cada hora. Origen: 3 alertas de spike en Vercel, 11-13 sep 2026 (AhrefsBot).
+export const revalidate = 86400;
 
 export async function generateStaticParams() {
   try {
