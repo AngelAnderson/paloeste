@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
+import { isAdminEmail } from '@/lib/admin-emails'
 
 export default async function proxy(request: NextRequest) {
   const isAdmin = request.nextUrl.pathname.startsWith('/admin')
@@ -41,8 +42,9 @@ export default async function proxy(request: NextRequest) {
     }
   )
 
+  // Estar logueado no basta: el email tiene que estar en la allowlist (sec 29 sep 2026).
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
+  if (!user || !isAdminEmail(user.email)) {
     const url = request.nextUrl.clone()
     const target = request.nextUrl.pathname + request.nextUrl.search
     url.pathname = '/admin/login'

@@ -1,20 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { timingSafeEqual } from 'crypto'
 import { createSupabaseServerClient } from '@/lib/supabase-server'
+import { isAdminEmail } from '@/lib/admin-emails'
 
 const ADMIN_TOKEN = process.env.TAREAS_ADMIN_TOKEN || ''
 
-// Allowlist de emails admin (AUTORIZACIÓN, no solo autenticación). Estar logueado en
-// Supabase NO basta: si los signups del proyecto están abiertos, cualquiera podría
-// auto-registrarse. El email del usuario tiene que estar en esta lista.
-// El default incluye a Angel para que el deploy no lo lockee aunque el env no esté puesto.
-// Añade más (ej. Noelia) vía env: ADMIN_EMAILS="angel@angelanderson.com,noelia@...".
-const DEFAULT_ADMIN_EMAILS = ['angel@angelanderson.com']
-const ADMIN_EMAILS = new Set(
-  [...DEFAULT_ADMIN_EMAILS, ...(process.env.ADMIN_EMAILS || '').split(',')]
-    .map((e) => e.trim().toLowerCase())
-    .filter(Boolean)
-)
+// Allowlist de emails admin (AUTORIZACIÓN, no solo autenticación): vive en admin-emails.ts
+// para que el proxy de /admin use la misma lista. Estar logueado en Supabase NO basta.
 
 function safeEq(a: string, b: string): boolean {
   if (!a || !b || a.length !== b.length) return false
@@ -42,7 +34,7 @@ export async function requireAdmin(req: NextRequest): Promise<NextResponse | nul
     const supabase = await createSupabaseServerClient()
     const { data, error } = await supabase.auth.getUser()
     const email = data?.user?.email?.toLowerCase()
-    if (!error && email && ADMIN_EMAILS.has(email)) return null
+    if (!error && isAdminEmail(email)) return null
   } catch {
     /* cae al 401 */
   }

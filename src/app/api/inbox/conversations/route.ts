@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getInboxConversations } from '@/lib/admin-queries'
+import { requireAdmin } from '@/lib/admin-auth'
 
 export async function GET(req: NextRequest) {
+  const denied = await requireAdmin(req)
+  if (denied) return denied
   const params = req.nextUrl.searchParams
   const conversations = await getInboxConversations({
     needsHuman: params.get('needsHuman') === '1' || undefined,
