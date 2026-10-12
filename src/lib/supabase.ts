@@ -31,12 +31,18 @@ export const supabase = new Proxy({} as ReturnType<typeof createClient>, {
   },
 });
 
+// 12 oct 2026: nunca select("*") en places: arrastra el embedding de 768 dims y costaba
+// ~3.4 h de base de datos al día (382-917 ms por llamada). Si una página necesita otra
+// columna, añádela aquí.
+const PLACE_COLUMNS =
+  "id,name,slug,description,category,subcategory,tags,address,gmaps_url,hero_image_url,image_url,phone,website,municipality,municipality_id,status,plan,sponsor_weight,is_featured,price_level,vibe,is_verified,verified_at,one_liner,local_tip,angel_rating,google_rating,google_review_count,quality_tier,opening_hours,lat,lon,visibility,created_at,updated_at";
+
 export async function getPlaces(category?: string): Promise<Place[]> {
   if (!hasSupabaseConfig()) return []
 
   let query = getSupabaseClient()
     .from("places")
-    .select("*")
+    .select(PLACE_COLUMNS)
     .eq("visibility", "published")
     .neq("quality_tier", "hidden")
     .order("sponsor_weight", { ascending: false })
@@ -56,7 +62,7 @@ export async function getPlaceBySlug(slug: string): Promise<Place | null> {
 
   const { data, error } = await getSupabaseClient()
     .from("places")
-    .select("*")
+    .select(PLACE_COLUMNS)
     .eq("slug", slug)
     .eq("visibility", "published")
     .single();
@@ -70,7 +76,7 @@ export async function getFeaturedPlaces(): Promise<Place[]> {
 
   const { data, error } = await getSupabaseClient()
     .from("places")
-    .select("*")
+    .select(PLACE_COLUMNS)
     .eq("is_featured", true)
     .eq("visibility", "published")
     .neq("quality_tier", "hidden")
