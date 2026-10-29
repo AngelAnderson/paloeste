@@ -45,7 +45,7 @@ export async function generateMetadata(): Promise<Metadata> {
   }
   const cuantos = n || 35;
   return {
-    title: `Ruta Joyuda: ${cuantos} restaurantes, horario y teléfono (hoy) | CaboRojo.com`,
+    title: { absolute: `Ruta Joyuda: ${cuantos} restaurantes, horario y teléfono (hoy) | CaboRojo.com` },
     description: `Qué está abierto hoy en Joyuda, Cabo Rojo: ${cuantos} restaurantes con teléfono, horario, precio y cómo llegar. Dinos cuántos son y qué les gusta y te damos 3 opciones.`,
     alternates: { canonical: `${SITE_URL}${RECORD}` },
   };
