@@ -161,26 +161,3 @@ export async function getAllSlugs(): Promise<string[]> {
   return ((data || []) as { slug?: string }[]).map((p) => p.slug).filter(Boolean) as string[];
 }
 
-// Ruta Joyuda (29 oct 2026): restaurantes con el tag 'ruta-joyuda-2026', orden por km de la carr. 102.
-export const RUTA_JOYUDA_TAG = "ruta-joyuda-2026";
-
-export async function getRutaJoyuda(): Promise<Place[]> {
-  if (!hasSupabaseConfig()) return []
-
-  const { data, error } = await getSupabaseClient()
-    .from("places")
-    .select(PLACE_COLUMNS)
-    .eq("visibility", "published")
-    .eq("status", "open")
-    .contains("tags", [RUTA_JOYUDA_TAG])
-    .order("name")
-    .range(0, 999);
-
-  if (error) throw error;
-  const places = (data as unknown as Place[]) || [];
-  const km = (p: Place) => {
-    const v = Number(p.amenities?.km_102);
-    return Number.isFinite(v) && p.amenities?.km_102 != null ? v : Infinity;
-  };
-  return places.sort((a, b) => km(a) - km(b));
-}

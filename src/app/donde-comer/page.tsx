@@ -17,7 +17,7 @@ const ZONES: { name: string; description: string; highlights: string; href?: str
     name: "Joyuda, Cabo Rojo",
     description: "Más de 30 restaurantes frente al mar, con teléfono y horario. Dinos cuántos son y qué les gusta y te damos 3 opciones abiertas ahora.",
     highlights: "Ver la Ruta Joyuda →",
-    href: "/ruta-joyuda",
+    href: "https://www.mapadecaborojo.com/ruta-joyuda",
   },
   {
     name: "Boquerón",

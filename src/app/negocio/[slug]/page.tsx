@@ -233,12 +233,12 @@ export default async function BusinessPage({
         )}
 
         {enRutaJoyuda && (
-          <Link
-            href="/ruta-joyuda"
+          <a
+            href="https://www.mapadecaborojo.com/ruta-joyuda"
             className="inline-flex min-h-12 items-center rounded-full bg-[#1B4B5A] px-5 text-base font-bold text-white no-underline"
           >
             Ver toda la Ruta Joyuda
-          </Link>
+          </a>
         )}
 
         {/* Tags */}

@@ -19,6 +19,12 @@ const nextConfig: NextConfig = {
         permanent: true,
       },
       {
+        // 29 oct 2026: "¿Dónde comemos hoy?" vive en el Mapa (única copia).
+        source: "/ruta-joyuda",
+        destination: "https://www.mapadecaborojo.com/ruta-joyuda",
+        permanent: true,
+      },
+      {
         source: "/admin/municipio",
         destination: "https://www.mapadecaborojo.com/admin/municipio",
         permanent: false,
