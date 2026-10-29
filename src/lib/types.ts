@@ -50,6 +50,22 @@ export interface Place {
   lat?: number;
   lon?: number;
   created_at?: string;
+  amenities?: Record<string, unknown> & {
+    km_102?: number;
+    parking?: unknown;
+    platos?: Plato[];
+  };
+  barrio?: string;
+  last_verified_at?: string | null;
+  verification_source?: string | null;
+}
+
+export interface Plato {
+  nombre: string;
+  precio?: number | null;
+  fuente?: string | null;
+  visto_el?: string | null;
+  verificado?: boolean | null;
 }
 
 export interface Event {

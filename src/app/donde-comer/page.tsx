@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import Link from "next/link";
 import { PlaceCard } from "@/components/place-card";
 import { getPlaces } from "@/lib/supabase";
 import type { Place } from "@/lib/types";
@@ -11,11 +12,12 @@ export const metadata: Metadata = {
     "Los mejores restaurantes, cafés, chinchorros y food trucks del oeste de Puerto Rico. Joyuda, Boquerón, Cabo Rojo y más.",
 };
 
-const ZONES = [
+const ZONES: { name: string; description: string; highlights: string; href?: string }[] = [
   {
     name: "Joyuda, Cabo Rojo",
-    description: "15+ restaurantes frente al mar. Mariscos frescos, mofongo, vista al atardecer.",
-    highlights: "Vista Bahía · El Bohío · Puesta del Sol",
+    description: "Más de 30 restaurantes frente al mar, con teléfono y horario. Dinos cuántos son y qué les gusta y te damos 3 opciones abiertas ahora.",
+    highlights: "Ver la Ruta Joyuda →",
+    href: "/ruta-joyuda",
   },
   {
     name: "Boquerón",
@@ -50,16 +52,25 @@ export default async function DondeComerPage() {
 
       {/* Zones */}
       <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {ZONES.map((zone) => (
-          <div
-            key={zone.name}
-            className="p-5 rounded-xl bg-[#FAFAF7] border border-po-border shadow-sm space-y-2"
-          >
-            <h3 className="font-bold text-stone-900">{zone.name}</h3>
-            <p className="text-sm text-stone-500">{zone.description}</p>
-            <p className="text-xs text-red-600 font-medium">{zone.highlights}</p>
-          </div>
-        ))}
+        {ZONES.map((zone) => {
+          const card = (
+            <>
+              <h3 className="font-bold text-stone-900">{zone.name}</h3>
+              <p className="text-base text-stone-600">{zone.description}</p>
+              <p className="text-base text-red-700 font-bold">{zone.highlights}</p>
+            </>
+          );
+          const cls = "p-5 rounded-xl bg-[#FAFAF7] border border-po-border shadow-sm space-y-2";
+          return zone.href ? (
+            <Link key={zone.name} href={zone.href} className={`${cls} block no-underline min-h-12`}>
+              {card}
+            </Link>
+          ) : (
+            <div key={zone.name} className={cls}>
+              {card}
+            </div>
+          );
+        })}
       </section>
 
       {/* Restaurant Grid */}

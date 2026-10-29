@@ -35,7 +35,7 @@ export const supabase = new Proxy({} as ReturnType<typeof createClient>, {
 // ~3.4 h de base de datos al día (382-917 ms por llamada). Si una página necesita otra
 // columna, añádela aquí.
 const PLACE_COLUMNS =
-  "id,name,slug,description,category,subcategory,tags,address,gmaps_url,hero_image_url,image_url,phone,website,municipality,municipality_id,status,plan,sponsor_weight,is_featured,price_level,vibe,is_verified,verified_at,one_liner,local_tip,angel_rating,google_rating,google_review_count,quality_tier,opening_hours,lat,lon,visibility,created_at,updated_at";
+  "id,name,slug,description,category,subcategory,tags,address,gmaps_url,hero_image_url,image_url,phone,website,municipality,municipality_id,status,plan,sponsor_weight,is_featured,price_level,vibe,is_verified,verified_at,one_liner,local_tip,angel_rating,google_rating,google_review_count,quality_tier,opening_hours,lat,lon,visibility,created_at,updated_at,amenities,barrio,last_verified_at,verification_source";
 
 export async function getPlaces(category?: string): Promise<Place[]> {
   if (!hasSupabaseConfig()) return []
@@ -159,4 +159,28 @@ export async function getAllSlugs(): Promise<string[]> {
 
   if (error) throw error;
   return ((data || []) as { slug?: string }[]).map((p) => p.slug).filter(Boolean) as string[];
+}
+
+// Ruta Joyuda (29 oct 2026): restaurantes con el tag 'ruta-joyuda-2026', orden por km de la carr. 102.
+export const RUTA_JOYUDA_TAG = "ruta-joyuda-2026";
+
+export async function getRutaJoyuda(): Promise<Place[]> {
+  if (!hasSupabaseConfig()) return []
+
+  const { data, error } = await getSupabaseClient()
+    .from("places")
+    .select(PLACE_COLUMNS)
+    .eq("visibility", "published")
+    .eq("status", "open")
+    .contains("tags", [RUTA_JOYUDA_TAG])
+    .order("name")
+    .range(0, 999);
+
+  if (error) throw error;
+  const places = (data as unknown as Place[]) || [];
+  const km = (p: Place) => {
+    const v = Number(p.amenities?.km_102);
+    return Number.isFinite(v) && p.amenities?.km_102 != null ? v : Infinity;
+  };
+  return places.sort((a, b) => km(a) - km(b));
 }

@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { getPlaceBySlug, getAllSlugs } from "@/lib/supabase";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Rastreo } from "@/components/rastreo";
 import { BOT_PHONE, BOT_WHATSAPP_URL, SITE_URL, FOUNDER_SLUGS } from "@/lib/constants";
 
 // 86400 (24h), no 3600. Esta ruta tiene 8,292 paginas y solo ~1,000 se pre-generan
@@ -99,10 +100,13 @@ export default async function BusinessPage({
 
   const isSponsor = place.is_featured || place.plan !== "free";
   const isFounder = FOUNDER_SLUGS.includes(place.slug);
+  const enRutaJoyuda = (place.tags || []).includes("ruta-joyuda-2026");
+  const record = `/negocio/${place.slug}`;
 
   return (
     <>
       <JsonLd place={place} />
+      <Rastreo record={record} />
       <article className="max-w-3xl mx-auto px-4 py-8 space-y-8">
         {/* Header */}
         {place.hero_image_url && (
@@ -186,6 +190,8 @@ export default async function BusinessPage({
                 <a
                   href={`tel:${place.phone}`}
                   className="text-red-600 font-bold hover:text-red-700"
+                  data-ev="click_to_call"
+                  data-target={`tel:${place.phone}`.slice(0, 190)}
                 >
                   {place.phone}
                 </a>
@@ -205,6 +211,8 @@ export default async function BusinessPage({
             <Link
               href={place.gmaps_url}
               target="_blank"
+              data-ev="directions_click"
+              data-target={place.gmaps_url.slice(0, 190)}
               className="inline-block text-sm text-blue-600 hover:text-blue-700"
             >
               Abrir en Google Maps →
@@ -224,10 +232,19 @@ export default async function BusinessPage({
           </section>
         )}
 
+        {enRutaJoyuda && (
+          <Link
+            href="/ruta-joyuda"
+            className="inline-flex min-h-12 items-center rounded-full bg-[#1B4B5A] px-5 text-base font-bold text-white no-underline"
+          >
+            Ver los 35 de la Ruta Joyuda
+          </Link>
+        )}
+
         {/* Tags */}
         {place.tags && place.tags.length > 0 && (
           <div className="flex flex-wrap gap-2">
-            {place.tags.map((tag) => (
+            {place.tags.filter((t) => t !== "ruta-joyuda-2026").map((tag) => (
               <Badge
                 key={tag}
                 variant="outline"
@@ -271,6 +288,8 @@ export default async function BusinessPage({
           <Link
             href={`${BOT_WHATSAPP_URL}?text=${encodeURIComponent(`info ${place.name}`)}`}
             target="_blank"
+            data-ev="veci_click"
+            data-target={`wa.me/17874177711?text=info`}
             className="inline-block bg-green-600 hover:bg-green-700 text-white font-bold px-6 py-2 rounded-full transition-colors text-sm"
           >
             📱 Preguntar en *{BOT_PHONE}
