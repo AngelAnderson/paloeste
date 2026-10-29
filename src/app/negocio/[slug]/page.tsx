@@ -237,7 +237,7 @@ export default async function BusinessPage({
             href="/ruta-joyuda"
             className="inline-flex min-h-12 items-center rounded-full bg-[#1B4B5A] px-5 text-base font-bold text-white no-underline"
           >
-            Ver los 35 de la Ruta Joyuda
+            Ver toda la Ruta Joyuda
           </Link>
         )}
 
