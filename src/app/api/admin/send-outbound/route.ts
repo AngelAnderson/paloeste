@@ -2,19 +2,59 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseAdminClient } from '@/lib/supabase-server'
 import { requireAdmin } from '@/lib/admin-auth'
 
+// 30 oct 2026: el primer mensaje a quien no ha escrito sale con esta plantilla de WhatsApp, o no
+// sale. TWILIO_WA_PLANTILLA_SID solo se pone cuando Meta la aprueba. Nunca cae a SMS en frío.
+const textoDePlantilla = (nombre: string) =>
+  `Saludos ${nombre}, soy Angel Anderson, de CaboRojo.com. Quiero cuadrar algo contigo. ¿Te puedo escribir por aquí?`
+
 export async function POST(req: NextRequest) {
   const denied = await requireAdmin(req)
   if (denied) return denied
   const supabase = await createSupabaseAdminClient()
-  const { to, body, channel = 'sms' } = await req.json()
+  const { to, body: textoEscrito, channel = 'whatsapp', name } = await req.json()
 
-  if (!to || !body) {
+  if (!to || !textoEscrito) {
     return NextResponse.json({ error: 'Missing to or body' }, { status: 400 })
   }
 
   // Normalize phone to E.164
   const phone = to.replace(/[^+\d]/g, '')
   const phoneE164 = phone.startsWith('+') ? phone : `+1${phone}`
+  const contactForms = [phoneE164, `whatsapp:${phoneE164}`]
+  const contactDelCanal = channel === 'whatsapp' ? `whatsapp:${phoneE164}` : phoneE164
+
+  const { data: lastInbound } = await supabase
+    .from('messages')
+    .select('created_at, channel')
+    .in('from', contactForms)
+    .eq('direction', 'inbound')
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  if (channel !== 'whatsapp' && !lastInbound) {
+    return NextResponse.json({
+      error: 'Esta persona nunca le ha escrito al 7711. No salió nada. Usa WhatsApp para enviarle la plantilla.',
+    }, { status: 409 })
+  }
+
+  const ventanaAbierta = !!lastInbound
+    && lastInbound.channel === 'whatsapp'
+    && Date.now() - new Date(lastInbound.created_at).getTime() < 24 * 60 * 60 * 1000
+  const usaPlantilla = channel === 'whatsapp' && !ventanaAbierta
+  const plantillaSid = process.env.TWILIO_WA_PLANTILLA_SID
+  const nombre = typeof name === 'string' ? name.trim().split(/\s+/)[0] : ''
+
+  if (usaPlantilla && !plantillaSid) {
+    return NextResponse.json({
+      error: 'La plantilla de WhatsApp todavía no está aprobada. No salió nada.',
+    }, { status: 409 })
+  }
+  if (usaPlantilla && !nombre) {
+    return NextResponse.json({ error: 'Falta el nombre para la plantilla.' }, { status: 400 })
+  }
+
+  const body: string = usaPlantilla ? textoDePlantilla(nombre) : textoEscrito
 
   // Find or create conversation
   // Note: same contact may have separate WA + SMS conversations. We pick the one matching
@@ -27,7 +67,7 @@ export async function POST(req: NextRequest) {
   const { data: convCandidates } = await supabase
     .from('conversations')
     .select('id, contact, channel, last_message_at')
-    .in('contact', [phoneE164, `whatsapp:${phoneE164}`])
+    .in('contact', contactForms)
     .eq('line', '7711')
     .order('last_message_at', { ascending: false })
     .limit(5)
@@ -65,7 +105,8 @@ export async function POST(req: NextRequest) {
     const { data: newConvo, error: convoErr } = await supabase
       .from('conversations')
       .insert({
-        contact: phoneE164,
+        // Con el prefijo del canal: así el webhook encuentra esta conversación cuando contesten.
+        contact: contactDelCanal,
         contact_id: contactId,
         channel: channel === 'whatsapp' ? 'whatsapp' : 'sms',
         line: '7711',
@@ -91,45 +132,15 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Twilio credentials not configured' }, { status: 500 })
   }
 
-  // Apr 28 2026 fix: WA messages outside the 24h session window fail with Twilio 63016.
-  // Check the most recent inbound from this contact; if >24h, downgrade WA → SMS automatically
-  // and surface the fallback in the response so the UI can show a toast.
-  let effectiveChannel: 'sms' | 'whatsapp' = channel === 'whatsapp' ? 'whatsapp' : 'sms'
-  let fallbackReason: string | null = null
-
-  if (effectiveChannel === 'whatsapp') {
-    const { data: lastInbound } = await supabase
-      .from('messages')
-      .select('created_at')
-      .eq('conversation_id', conversationId)
-      .eq('direction', 'inbound')
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .maybeSingle()
-
-    if (lastInbound?.created_at) {
-      const ageMs = Date.now() - new Date(lastInbound.created_at).getTime()
-      if (ageMs > 24 * 60 * 60 * 1000) {
-        effectiveChannel = 'sms'
-        const days = Math.floor(ageMs / (24 * 60 * 60 * 1000))
-        fallbackReason = `Ventana de WhatsApp cerrada (último inbound hace ${days}d). Enviado por SMS.`
-      }
-    } else {
-      // No prior inbound at all → window never opened → SMS-only
-      effectiveChannel = 'sms'
-      fallbackReason = 'Sin mensajes inbound previos. Enviado por SMS.'
-    }
-  }
-
+  const effectiveChannel: 'sms' | 'whatsapp' = channel === 'whatsapp' ? 'whatsapp' : 'sms'
   const isWhatsApp = effectiveChannel === 'whatsapp'
   const fromNumber = isWhatsApp ? `whatsapp:${botNumber}` : botNumber
   const toNumber = isWhatsApp ? `whatsapp:${phoneE164}` : phoneE164
 
   // If the conversation we picked was a different channel than effectiveChannel, the FK
-  // on messages will fail. Find/create a conversation matching the post-fallback channel.
+  // on messages will fail. Find/create a conversation matching the channel.
   if (existing && existing.channel !== effectiveChannel) {
     // Mismo gotcha del prefijo: la conversación WA vive con contact='whatsapp:+1...'.
-    const contactForms = [phoneE164, `whatsapp:${phoneE164}`]
     const { data: matchingConvs } = await supabase
       .from('conversations')
       .select('id')
@@ -151,7 +162,7 @@ export async function POST(req: NextRequest) {
       const { data: newConv, error: newConvErr } = await supabase
         .from('conversations')
         .insert({
-          contact: phoneE164,
+          contact: contactDelCanal,
           contact_id: waConv?.contact_id ?? null,
           channel: effectiveChannel,
           line: '7711',
@@ -173,7 +184,12 @@ export async function POST(req: NextRequest) {
     const params = new URLSearchParams()
     params.set('From', sendFrom)
     params.set('To', sendTo)
-    params.set('Body', body)
+    if (usaPlantilla) {
+      params.set('ContentSid', plantillaSid!)
+      params.set('ContentVariables', JSON.stringify({ 1: nombre }))
+    } else {
+      params.set('Body', body)
+    }
     return fetch(
       `https://api.twilio.com/2010-04-01/Accounts/${twilioSid}/Messages.json`,
       {
@@ -187,18 +203,7 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  let twilioRes = await sendViaTwilio(fromNumber, toNumber)
-
-  // Late fallback: if WA still fails with 63016/63017 (outside-window codes), retry via SMS
-  if (!twilioRes.ok && isWhatsApp) {
-    const errData = await twilioRes.clone().json().catch(() => ({}))
-    const twErrCode = errData?.code
-    if (twErrCode === 63016 || twErrCode === 63017) {
-      effectiveChannel = 'sms'
-      fallbackReason = `WhatsApp rechazado (código ${twErrCode}). Reintentado por SMS.`
-      twilioRes = await sendViaTwilio(botNumber, phoneE164)
-    }
-  }
+  const twilioRes = await sendViaTwilio(fromNumber, toNumber)
 
   if (!twilioRes.ok) {
     const errData = await twilioRes.json().catch(() => ({}))
@@ -214,19 +219,14 @@ export async function POST(req: NextRequest) {
 
   const twilioData = await twilioRes.json()
 
-  // Use post-fallback channel for log + response (effectiveChannel may have flipped)
-  const finalIsWhatsApp = effectiveChannel === 'whatsapp'
-  const finalFromNumber = finalIsWhatsApp ? `whatsapp:${botNumber}` : botNumber
-  const finalToNumber = finalIsWhatsApp ? `whatsapp:${phoneE164}` : phoneE164
-
   // Log the message
   await supabase.from('messages').insert({
     conversation_id: conversationId,
     direction: 'outbound',
     body,
     channel: effectiveChannel,
-    from: finalFromNumber,
-    to: finalToNumber,
+    from: fromNumber,
+    to: toNumber,
     source: 'admin',
     intent: 'outbound_pitch',
     message_sid: twilioData.sid || null,
@@ -346,6 +346,6 @@ export async function POST(req: NextRequest) {
     prospectId,
     relationshipId: matchedRel?.id ?? null,
     channel_used: effectiveChannel,
-    fallback_reason: fallbackReason,
+    plantilla: usaPlantilla,
   })
 }

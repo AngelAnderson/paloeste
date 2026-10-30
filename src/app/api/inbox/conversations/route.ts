@@ -7,6 +7,8 @@ export async function GET(req: NextRequest) {
   if (denied) return denied
   const params = req.nextUrl.searchParams
   const conversations = await getInboxConversations({
+    id: params.get('id') || undefined,
+    attention: params.get('attention') === '1' || undefined,
     needsHuman: params.get('needsHuman') === '1' || undefined,
     channel: params.get('channel') || undefined,
     search: params.get('search') || undefined,

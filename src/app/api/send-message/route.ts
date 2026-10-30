@@ -28,26 +28,28 @@ export async function POST(req: NextRequest) {
   let effectiveChannel: 'sms' | 'whatsapp' = channel === 'whatsapp' ? 'whatsapp' : 'sms'
   let fallbackReason: string | null = null
 
-  if (effectiveChannel === 'whatsapp') {
-    const { data: lastInbound } = await supabase
-      .from('messages')
-      .select('created_at')
-      .eq('conversation_id', conversationId)
-      .eq('direction', 'inbound')
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .maybeSingle()
+  const numero = to.replace(/^whatsapp:/, '')
+  const { data: lastInbound } = await supabase
+    .from('messages')
+    .select('created_at')
+    .in('from', [numero, `whatsapp:${numero}`])
+    .eq('direction', 'inbound')
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
 
-    if (lastInbound?.created_at) {
-      const ageMs = Date.now() - new Date(lastInbound.created_at).getTime()
-      if (ageMs > 24 * 60 * 60 * 1000) {
-        effectiveChannel = 'sms'
-        const days = Math.floor(ageMs / (24 * 60 * 60 * 1000))
-        fallbackReason = `Ventana de WhatsApp cerrada (último inbound hace ${days}d). Enviado por SMS.`
-      }
-    } else {
+  // 30 oct 2026: quien nunca escribió no recibe un SMS en frío; está fuera de la campaña A2P.
+  if (!lastInbound?.created_at) {
+    return NextResponse.json({
+      error: 'Esta persona nunca le ha escrito al 7711. No salió nada; usa Mensaje nuevo para enviarle la plantilla.',
+    }, { status: 409 })
+  }
+
+  if (effectiveChannel === 'whatsapp') {
+    const ageMs = Date.now() - new Date(lastInbound.created_at).getTime()
+    if (ageMs > 24 * 60 * 60 * 1000) {
       effectiveChannel = 'sms'
-      fallbackReason = 'Sin mensajes inbound previos. Enviado por SMS.'
+      fallbackReason = 'Pasaron más de 24 horas desde su último mensaje. Salió por SMS.'
     }
   }
 

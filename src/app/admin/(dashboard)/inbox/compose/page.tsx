@@ -60,13 +60,7 @@ export default async function ComposePage({
   const contact = to ? await lookupContact(to) : null
 
   return (
-    <div className="max-w-2xl mx-auto p-6">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold mb-1">Compose</h1>
-        <p className="text-sm text-[#64748b]">Enviar desde *7711 (787-417-7711)</p>
-      </div>
-
-      <ComposeForm
+    <ComposeForm
         initialTo={contact?.phoneE164 || to}
         initialBody={initialBody}
         initialChannel={channel}
@@ -77,6 +71,5 @@ export default async function ComposePage({
         lastMessage={contact?.lastMessage || null}
         placeSlug={contact?.place?.slug || null}
       />
-    </div>
   )
 }

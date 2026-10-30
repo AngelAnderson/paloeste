@@ -1,60 +1,74 @@
 'use client'
 
 import { useState, useRef, useCallback, useEffect } from 'react'
+import { Sparkles, ListPlus } from 'lucide-react'
 
 // Respuestas rápidas — servicio primero, venta después (Kern: sin presión, con permiso de salida).
 const PITCH_TEMPLATES = [
   {
-    label: '🙋 Disculpa + retomo yo (bot falló)',
-    text: 'Saludos, soy Angel, el humano detrás del Veci. Vi que el bot no te resolvió bien, disculpa. Dime qué buscas y te lo consigo yo mismo.',
+    label: 'Disculpa y lo cojo yo',
+    text: 'Saludos, soy Angel, el humano detrás del Veci. Vi que no te pudo resolver bien, disculpa. Dime qué buscas y te lo consigo yo mismo.',
   },
   {
-    label: '➕ Añadir negocio gratis',
-    text: 'Claro que sí, te lo añado gratis al directorio hoy. Mándame: nombre del negocio, dirección, teléfono, horario y 1 o 2 fotos. Con eso queda en CaboRojo.com y el Veci lo recomienda cuando pregunten.',
+    label: 'Añadir negocio gratis',
+    text: 'Claro que sí, te lo añado gratis al directorio. Mándame: nombre del negocio, dirección, teléfono, horario y 1 o 2 fotos. Con eso queda en CaboRojo.com y el Veci lo recomienda cuando pregunten.',
   },
   {
-    label: '💲 Precio Vitrina (cuando preguntan)',
-    text: 'La Vitrina funciona así: la prueba es $40 (una publicación esta semana + listing en el Veci), el mes completo $150 (4 publicaciones, una por semana), y el año $799 (52 publicaciones). Si te cuadra te mando el link de pago. Y si no, todo bien, sigues saliendo gratis en el directorio.',
-  },
-  {
-    label: '🔁 Pitch corto (Kern, sin presión)',
-    text: 'Esto es lo que tengo: La Vitrina. Yo cojo lo que tú ya publicas, lo publico una vez por semana en CaboRojo.com y le recuerdo al pueblo que existes. $799 el año completo. ¿Te paso los detalles? Si no es pa ti, sin problema.',
-  },
-  {
-    label: '🙏 Gracias por el dato',
+    label: 'Gracias por el dato',
     text: 'Gracias por el dato, eso es oro. Lo verifico y lo monto en el directorio. Si ves algo más así, mándamelo cuando quieras.',
   },
   {
-    label: '📅 Evento recibido',
+    label: 'Evento recibido',
     text: 'Qué bueno. Mándame fecha, hora, lugar y un flyer o foto si tienes, y lo monto en el calendario de CaboRojo.com.',
   },
 ]
 
-interface ComposeBarProps {
-  onSend: (message: string, channel?: string) => Promise<void>
-  conversationId?: string | null
-  disabled?: boolean
-  defaultChannel?: string
+const claveDeBorrador = (id?: string | null) => `inbox-borrador-${id}`
+
+function leerBorrador(id?: string | null) {
+  try {
+    return localStorage.getItem(claveDeBorrador(id)) || ''
+  } catch {
+    return ''
+  }
 }
 
-export function ComposeBar({ onSend, conversationId, disabled, defaultChannel = 'sms' }: ComposeBarProps) {
+function guardarBorrador(id: string | null | undefined, texto: string) {
+  try {
+    if (texto) localStorage.setItem(claveDeBorrador(id), texto)
+    else localStorage.removeItem(claveDeBorrador(id))
+  } catch {
+    /* sin almacenamiento se sigue escribiendo igual */
+  }
+}
+
+interface ComposeBarProps {
+  onSend: (message: string) => Promise<void>
+  conversationId?: string | null
+  disabled?: boolean
+}
+
+export function ComposeBar({ onSend, conversationId, disabled }: ComposeBarProps) {
   const [text, setText] = useState('')
   const [sending, setSending] = useState(false)
   const [sendError, setSendError] = useState<string | null>(null)
   const [suggestions, setSuggestions] = useState<string[]>([])
   const [loadingSuggestions, setLoadingSuggestions] = useState(false)
-  const [channel, setChannel] = useState(defaultChannel)
   const [showTemplates, setShowTemplates] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
-  // Reset state when conversation changes
+  // Reset state when conversation changes; lo que quedó escrito vuelve.
   useEffect(() => {
     setSuggestions([])
     setShowTemplates(false)
     setSendError(null)
-    setText('')
-    setChannel(defaultChannel)
-  }, [conversationId, defaultChannel])
+    setText(leerBorrador(conversationId))
+  }, [conversationId])
+
+  const cambiarTexto = useCallback((nuevo: string) => {
+    setText(nuevo)
+    guardarBorrador(conversationId, nuevo)
+  }, [conversationId])
 
   const handleSend = useCallback(async () => {
     const trimmed = text.trim()
@@ -62,19 +76,19 @@ export function ComposeBar({ onSend, conversationId, disabled, defaultChannel = 
     setSending(true)
     setSendError(null)
     try {
-      await onSend(trimmed, channel)
-      setText('')
+      await onSend(trimmed)
+      cambiarTexto('')
       setSuggestions([])
       setShowTemplates(false)
       if (textareaRef.current) {
         textareaRef.current.style.height = 'auto'
       }
     } catch (e: unknown) {
-      setSendError(e instanceof Error ? e.message : 'Error al enviar mensaje')
+      setSendError(e instanceof Error ? e.message : 'No salió. Intenta otra vez.')
     } finally {
       setSending(false)
     }
-  }, [text, sending, onSend, channel])
+  }, [text, sending, onSend, cambiarTexto])
 
   const fetchSuggestions = useCallback(async () => {
     if (!conversationId || loadingSuggestions) return
@@ -95,21 +109,23 @@ export function ComposeBar({ onSend, conversationId, disabled, defaultChannel = 
   }, [conversationId, loadingSuggestions])
 
   function handleKeyDown(e: React.KeyboardEvent) {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    // En el teléfono, Enter es línea nueva; se envía con el botón.
+    const esTactil = window.matchMedia('(pointer: coarse)').matches
+    if (e.key === 'Enter' && !e.shiftKey && !esTactil) {
       e.preventDefault()
       handleSend()
     }
   }
 
   function handleInput(e: React.ChangeEvent<HTMLTextAreaElement>) {
-    setText(e.target.value)
+    cambiarTexto(e.target.value)
     const el = e.target
     el.style.height = 'auto'
-    el.style.height = Math.min(el.scrollHeight, 120) + 'px'
+    el.style.height = Math.min(el.scrollHeight, 160) + 'px'
   }
 
   function pickSuggestion(s: string) {
-    setText(s)
+    cambiarTexto(s)
     setSuggestions([])
     if (textareaRef.current) {
       textareaRef.current.focus()
@@ -117,42 +133,34 @@ export function ComposeBar({ onSend, conversationId, disabled, defaultChannel = 
       setTimeout(() => {
         if (textareaRef.current) {
           textareaRef.current.style.height = 'auto'
-          textareaRef.current.style.height = Math.min(textareaRef.current.scrollHeight, 120) + 'px'
+          textareaRef.current.style.height = Math.min(textareaRef.current.scrollHeight, 160) + 'px'
         }
       }, 0)
     }
   }
 
+  const opcion = 'w-full min-h-12 text-left px-3 py-2 bg-[#1e293b] hover:bg-[#334155] border border-[#475569] rounded-lg text-base text-[#f1f5f9] transition-colors'
+  const boton = 'min-h-12 min-w-12 flex items-center justify-center bg-[#1e293b] border border-[#475569] text-[#e2e8f0] hover:text-white rounded-lg shrink-0 disabled:opacity-50 disabled:cursor-not-allowed transition-colors'
+
   return (
-    <div className="border-t border-[#334155] bg-[#0f172a]">
+    <div className="border-t border-[#334155] bg-[#0f172a] pb-[env(safe-area-inset-bottom)] shrink-0">
       {/* Error toast */}
       {sendError && (
-        <div className="mx-3 mt-2 px-3 py-2 bg-[#f87171]/20 border border-[#f87171]/40 rounded-lg flex items-center justify-between">
-          <span className="text-xs text-[#f87171]">{sendError}</span>
-          <button onClick={() => setSendError(null)} className="text-[#f87171] hover:text-white text-xs ml-2">✕</button>
+        <div role="alert" className="mx-3 mt-2 px-3 py-2 bg-[#7f1d1d] rounded-lg flex items-center justify-between gap-2">
+          <span className="text-base text-white">{sendError}</span>
+          <button onClick={() => setSendError(null)} aria-label="Cerrar el error" className="min-h-12 min-w-12 text-white text-base">✕</button>
         </div>
       )}
 
       {/* Suggestions */}
       {suggestions.length > 0 && (
-        <div className="px-3 pt-3 pb-1 space-y-1.5 max-h-48 overflow-y-auto">
+        <div className="px-3 pt-3 pb-1 space-y-1.5 max-h-56 overflow-y-auto">
           <div className="flex items-center justify-between mb-1">
-            <span className="text-[10px] uppercase tracking-wider text-[#64748b]">Sugerencias AI</span>
-            <button
-              onClick={() => setSuggestions([])}
-              className="text-[10px] text-[#64748b] hover:text-white"
-            >
-              Cerrar
-            </button>
+            <span className="text-base text-[#cbd5e1]">Sugerencias</span>
+            <button onClick={() => setSuggestions([])} className="min-h-12 px-2 text-base text-[#cbd5e1] hover:text-white">Cerrar</button>
           </div>
           {suggestions.map((s, i) => (
-            <button
-              key={i}
-              onClick={() => pickSuggestion(s)}
-              className="w-full text-left px-3 py-2 bg-[#1e293b] hover:bg-[#334155] border border-[#334155] rounded-lg text-xs text-[#f1f5f9] transition-colors"
-            >
-              {s}
-            </button>
+            <button key={i} onClick={() => pickSuggestion(s)} className={opcion}>{s}</button>
           ))}
         </div>
       )}
@@ -161,44 +169,35 @@ export function ComposeBar({ onSend, conversationId, disabled, defaultChannel = 
       {showTemplates && (
         <div className="px-3 pt-3 pb-1 space-y-1.5 max-h-64 overflow-y-auto">
           <div className="flex items-center justify-between mb-1">
-            <span className="text-[10px] uppercase tracking-wider text-[#64748b]">Respuestas rápidas</span>
-            <button
-              onClick={() => setShowTemplates(false)}
-              className="text-[10px] text-[#64748b] hover:text-white"
-            >
-              Cerrar
-            </button>
+            <span className="text-base text-[#cbd5e1]">Respuestas rápidas</span>
+            <button onClick={() => setShowTemplates(false)} className="min-h-12 px-2 text-base text-[#cbd5e1] hover:text-white">Cerrar</button>
           </div>
           {PITCH_TEMPLATES.map((t, i) => (
-            <button
-              key={i}
-              onClick={() => { pickSuggestion(t.text); setShowTemplates(false) }}
-              className="w-full text-left px-3 py-2 bg-[#1e293b] hover:bg-[#334155] border border-[#334155] rounded-lg text-xs text-[#f1f5f9] transition-colors"
-            >
-              <span className="font-medium">{t.label}</span>
-              <p className="text-[#64748b] truncate mt-0.5">{t.text.slice(0, 80)}...</p>
+            <button key={i} onClick={() => { pickSuggestion(t.text); setShowTemplates(false) }} className={opcion}>
+              {t.label}
             </button>
           ))}
         </div>
       )}
 
       {/* Compose */}
-      <div className="flex items-end gap-2 p-3">
+      <div className="flex items-end gap-2 p-2">
         <button
           onClick={fetchSuggestions}
           disabled={!conversationId || loadingSuggestions || disabled}
-          className="px-2.5 py-2 bg-[#1e293b] border border-[#334155] text-[#94a3b8] hover:text-[#38bdf8] hover:border-[#38bdf8] rounded-lg text-sm shrink-0 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-          title="Sugerencias AI"
+          aria-label="Sugerir una respuesta"
+          className={boton}
         >
-          {loadingSuggestions ? '...' : '✨'}
+          <Sparkles size={20} aria-hidden="true" />
         </button>
         <button
           onClick={() => setShowTemplates(!showTemplates)}
           disabled={disabled}
-          className="px-2.5 py-2 bg-[#1e293b] border border-[#334155] text-[#94a3b8] hover:text-[#f59e0b] hover:border-[#f59e0b] rounded-lg text-sm shrink-0 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-          title="Templates de pitch"
+          aria-label="Respuestas rápidas"
+          aria-expanded={showTemplates}
+          className={boton}
         >
-          📋
+          <ListPlus size={20} aria-hidden="true" />
         </button>
         <textarea
           ref={textareaRef}
@@ -206,29 +205,17 @@ export function ComposeBar({ onSend, conversationId, disabled, defaultChannel = 
           onChange={handleInput}
           onKeyDown={handleKeyDown}
           disabled={disabled || sending}
-          placeholder="Escribe un mensaje..."
+          placeholder="Escribe aquí"
+          aria-label="Tu mensaje"
           rows={1}
-          className="flex-1 bg-[#1e293b] text-[#f1f5f9] border border-[#334155] rounded-lg px-3 py-2 text-sm resize-none focus:outline-none focus:border-[#38bdf8] placeholder:text-[#64748b] disabled:opacity-50"
+          className="flex-1 min-w-0 min-h-12 bg-[#1e293b] text-[#f1f5f9] border border-[#475569] rounded-lg px-3 py-2.5 text-base resize-none focus:outline-none focus:border-[#38bdf8] placeholder:text-[#cbd5e1] disabled:opacity-50"
         />
-        {/* Channel selector */}
-        <button
-          onClick={() => setChannel(channel === 'sms' ? 'whatsapp' : 'sms')}
-          disabled={disabled || sending}
-          className={`px-2 py-2 rounded-lg text-[10px] font-bold uppercase tracking-wider shrink-0 border transition-colors ${
-            channel === 'sms'
-              ? 'bg-[#38bdf8]/10 text-[#38bdf8] border-[#38bdf8]/30 hover:border-[#38bdf8]'
-              : 'bg-[#4ade80]/10 text-[#4ade80] border-[#4ade80]/30 hover:border-[#4ade80]'
-          }`}
-          title={`Enviando por ${channel === 'sms' ? 'SMS' : 'WhatsApp'}. Click para cambiar.`}
-        >
-          {channel === 'sms' ? 'SMS' : 'WA'}
-        </button>
         <button
           onClick={handleSend}
           disabled={!text.trim() || sending || disabled}
-          className="px-4 py-2 bg-[#38bdf8] text-[#0f172a] rounded-lg text-sm font-medium hover:bg-[#7dd3fc] disabled:opacity-40 disabled:cursor-not-allowed transition-colors shrink-0"
+          className="min-h-12 px-4 bg-[#38bdf8] text-[#0f172a] rounded-lg text-base font-semibold hover:bg-[#7dd3fc] disabled:opacity-50 disabled:cursor-not-allowed transition-colors shrink-0"
         >
-          {sending ? '...' : 'Enviar'}
+          {sending ? 'Enviando' : 'Enviar'}
         </button>
       </div>
     </div>

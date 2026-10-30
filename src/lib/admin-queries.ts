@@ -232,7 +232,15 @@ export async function getSponsorROI(): Promise<SponsorROI[]> {
 
 // === Inbox / CRM Queries ===
 
+// El mismo 7711 se guardó de 3 formas; leer solo '7711' escondía conversaciones.
+const LINEAS_7711 = ['7711', '+17874177711', 'whatsapp:+17874177711']
+
+// Lo que necesita a Angel: pidió atención y tuvo vida en estos días. Lo viejo sigue en Todo.
+const DIAS_DE_ATENCION = 14
+
 export async function getInboxConversations(filters?: {
+  id?: string
+  attention?: boolean
   needsHuman?: boolean
   channel?: string
   search?: string
@@ -246,10 +254,15 @@ export async function getInboxConversations(filters?: {
   let query = supabase
     .from('conversations')
     .select('id, contact, channel, line, status, needs_human, message_count, last_message_at, last_inbound_body, intent, last_intent, internal_note, contact_id, is_starred, snoozed_until, awaiting_info, resolved_at')
-    .eq('line', '7711')
+    .in('line', LINEAS_7711)
     .order('last_message_at', { ascending: false })
     .limit(100)
 
+  if (filters?.id) query = query.eq('id', filters.id)
+  if (filters?.attention) {
+    const desde = new Date(Date.now() - DIAS_DE_ATENCION * 86400000).toISOString()
+    query = query.eq('needs_human', true).gte('last_message_at', desde)
+  }
   if (filters?.needsHuman) query = query.eq('needs_human', true)
   if (filters?.channel) query = query.eq('channel', filters.channel)
   if (filters?.starred) query = query.eq('is_starred', true)
@@ -257,7 +270,7 @@ export async function getInboxConversations(filters?: {
   if (filters?.resolved === true) query = query.not('resolved_at', 'is', null)
   if (filters?.resolved === false) query = query.is('resolved_at', null)
   // Hide snoozed by default (snoozed_until in the future) — unless explicitly looking at all
-  if (filters?.hideSnoozed !== false) {
+  if (filters?.hideSnoozed !== false && !filters?.id) {
     query = query.or(`snoozed_until.is.null,snoozed_until.lt.${new Date().toISOString()}`)
   }
 
@@ -268,8 +281,10 @@ export async function getInboxConversations(filters?: {
   // 4. messages.body (via separate query)
   let matchingConvIdsFromMessages: string[] | null = null
   let matchingConvIdsFromContacts: string[] | null = null
-  if (filters?.search) {
-    const term = `%${filters.search}%`
+  // La búsqueda entra en un filtro .or() de PostgREST: coma, paréntesis y comillas cambian su sentido.
+  const search = filters?.search?.replace(/[,()"\\]/g, ' ').trim()
+  if (search) {
+    const term = `%${search}%`
     // Find conversations where ANY message body matches the search
     const { data: msgMatches } = await supabase
       .from('messages')
@@ -291,7 +306,7 @@ export async function getInboxConversations(filters?: {
         .from('conversations')
         .select('id')
         .in('contact_id', matchingContactIds)
-        .eq('line', '7711')
+        .in('line', LINEAS_7711)
       matchingConvIdsFromContacts = (convByContact || []).map(c => c.id)
     } else {
       matchingConvIdsFromContacts = []

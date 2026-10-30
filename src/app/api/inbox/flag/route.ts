@@ -28,8 +28,9 @@ export async function PATCH(req: NextRequest) {
     case 'unsnooze':   update.snoozed_until = null; break
     case 'awaiting':   update.awaiting_info = true; break
     case 'unawaiting': update.awaiting_info = false; break
-    case 'resolve':    update.resolved_at = new Date().toISOString(); update.status = 'closed'; break
-    case 'reopen':     update.resolved_at = null; update.status = 'human'; break
+    // needs_human baja al resolver: si la persona vuelve y el Veci escala, sube solo y reaparece.
+    case 'resolve':    update.resolved_at = new Date().toISOString(); update.status = 'closed'; update.needs_human = false; break
+    case 'reopen':     update.resolved_at = null; update.status = 'human'; update.needs_human = true; break
     default:
       return NextResponse.json({ error: `Unknown action: ${action}` }, { status: 400 })
   }

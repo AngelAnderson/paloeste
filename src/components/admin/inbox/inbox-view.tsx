@@ -1,26 +1,22 @@
 'use client'
 
-import { useState, useCallback, useEffect } from 'react'
-import { createSupabaseBrowserClient } from '@/lib/supabase-browser'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import type { InboxConversation, InboxMessage, InboxContact } from '@/lib/types'
-import { ConversationList } from './conversation-list'
+import { ConversationList, type InboxFilters } from './conversation-list'
 import { MessageThread } from './message-thread'
 import { ContactPanel } from './contact-panel'
 
 interface InboxViewProps {
   initialConversations: InboxConversation[]
+  initialSelected?: InboxConversation | null
+  standalone?: boolean
 }
 
-type InboxMessagePayload = InboxMessage & {
-  source?: string | null
-}
+// 30 oct 2026: reemplaza a Realtime. messages y conversations no se leen desde el navegador
+// (RLS solo service_role), así que la suscripción nunca recibía nada.
+const REFRESCO_MS = 15000
 
-type ConversationPayload = Partial<InboxConversation> & {
-  id: string
-  last_inbound_body?: string | null
-}
-
-export function InboxView({ initialConversations }: InboxViewProps) {
+export function InboxView({ initialConversations, initialSelected = null, standalone = false }: InboxViewProps) {
   const [conversations, setConversations] = useState(initialConversations)
   const [selected, setSelected] = useState<InboxConversation | null>(null)
   const [messages, setMessages] = useState<InboxMessage[]>([])
@@ -29,36 +25,103 @@ export function InboxView({ initialConversations }: InboxViewProps) {
   const [loadingMessages, setLoadingMessages] = useState(false)
   const [showContact, setShowContact] = useState(false)
   const [mobileView, setMobileView] = useState<'list' | 'thread'>('list')
+  const [sinConexion, setSinConexion] = useState(false)
+  const [nota, setNota] = useState<string | null>(null)
+  const filtros = useRef<InboxFilters>({ attention: true })
+  const abierta = useRef<InboxConversation | null>(null)
+
+  // Sesión vencida: de vuelta al login, y al entrar regresa a esta misma pantalla.
+  const pedir = useCallback(async (url: string) => {
+    const res = await fetch(url)
+    if (res.status === 401) {
+      window.location.assign(`/admin/login?next=${encodeURIComponent(window.location.pathname + window.location.search)}`)
+      throw new Error('sesion')
+    }
+    if (!res.ok) throw new Error('error')
+    return res.json()
+  }, [])
+
+  const urlDeMensajes = (conv: InboxConversation) => {
+    const phone = conv.contact.replace('whatsapp:', '')
+    return `/api/inbox/messages?conversationId=${conv.id}${conv.contact_id ? `&contactId=${conv.contact_id}` : ''}&phone=${encodeURIComponent(phone)}`
+  }
+
+  const cargarLista = useCallback(async () => {
+    const f = filtros.current
+    const params = new URLSearchParams()
+    if (f.attention) params.set('attention', '1')
+    if (f.resolved) params.set('resolved', '1')
+    if (f.search) params.set('search', f.search)
+    const data = await pedir(`/api/inbox/conversations?${params}`)
+    setConversations(data.conversations || [])
+  }, [pedir])
 
   // Fetch messages when conversation is selected
   const selectConversation = useCallback(async (conv: InboxConversation) => {
+    abierta.current = conv
     setSelected(conv)
     setMobileView('thread')
     setLoadingMessages(true)
     setMessages([])
     setContact(null)
     setDemandData(null)
+    setNota(null)
+    window.history.replaceState(null, '', `?c=${conv.id}`)
 
     try {
-      const phone = conv.contact.replace('whatsapp:', '')
-      const res = await fetch(`/api/inbox/messages?conversationId=${conv.id}${conv.contact_id ? `&contactId=${conv.contact_id}` : ''}&phone=${encodeURIComponent(phone)}`)
-      const data = await res.json()
+      const data = await pedir(urlDeMensajes(conv))
       setMessages(data.messages || [])
       if (data.contact) setContact(data.contact)
       if (data.demandData) setDemandData(data.demandData)
+      setSinConexion(false)
     } catch (e) {
-      console.error('Failed to load messages:', e)
+      if ((e as Error).message !== 'sesion') setSinConexion(true)
     } finally {
       setLoadingMessages(false)
     }
+  }, [pedir])
+
+  const volverALista = useCallback(() => {
+    abierta.current = null
+    setMobileView('list')
+    window.history.replaceState(null, '', window.location.pathname)
   }, [])
 
+  // El enlace de un aviso abre su conversación directo.
+  const primeraCarga = useRef(initialSelected)
+  useEffect(() => {
+    if (primeraCarga.current) selectConversation(primeraCarga.current)
+  }, [selectConversation])
+
+  // Lo nuevo aparece solo mientras la pantalla está abierta, y al volver a ella.
+  useEffect(() => {
+    const refrescar = async () => {
+      if (document.visibilityState !== 'visible') return
+      try {
+        await cargarLista()
+        if (abierta.current) {
+          const data = await pedir(urlDeMensajes(abierta.current))
+          setMessages(data.messages || [])
+        }
+        setSinConexion(false)
+      } catch (e) {
+        if ((e as Error).message !== 'sesion') setSinConexion(true)
+      }
+    }
+    const reloj = setInterval(refrescar, REFRESCO_MS)
+    document.addEventListener('visibilitychange', refrescar)
+    return () => {
+      clearInterval(reloj)
+      document.removeEventListener('visibilitychange', refrescar)
+    }
+  }, [cargarLista, pedir])
+
   // Send message
-  const handleSend = useCallback(async (body: string, channel?: string) => {
+  const handleSend = useCallback(async (body: string) => {
     if (!selected) return
 
     const to = selected.contact
-    const sendChannel = channel || 'sms'
+    const sendChannel = selected.channel === 'whatsapp' ? 'whatsapp' : 'sms'
 
     const res = await fetch('/api/send-message', {
       method: 'POST',
@@ -74,7 +137,7 @@ export function InboxView({ initialConversations }: InboxViewProps) {
     if (!res.ok) {
       const err = await res.json().catch(() => ({}))
       const code = err.twilio_code ? ` [Twilio ${err.twilio_code}]` : ''
-      throw new Error((err.error || err.details?.message || 'Error al enviar') + code)
+      throw new Error((err.error || err.details?.message || 'No salió. Intenta otra vez.') + code)
     }
 
     const result = await res.json()
@@ -98,11 +161,7 @@ export function InboxView({ initialConversations }: InboxViewProps) {
       error_code: null,
     }])
 
-    // Surface fallback note (e.g., "Enviado por SMS porque la ventana WA expiró")
-    if (result.fallback_reason) {
-      // Quick UX: alert. TODO upgrade to a proper toast component.
-      setTimeout(() => alert(`✓ ${result.fallback_reason}`), 50)
-    }
+    setNota(result.fallback_reason || null)
 
     // Update conversation preview in list
     setConversations(prev => prev.map(c =>
@@ -123,127 +182,83 @@ export function InboxView({ initialConversations }: InboxViewProps) {
     setConversations(prev => prev.map(c => c.id === conversationId ? { ...c, display_name: data.name } : c))
   }, [])
 
-  // Update conversation status
-  const handleUpdateStatus = useCallback(async (conversationId: string, status: string) => {
-    await fetch('/api/inbox/status', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ conversationId, status }),
-    })
-    setSelected(prev => prev ? { ...prev, status } : null)
-    setConversations(prev => prev.map(c => c.id === conversationId ? { ...c, status } : c))
-  }, [])
-
   // Filter conversations
-  const handleFilterChange = useCallback(async (filters: { needsHuman?: boolean; channel?: string; search?: string; starred?: boolean; awaiting?: boolean; resolved?: boolean }) => {
-    const params = new URLSearchParams()
-    if (filters.needsHuman) params.set('needsHuman', '1')
-    if (filters.channel) params.set('channel', filters.channel)
-    if (filters.search) params.set('search', filters.search)
-    if (filters.starred) params.set('starred', '1')
-    if (filters.awaiting) params.set('awaiting', '1')
-    if (filters.resolved) params.set('resolved', '1')
-
+  const handleFilterChange = useCallback(async (nuevos: InboxFilters) => {
+    filtros.current = nuevos
     try {
-      const res = await fetch(`/api/inbox/conversations?${params}`)
-      const data = await res.json()
-      setConversations(data.conversations || [])
+      await cargarLista()
+      setSinConexion(false)
     } catch (e) {
-      console.error('Filter failed:', e)
+      if ((e as Error).message !== 'sesion') setSinConexion(true)
     }
-  }, [])
-
-  // Realtime subscription
-  useEffect(() => {
-    const supabase = createSupabaseBrowserClient()
-    const channel = supabase
-      .channel('inbox-realtime')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (payload) => {
-        const newMsg = payload.new as InboxMessagePayload
-        // If it's for the selected conversation, add it
-        if (selected && newMsg.conversation_id === selected.id && newMsg.source !== 'admin') {
-          setMessages(prev => {
-            if (prev.some(m => m.id === newMsg.id)) return prev
-            return [...prev, newMsg]
-          })
-        }
-      })
-      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'conversations' }, (payload) => {
-        const updated = payload.new as ConversationPayload
-        setConversations(prev => prev.map(c =>
-          c.id === updated.id ? {
-            ...c,
-            last_message_at: updated.last_message_at ?? c.last_message_at,
-            last_inbound_body: updated.last_inbound_body ?? c.last_inbound_body,
-            message_count: updated.message_count ?? c.message_count,
-            needs_human: updated.needs_human ?? c.needs_human,
-            last_body: updated.last_inbound_body || c.last_body,
-          } : c
-        ))
-      })
-      .subscribe()
-
-    return () => { supabase.removeChannel(channel) }
-  }, [selected])
+  }, [cargarLista])
 
   const contactPhone = selected?.contact.replace('whatsapp:', '') || ''
+  const altura = standalone ? 'h-dvh' : 'h-[calc(100dvh-3.5rem)] lg:h-[calc(100dvh-1.5rem)]'
 
   return (
-    <div className="h-[calc(100vh-3.5rem)] lg:h-[calc(100vh-1.5rem)] flex">
-      {/* Conversation List - hidden on mobile when viewing thread */}
-      <div className={`w-full lg:w-80 lg:border-r lg:border-[#334155] shrink-0 ${
-        mobileView === 'thread' ? 'hidden lg:flex lg:flex-col' : 'flex flex-col'
-      }`}>
-        <ConversationList
-          conversations={conversations}
-          selectedId={selected?.id || null}
-          onSelect={selectConversation}
-          onFilterChange={handleFilterChange}
-        />
-      </div>
-
-      {/* Message Thread - hidden on mobile when viewing list */}
-      <div className={`flex-1 min-w-0 ${
-        mobileView === 'list' ? 'hidden lg:flex lg:flex-col' : 'flex flex-col'
-      }`}>
-        {selected ? (
-          <MessageThread
-            messages={messages}
-            loading={loadingMessages}
-            onSend={handleSend}
-            contactName={selected.display_name || selected.place_name}
-            contactPhone={contactPhone}
-            conversationId={selected.id}
-            conversation={selected}
-            onShowContact={() => setShowContact(true)}
-            onBack={() => setMobileView('list')}
-            onFlagChanged={(_action, applied) => {
-              // Reflect in selected + list state
-              setSelected(prev => prev ? { ...prev, ...applied } as typeof prev : prev)
-              setConversations(prev => prev.map(c => c.id === selected.id ? { ...c, ...applied } : c))
-            }}
+    <div className={`${altura} flex flex-col bg-[#0f172a] pt-[env(safe-area-inset-top)]`}>
+      {sinConexion && (
+        <p role="status" className="px-4 py-2 bg-[#78350f] text-white text-base shrink-0">
+          Sin conexión. Lo que escribiste sigue guardado aquí.
+        </p>
+      )}
+      <div className="flex-1 min-h-0 flex">
+        {/* Conversation List - hidden on mobile when viewing thread */}
+        <div className={`w-full lg:w-96 lg:border-r lg:border-[#334155] shrink-0 ${
+          mobileView === 'thread' ? 'hidden lg:flex lg:flex-col' : 'flex flex-col'
+        }`}>
+          <ConversationList
+            conversations={conversations}
+            selectedId={selected?.id || null}
+            onSelect={selectConversation}
+            onFilterChange={handleFilterChange}
           />
-        ) : (
-          <div className="flex-1 flex items-center justify-center text-[#64748b] text-sm">
-            Selecciona una conversacion
-          </div>
-        )}
-      </div>
+        </div>
 
-      {/* Contact Panel - desktop only (mobile uses sheet) */}
-      <div className="hidden lg:flex lg:flex-col w-72 border-l border-[#334155] shrink-0">
-        <ContactPanel
-          contact={contact}
-          conversation={selected}
-          demandData={demandData}
-          onSaveContact={handleSaveContact}
-          onUpdateStatus={handleUpdateStatus}
-        />
+        {/* Message Thread - hidden on mobile when viewing list */}
+        <div className={`flex-1 min-w-0 ${
+          mobileView === 'list' ? 'hidden lg:flex lg:flex-col' : 'flex flex-col'
+        }`}>
+          {selected ? (
+            <MessageThread
+              messages={messages}
+              loading={loadingMessages}
+              onSend={handleSend}
+              contactName={selected.display_name || selected.place_name}
+              contactPhone={contactPhone}
+              conversationId={selected.id}
+              conversation={selected}
+              nota={nota}
+              onShowContact={() => setShowContact(true)}
+              onBack={volverALista}
+              onFlagChanged={(_action, applied) => {
+                // Reflect in selected + list state
+                setSelected(prev => prev ? { ...prev, ...applied } as typeof prev : prev)
+                setConversations(prev => prev.map(c => c.id === selected.id ? { ...c, ...applied } : c))
+              }}
+            />
+          ) : (
+            <div className="flex-1 flex items-center justify-center text-[#cbd5e1] text-base">
+              Escoge una conversación
+            </div>
+          )}
+        </div>
+
+        {/* Contact Panel - desktop only (mobile uses sheet) */}
+        <div className="hidden xl:flex xl:flex-col w-80 border-l border-[#334155] shrink-0">
+          <ContactPanel
+            contact={contact}
+            conversation={selected}
+            demandData={demandData}
+            onSaveContact={handleSaveContact}
+          />
+        </div>
       </div>
 
       {/* Mobile contact sheet */}
       {showContact && selected && (
-        <div className="lg:hidden fixed inset-0 z-50">
+        <div className="xl:hidden fixed inset-0 z-50" role="dialog" aria-modal="true" aria-label="Contacto">
           <div className="absolute inset-0 bg-black/60" onClick={() => setShowContact(false)} />
           <div className="absolute right-0 top-0 bottom-0 w-80 max-w-[85vw]">
             <ContactPanel
@@ -251,7 +266,6 @@ export function InboxView({ initialConversations }: InboxViewProps) {
               conversation={selected}
               demandData={demandData}
               onSaveContact={handleSaveContact}
-              onUpdateStatus={handleUpdateStatus}
               onClose={() => setShowContact(false)}
             />
           </div>
