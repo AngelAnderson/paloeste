@@ -20,7 +20,9 @@ export function esRutaDelInbox(pathname: string): boolean {
   return RUTAS_DEL_INBOX.some((ruta) => pathname.startsWith(ruta))
 }
 
-export function cabecerasDelInbox(supabaseUrl: string): Record<string, string> {
+export function cabecerasDelInbox(supabaseUrlCruda: string): Record<string, string> {
+  // La variable de Vercel trae un salto de línea al final y una cabecera no lo acepta (500).
+  const supabaseUrl = supabaseUrlCruda.trim()
   const wss = supabaseUrl.replace(/^https:/, 'wss:')
   return {
     'Content-Security-Policy': [
