@@ -1,8 +1,12 @@
-import { NextResponse } from 'next/server'
+import { NextResponse, type NextRequest } from 'next/server'
+import { requireAdmin } from '@/lib/admin-auth'
 
 export const runtime = 'nodejs'
 
-export async function POST() {
+export async function POST(req: NextRequest) {
+  const denied = await requireAdmin(req)
+  if (denied) return denied
+
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
   const serviceKey = process.env.CABOROJO_CRON_SECRET || process.env.SUPABASE_SERVICE_ROLE_KEY
 
