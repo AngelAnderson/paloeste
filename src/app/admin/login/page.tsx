@@ -102,7 +102,7 @@ export default function AdminLogin() {
     setError('')
     const supabase = createSupabaseBrowserClient()
     const { error } = await supabase.auth.signInWithPassword({ email, password })
-    if (error) setError('Ese email o esa contraseña no funcionan.')
+    if (error) setError('Ese correo o esa contraseña no funcionan.')
     setLoading(false)
   }
 
@@ -136,7 +136,7 @@ export default function AdminLogin() {
 
   async function handleOlvide() {
     if (!email) {
-      setError('Escribe tu email primero.')
+      setError('Escribe tu correo primero.')
       return
     }
     setLoading(true)
@@ -183,7 +183,7 @@ export default function AdminLogin() {
           {paso === 'entrar' && (
             <form onSubmit={handleLogin} className="space-y-4 mt-4">
               <div>
-                <label htmlFor="email" className={ETIQUETA}>Email</label>
+                <label htmlFor="email" className={ETIQUETA}>Correo</label>
                 <input id="email" name="username" type="email" autoComplete="username" value={email} onChange={(e) => setEmail(e.target.value)} className={CAMPO} required />
               </div>
               <div>
@@ -223,7 +223,7 @@ export default function AdminLogin() {
 
           {paso === 'correo' && (
             <p className="text-[#cbd5e1] text-base mt-4" role="status">
-              Si ese email tiene cuenta, te llegó un enlace. Ábrelo en este mismo navegador.
+              Si ese correo tiene cuenta, te llegó un enlace. Ábrelo en este mismo navegador.
             </p>
           )}
 
