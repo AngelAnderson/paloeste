@@ -258,6 +258,14 @@ export async function getInboxConversations(filters?: {
     .order('last_message_at', { ascending: false })
     .limit(100)
 
+  // Las pruebas del Veci crean conversaciones en cada deploy (3,754 de 6,205 el 30 oct 2026) y tapaban a la gente real.
+  if (!filters?.id) {
+    query = query
+      .not('contact', 'like', '%+1000%')
+      .not('contact', 'like', '%+1999%')
+      .not('contact', 'ilike', '%test%')
+  }
+
   if (filters?.id) query = query.eq('id', filters.id)
   if (filters?.attention) {
     const desde = new Date(Date.now() - DIAS_DE_ATENCION * 86400000).toISOString()

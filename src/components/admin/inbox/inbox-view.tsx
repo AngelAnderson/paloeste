@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect, useRef } from 'react'
 import type { InboxConversation, InboxMessage, InboxContact } from '@/lib/types'
-import { ConversationList, type InboxFilters } from './conversation-list'
+import { ConversationList, formatPhone, type InboxFilters } from './conversation-list'
 import { MessageThread } from './message-thread'
 import { ContactPanel } from './contact-panel'
 
@@ -193,7 +193,7 @@ export function InboxView({ initialConversations, initialSelected = null, standa
     }
   }, [cargarLista])
 
-  const contactPhone = selected?.contact.replace('whatsapp:', '') || ''
+  const contactPhone = selected ? formatPhone(selected.contact) : ''
   const altura = standalone ? 'h-dvh' : 'h-[calc(100dvh-3.5rem)] lg:h-[calc(100dvh-1.5rem)]'
 
   return (
@@ -246,7 +246,7 @@ export function InboxView({ initialConversations, initialSelected = null, standa
         </div>
 
         {/* Contact Panel - desktop only (mobile uses sheet) */}
-        <div className="hidden xl:flex xl:flex-col w-80 border-l border-[#334155] shrink-0">
+        <div className={`hidden ${selected ? 'xl:flex' : ''} xl:flex-col w-80 border-l border-[#334155] shrink-0`}>
           <ContactPanel
             contact={contact}
             conversation={selected}

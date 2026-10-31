@@ -25,8 +25,9 @@ interface ConversationListProps {
   onFilterChange: (filters: InboxFilters) => void
 }
 
-function formatPhone(contact: string) {
-  return contact.replace('whatsapp:', '').replace(/^\+1/, '')
+export function formatPhone(contact: string) {
+  const numero = contact.replace('whatsapp:', '').replace(/^\+1/, '')
+  return /^\d{10}$/.test(numero) ? `${numero.slice(0, 3)}-${numero.slice(3, 6)}-${numero.slice(6)}` : numero
 }
 
 function timeAgo(iso: string) {

@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useEffect } from 'react'
 import type { InboxContact, InboxConversation } from '@/lib/types'
+import { formatPhone } from './conversation-list'
 
 interface DemandData {
   total_queries: number
@@ -54,7 +55,7 @@ export function ContactPanel({ contact, conversation, demandData, onSaveContact,
     )
   }
 
-  const phone = contact?.phone_e164 || conversation.contact.replace('whatsapp:', '')
+  const phone = formatPhone(contact?.phone_e164 || conversation.contact)
 
   return (
     <div className="flex flex-col h-full bg-[#0f172a]">
@@ -88,25 +89,13 @@ export function ContactPanel({ contact, conversation, demandData, onSaveContact,
         {/* Channel & Status */}
         <div className="flex gap-2 flex-wrap">
           <span className="px-2 py-0.5 rounded text-base font-medium bg-[#1e293b] text-[#e2e8f0]">
-            {conversation.channel}
+            {conversation.channel === 'whatsapp' ? 'WhatsApp' : 'SMS'}
           </span>
           <span className={`px-2 py-0.5 rounded text-base font-medium ${
             conversation.needs_human ? 'bg-[#f87171]/20 text-[#f87171]' : 'bg-[#1e293b] text-[#e2e8f0]'
           }`}>
             {conversation.needs_human ? 'Necesita atención' : conversation.status || 'bot'}
           </span>
-        </div>
-
-        {/* Stats */}
-        <div className="grid grid-cols-2 gap-2 text-base">
-          <div className="bg-[#1e293b] rounded-lg p-2">
-            <p className="text-[#cbd5e1]">Mensajes</p>
-            <p className="text-white font-medium">{conversation.message_count}</p>
-          </div>
-          <div className="bg-[#1e293b] rounded-lg p-2">
-            <p className="text-[#cbd5e1]">Último tema</p>
-            <p className="text-white font-medium text-base">{conversation.intent || conversation.last_intent || '-'}</p>
-          </div>
         </div>
 
         {/* Demand data */}
