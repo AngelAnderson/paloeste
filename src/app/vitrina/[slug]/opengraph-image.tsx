@@ -72,7 +72,7 @@ export default async function OGImage({
           </div>
           {sponsorsInCategory === 0 && (
             <div style={{ background: "rgba(232,103,74,0.3)", padding: "12px 24px", borderRadius: 12, fontSize: 18, fontWeight: 700, border: "2px solid rgba(232,103,74,0.6)" }}>
-              0 sponsors — posición #1 disponible
+              La Vitrina de CaboRojo.com
             </div>
           )}
         </div>

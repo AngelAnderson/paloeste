@@ -1,8 +1,7 @@
 import { Metadata } from "next";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
-import { BOT_PHONE, CONTACT_WHATSAPP, CATEGORIES } from "@/lib/constants";
+import { BOT_PHONE, CATEGORIES } from "@/lib/constants";
 import { getPublicDemandStats } from "@/lib/admin-queries";
 
 export const revalidate = 3600; // ISR: refresh every hour
@@ -10,7 +9,7 @@ export const revalidate = 3600; // ISR: refresh every hour
 export const metadata: Metadata = {
   title: "La Vitrina — Anuncia tu Negocio en Cabo Rojo",
   description:
-    "Miles de personas buscan negocios como el tuyo cada mes en Cabo Rojo. Aparece en *7711, CaboRojo.com, y 6 sitios más. Desde $89/mes.",
+    "Miles de personas buscan negocios como el tuyo cada mes en Cabo Rojo. La Vitrina de CaboRojo.com: 1 publicación por semana, ficha completa y una página hecha para que Google te encuentre.",
 };
 
 const CAT_LABEL: Record<string, string> = {};
@@ -58,10 +57,11 @@ export default async function AnunciaPage({ searchParams }: Props) {
           <br />
           <span className="text-stone-400">¿Te encontraron?</span>
         </h1>
-        <p className="text-lg text-stone-500 max-w-2xl mx-auto">
-          Cada día, residentes de Cabo Rojo textean al *{BOT_PHONE} buscando
-          servicios. El bot recomienda negocios. Si no estás visible, recomienda
-          a tu competencia.
+        <p className="text-lg text-stone-600 max-w-2xl mx-auto">
+          Cada día, vecinos de Cabo Rojo textean al {BOT_PHONE} y le preguntan a
+          El Veci por servicios. El Veci recomienda lo que le sirve al vecino, pague
+          quien pague. La Vitrina es otra cosa: tu negocio publicado cada semana
+          en CaboRojo.com.
         </p>
         {catData && (
           <p className="text-sm text-red-600 font-medium">
@@ -96,7 +96,7 @@ export default async function AnunciaPage({ searchParams }: Props) {
             Esto es lo que buscan en Cabo Rojo
           </h2>
           <p className="text-stone-500">
-            Datos reales del bot *{BOT_PHONE}. No encuestas — búsquedas reales.
+            Datos reales de lo que le preguntan a El Veci al {BOT_PHONE}. No encuestas, búsquedas reales.
           </p>
         </div>
         <div className="grid md:grid-cols-2 gap-3">
@@ -127,232 +127,66 @@ export default async function AnunciaPage({ searchParams }: Props) {
       {/* How it works */}
       <section className="space-y-6">
         <h2 className="text-2xl font-display font-bold text-stone-900 text-center">
-          ¿Cómo funciona?
+          ¿Cómo funciona La Vitrina?
         </h2>
         <div className="grid md:grid-cols-3 gap-6 text-center">
           <Step
             num="1"
-            title="Alguien textea *7711"
-            desc={`"Necesito un electricista en Cabo Rojo" — por WhatsApp o SMS`}
+            title="Publicamos cada semana"
+            desc="1 publicación por semana en el Facebook de CaboRojo.com, 52 al año"
           />
           <Step
             num="2"
-            title="El Veci recomienda"
-            desc="El bot responde con tu negocio: nombre, teléfono, horario, estrellas"
+            title="Tu ficha y tu página"
+            desc="Ficha completa con fotos reales y una página en CaboRojo.com hecha para que Google te encuentre"
           />
           <Step
             num="3"
-            title="Te llaman"
-            desc="El cliente te contacta directamente. Sin intermediarios, sin clics."
+            title="Te contamos lo entregado"
+            desc="1 línea cada 3 meses y 1 reporte al año"
           />
         </div>
       </section>
 
-      {/* Luis David case study */}
-      <section className="bg-stone-900 text-white rounded-2xl p-8 space-y-4">
-        <Badge className="bg-green-900 text-green-300 border-green-700">
-          Caso Real
-        </Badge>
-        <h3 className="text-xl font-bold">
-          Luis David Refrigeration — Sponsor desde marzo 2026
-        </h3>
-        <div className="grid md:grid-cols-3 gap-4">
-          <div className="bg-stone-800 rounded-xl p-4 text-center">
-            <p className="text-3xl font-black text-green-400">325</p>
-            <p className="text-stone-400 text-sm">recomendaciones del bot</p>
-          </div>
-          <div className="bg-stone-800 rounded-xl p-4 text-center">
-            <p className="text-3xl font-black text-green-400">✅</p>
-            <p className="text-stone-400 text-sm">verificado con badge</p>
-          </div>
-          <div className="bg-stone-800 rounded-xl p-4 text-center">
-            <p className="text-3xl font-black text-green-400">24/7</p>
-            <p className="text-stone-400 text-sm">leads por WhatsApp</p>
-          </div>
-        </div>
-        <p className="text-stone-300 text-sm">
-          Cada vez que alguien busca &ldquo;aire acondicionado&rdquo; o &ldquo;A/C&rdquo; en
-          Cabo Rojo, el bot recomienda a Luis David primero. Sin que él tenga
-          que hacer nada.
-        </p>
-      </section>
 
-      {/* Value comparison */}
-      <section className="space-y-6">
-        <h2 className="text-2xl font-display font-bold text-stone-900 text-center">
-          ¿Por qué La Vitrina y no Google Ads?
-        </h2>
-        <div className="grid md:grid-cols-2 gap-4">
-          <Card className="bg-stone-100 border-stone-200">
-            <CardContent className="p-6 space-y-3">
-              <h3 className="font-bold text-stone-400">Google Ads</h3>
-              <ul className="space-y-2 text-sm text-stone-500">
-                <li>❌ $3-5 por clic</li>
-                <li>❌ Desaparece en 24 horas</li>
-                <li>❌ Compites con todo Puerto Rico</li>
-                <li>❌ Necesitas página web</li>
-                <li>❌ $150-300/mes mínimo para funcionar</li>
-              </ul>
-            </CardContent>
-          </Card>
-          <Card className="bg-red-50 border-red-200 ring-1 ring-red-200">
-            <CardContent className="p-6 space-y-3">
-              <h3 className="font-bold text-red-600">La Vitrina *7711</h3>
-              <ul className="space-y-2 text-sm text-stone-700">
-                <li>✅ $89/mes — precio fijo</li>
-                <li>✅ Visible 24/7, permanente</li>
-                <li>✅ Solo Cabo Rojo — tu mercado real</li>
-                <li>✅ No necesitas página web</li>
-                <li>✅ Leads directos por WhatsApp</li>
-                <li>✅ Reporte mensual con datos reales</li>
-              </ul>
-            </CardContent>
-          </Card>
-        </div>
-      </section>
 
-      {/* Pricing */}
+      {/* La oferta, sin precio */}
       <section className="space-y-6" id="planes">
         <div className="text-center">
           <h2 className="text-2xl font-display font-bold text-stone-900">
-            Planes de La Vitrina
+            Una sola oferta
           </h2>
-          <p className="text-stone-500">
-            Sin contratos. Cancela cuando quieras. Te activamos en 24 horas.
+          <p className="text-stone-600 text-base">
+            Sin exclusividad, sin plan mensual, sin mes de prueba.
           </p>
         </div>
-
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {/* Free */}
-          <Card className="bg-po-surface border-po-border">
-            <CardContent className="p-6 space-y-4">
-              <h3 className="text-lg font-bold text-stone-900">Gratis</h3>
-              <div>
-                <span className="text-3xl font-black text-stone-900">$0</span>
-              </div>
-              <ul className="space-y-2 text-sm text-stone-600">
-                <li className="flex items-start gap-2">
-                  <span className="text-green-600">✓</span>Listado básico
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-green-600">✓</span>Nombre, tel, dirección
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-green-600">✓</span>Visible en búsquedas
-                </li>
-              </ul>
-              <div className="block text-center py-2.5 rounded-lg text-sm bg-po-surface text-stone-400">
-                Ya estás incluido
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Monthly */}
-          <Card className="bg-po-surface border-po-border">
-            <CardContent className="p-6 space-y-4">
-              <h3 className="text-lg font-bold text-stone-900">Mensual</h3>
-              <div>
-                <span className="text-3xl font-black text-stone-900">$89</span>
-                <span className="text-stone-500">/mes</span>
-              </div>
-              <ul className="space-y-2 text-sm text-stone-600">
-                <li className="flex items-start gap-2">
-                  <span className="text-green-600">✓</span>Prioridad en el bot *7711
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-green-600">✓</span>Badge verificado ✅
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-green-600">✓</span>Leads por WhatsApp
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-green-600">✓</span>2 reposts/semana en FB
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-green-600">✓</span>Newsletter semanal
-                </li>
-              </ul>
-              <Link
-                href={`${CONTACT_WHATSAPP}?text=${encodeURIComponent("Quiero La Vitrina mensual ($89) para mi negocio")}`}
-                target="_blank"
-                className="block text-center py-2.5 rounded-lg font-bold text-sm bg-stone-900 text-white hover:bg-stone-700 transition-colors"
-              >
-                Empezar — $89/mes
-              </Link>
-            </CardContent>
-          </Card>
-
-          {/* 90 days - Recommended */}
-          <Card className="relative bg-po-surface border-red-600 ring-1 ring-red-600">
-            <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-              <Badge className="bg-red-600 text-white font-bold">
-                Recomendado
-              </Badge>
-            </div>
-            <CardContent className="p-6 space-y-4">
-              <h3 className="text-lg font-bold text-stone-900">90 Días</h3>
-              <div>
-                <span className="text-3xl font-black text-stone-900">$229</span>
-                <span className="text-stone-500">/90 días</span>
-              </div>
-              <p className="text-xs text-green-600 font-medium">
-                Ahorras $38 vs mensual — cabe en ATH Móvil
-              </p>
-              <ul className="space-y-2 text-sm text-stone-600">
-                <li className="flex items-start gap-2">
-                  <span className="text-green-600">✓</span>Todo del plan mensual
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-green-600">✓</span>Reporte mensual de demanda
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-green-600">✓</span>Apareces en 6 sitios web
-                </li>
-              </ul>
-              <Link
-                href={`${CONTACT_WHATSAPP}?text=${encodeURIComponent("Quiero La Vitrina 90 días ($229) para mi negocio")}`}
-                target="_blank"
-                className="block text-center py-2.5 rounded-lg font-bold text-sm bg-red-600 text-white hover:bg-red-700 transition-colors"
-              >
-                Elegir 90 Días — $229
-              </Link>
-            </CardContent>
-          </Card>
-
-          {/* Annual */}
-          <Card className="bg-po-surface border-po-border">
-            <CardContent className="p-6 space-y-4">
-              <h3 className="text-lg font-bold text-stone-900">Anual</h3>
-              <div>
-                <span className="text-3xl font-black text-stone-900">$799</span>
-                <span className="text-stone-500">/año</span>
-              </div>
-              <p className="text-xs text-green-600 font-medium">
-                $2.19/día — ahorra $269 vs mensual
-              </p>
-              <ul className="space-y-2 text-sm text-stone-600">
-                <li className="flex items-start gap-2">
-                  <span className="text-green-600">✓</span>Todo del plan 90 días
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-green-600">✓</span>Exclusividad de categoría
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-green-600">✓</span>Dashboard privado de demanda
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-green-600">✓</span>Soporte directo con Angel
-                </li>
-              </ul>
-              <Link
-                href={`${CONTACT_WHATSAPP}?text=${encodeURIComponent("Quiero La Vitrina anual ($799) para mi negocio")}`}
-                target="_blank"
-                className="block text-center py-2.5 rounded-lg font-bold text-sm bg-stone-900 text-white hover:bg-stone-700 transition-colors"
-              >
-                Mejor Precio — $799/año
-              </Link>
-            </CardContent>
-          </Card>
+        <div className="bg-po-surface border border-po-border rounded-2xl p-6 md:p-8 max-w-2xl mx-auto space-y-4">
+          <ul className="space-y-3 text-base text-stone-700">
+            <li className="flex items-start gap-2">
+              <span className="text-green-600">✓</span>52 publicaciones al año (1 por semana) en el Facebook de CaboRojo.com
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-green-600">✓</span>Ficha completa en el directorio con fotos reales
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-green-600">✓</span>Una página en CaboRojo.com hecha para que Google te encuentre
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-green-600">✓</span>1 línea cada 3 meses con lo entregado
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-green-600">✓</span>1 reporte al año
+            </li>
+          </ul>
+          <Link
+            href="https://caborojo.com/vitrina"
+            className="flex items-center justify-center min-h-12 px-6 rounded-lg font-bold text-base bg-red-600 text-white hover:bg-red-700 transition-colors"
+          >
+            Ver La Vitrina en CaboRojo.com
+          </Link>
+          <p className="text-stone-600 text-base text-center">
+            O textea VITRINA al {BOT_PHONE}.
+          </p>
         </div>
       </section>
 
@@ -364,27 +198,19 @@ export default async function AnunciaPage({ searchParams }: Props) {
         <div className="space-y-4 max-w-2xl mx-auto">
           <Faq
             q="¿Necesito tener página web?"
-            a="No. Solo necesitas un teléfono. El bot envía tu número directamente al cliente."
+            a="No. Te hacemos una página en CaboRojo.com y tu ficha en el directorio. Solo necesitas un teléfono."
           />
           <Faq
             q="¿Me garantizan ventas?"
-            a="No — nadie puede. Lo que sí garantizamos: visibilidad constante ante personas que están buscando EXACTAMENTE lo que tú ofreces. Te damos un reporte mensual con datos reales: cuántas veces te recomendaron, cuántas personas te buscaron."
+            a="No, nadie puede. Lo que entregamos es lo que dice la lista de arriba, y cada 3 meses te mandamos 1 línea con lo que se hizo."
           />
           <Faq
-            q="¿Puedo cancelar?"
-            a="Sí. Sin penalidad, sin preguntas. Pero nadie ha cancelado todavía."
+            q="¿El Veci recomienda a quien paga?"
+            a="No. El Veci recomienda lo que le sirve al vecino, pague quien pague. La Vitrina no compra una recomendación."
           />
           <Faq
-            q="¿Cómo sé que funciona?"
-            a="Reporte mensual con datos reales: búsquedas en tu categoría, recomendaciones de tu negocio, leads enviados. No estimados — datos del bot."
-          />
-          <Faq
-            q="¿Cuánto tiempo toma activarse?"
-            a="24 horas. Pagas hoy, mañana ya estás apareciendo en las recomendaciones."
-          />
-          <Faq
-            q="¿Qué es exclusividad de categoría?"
-            a="Solo con el plan anual. Si eres electricista y pagas $799/año, ningún otro electricista puede entrar en La Vitrina en tu zona durante tu contrato. Tú eres EL recomendado."
+            q="¿Cómo empiezo?"
+            a={`Entra a caborojo.com/vitrina o textea VITRINA al ${BOT_PHONE}.`}
           />
         </div>
       </section>
@@ -392,24 +218,16 @@ export default async function AnunciaPage({ searchParams }: Props) {
       {/* Final CTA */}
       <section className="text-center space-y-6 py-8">
         <h2 className="text-3xl font-display font-black text-stone-900">
-          Tu competencia ya aparece.
-          <br />
-          <span className="text-red-600">¿Y tú?</span>
+          ¿Quieres que te encuentren?
         </h2>
-        <p className="text-stone-500 max-w-xl mx-auto">
-          Cada búsqueda que el bot responde sin tu negocio es un cliente que se
-          fue a otro lugar. No necesitas página web. No necesitas redes sociales.
-          Solo necesitas estar en *{BOT_PHONE}.
-        </p>
         <Link
-          href={`${CONTACT_WHATSAPP}?text=${encodeURIComponent("Quiero La Vitrina para mi negocio en *7711")}`}
-          target="_blank"
-          className="inline-block bg-red-600 hover:bg-red-700 text-white font-bold py-4 px-8 rounded-xl text-lg transition-colors"
+          href="https://caborojo.com/vitrina"
+          className="inline-flex items-center justify-center min-h-12 bg-red-600 hover:bg-red-700 text-white font-bold py-4 px-8 rounded-xl text-lg transition-colors"
         >
-          Escríbenos por WhatsApp — Te activamos en 24h
+          Ver La Vitrina en CaboRojo.com
         </Link>
-        <p className="text-stone-400 text-sm">
-          O llama al *{BOT_PHONE} · ventas@caborojo.com
+        <p className="text-stone-600 text-base">
+          Textea VITRINA al {BOT_PHONE}
         </p>
       </section>
     </div>

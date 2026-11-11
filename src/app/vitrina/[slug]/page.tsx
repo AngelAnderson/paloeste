@@ -5,12 +5,10 @@ import { getPlaceBySlug } from "@/lib/supabase"
 import { createSupabaseAdminClient } from "@/lib/supabase-server"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
-import { BOT_PHONE, CONTACT_WHATSAPP, CATEGORIES, SITE_URL } from "@/lib/constants"
+import { BOT_PHONE, CATEGORIES, SITE_URL } from "@/lib/constants"
 
 export const revalidate = 3600
 
-const VITRINA_PRICE = 799
-const LEAD_VALUE = 2.15
 
 const CAT_LABEL: Record<string, string> = {}
 CATEGORIES.forEach((c) => { CAT_LABEL[c.id] = c.label_es })
@@ -202,11 +200,6 @@ export default async function VitrinaPage({
     }
   }
 
-  const demandValue = Math.round(totalSearches * LEAD_VALUE)
-  const dailyCost = (VITRINA_PRICE / 365).toFixed(2)
-  const waMessage = encodeURIComponent(
-    `Hola Angel, vi mis datos en paloeste.com/vitrina/${slug} y quiero La Vitrina para ${place.name}`
-  )
 
   return (
     <div className="min-h-screen bg-white">
@@ -320,7 +313,7 @@ export default async function VitrinaPage({
                 0 sponsors en {positionLabel}
               </p>
               <p className="text-red-600 text-sm mt-1">
-                El primero que anuncie toma la posici{"ó"}n #1 ante {totalSearches} b{"ú"}squedas mensuales.
+                {totalSearches} b{"ú"}squedas mensuales en esta categor{"í"}a.
               </p>
             </div>
           ) : (
@@ -329,7 +322,7 @@ export default async function VitrinaPage({
                 {subFamily ? subSponsors : sponsorsInCategory} sponsor{(subFamily ? subSponsors : sponsorsInCategory) > 1 ? "es" : ""} en {positionLabel}
               </p>
               <p className="text-amber-600 text-sm mt-1">
-                Quedan espacios disponibles. Los sponsors aparecen primero.
+                El Veci recomienda lo que le sirve al vecino, pague quien pague.
               </p>
             </div>
           )}
@@ -391,54 +384,6 @@ export default async function VitrinaPage({
           </section>
         )}
 
-        {/* SECTION C: THE MATH */}
-        <section className="space-y-6">
-          <h2 className="text-2xl font-display font-bold text-stone-900">
-            El valor de esta demanda
-          </h2>
-
-          <div className="bg-stone-900 text-white rounded-2xl p-8 space-y-6">
-            <div className="grid md:grid-cols-2 gap-6 text-center">
-              <div>
-                <p className="text-xs text-stone-400 uppercase tracking-wider">Oportunidad identificada</p>
-                <p className="text-4xl font-black text-green-400 mt-1">
-                  ${demandValue.toLocaleString()}
-                </p>
-                <p className="text-stone-400 text-sm mt-1">
-                  {totalSearches.toLocaleString()} b{"ú"}squedas {"\u00D7"} ${LEAD_VALUE} por lead
-                </p>
-              </div>
-              <div>
-                <p className="text-xs text-stone-400 uppercase tracking-wider">Costo de La Vitrina</p>
-                <p className="text-4xl font-black text-red-400 mt-1">
-                  ${VITRINA_PRICE}
-                </p>
-                <p className="text-stone-400 text-sm mt-1">
-                  por a{"ñ"}o = ${dailyCost}/d{"í"}a
-                </p>
-              </div>
-            </div>
-
-            {demandValue > 0 && (
-              <div className="space-y-2">
-                <div className="h-8">
-                  <div className="bg-green-500 rounded-sm h-full w-full" />
-                </div>
-                <div className="h-8">
-                  <div
-                    className="bg-red-500 rounded-sm h-full"
-                    style={{ width: `${Math.min(100, Math.round((VITRINA_PRICE / demandValue) * 100))}%` }}
-                  />
-                </div>
-                <div className="flex justify-between text-xs text-stone-400">
-                  <span className="text-green-400">Demanda: ${demandValue.toLocaleString()}</span>
-                  <span className="text-red-400">Costo: ${VITRINA_PRICE}/a{"ñ"}o</span>
-                </div>
-              </div>
-            )}
-          </div>
-        </section>
-
         {/* SECTION D: SOCIAL PROOF */}
         <section className="space-y-6">
           <h2 className="text-2xl font-display font-bold text-stone-900">
@@ -470,14 +415,6 @@ export default async function VitrinaPage({
             </Card>
           </div>
 
-          <div className="bg-stone-900 text-white rounded-2xl p-6 space-y-3">
-            <Badge className="bg-green-900 text-green-300 border-green-700">Caso Real</Badge>
-            <p className="font-bold text-lg">Luis David Refrigeraci{"ó"}n</p>
-            <p className="text-stone-300 text-sm">
-              Cada vez que alguien busca &quot;aire acondicionado&quot; en
-              Cabo Rojo, el bot recomienda a Luis David primero. 325 recomendaciones y contando.
-            </p>
-          </div>
         </section>
 
         {/* SECTION E: CTA */}
@@ -490,60 +427,27 @@ export default async function VitrinaPage({
             ) : (
               <>
                 <h2 className="text-3xl font-display font-black text-stone-900">
-                  {"¿"}Listo para que{" "}
+                  {"¿"}Quieres que {" "}
                   <span className="text-red-600">{place.name}</span>
-                  {" "}aparezca primero?
+                  {" "}se vea cada semana en CaboRojo.com?
                 </h2>
 
-                <p className="text-stone-500 max-w-xl mx-auto">
-                  Escr{"í"}beme por WhatsApp y lo activamos hoy mismo.
-                  Sin llamadas. Sin presentaciones largas. En blanco y negro.
+                <p className="text-stone-600 text-base max-w-xl mx-auto">
+                  La Vitrina: 52 publicaciones al a{"ñ"}o (1 por semana) en el Facebook de CaboRojo.com,
+                  ficha completa con fotos reales, una p{"á"}gina en CaboRojo.com hecha para que Google te encuentre,
+                  1 l{"í"}nea cada 3 meses con lo entregado y 1 reporte al a{"ñ"}o.
                 </p>
 
                 <Link
-                  href={`https://wa.me/17874177711?text=${waMessage}`}
-                  target="_blank"
-                  className="inline-flex items-center gap-3 bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-8 rounded-xl text-lg transition-colors"
+                  href="https://caborojo.com/vitrina"
+                  className="inline-flex items-center justify-center min-h-12 gap-3 bg-red-600 hover:bg-red-700 text-white font-bold py-4 px-8 rounded-xl text-lg transition-colors"
                 >
-                  Textear a Angel — {BOT_PHONE}
+                  Ver La Vitrina en CaboRojo.com
                 </Link>
 
-                <div className="grid grid-cols-3 gap-4 max-w-lg mx-auto">
-                  <Link
-                    href={`${CONTACT_WHATSAPP}?text=${encodeURIComponent(`Quiero probar Boost 7 días ($29) para ${place.name}`)}`}
-                    target="_blank"
-                    className="border border-po-border rounded-xl p-4 text-center hover:border-stone-400 transition-colors"
-                  >
-                    <p className="text-2xl font-black text-stone-900">$29</p>
-                    <p className="text-stone-500 text-xs">Boost 7 d{"í"}as</p>
-                  </Link>
-                  <Link
-                    href={`${CONTACT_WHATSAPP}?text=${encodeURIComponent(`Quiero La Vitrina Básica ($799/año) para ${place.name}`)}`}
-                    target="_blank"
-                    className="border-2 border-red-600 rounded-xl p-4 text-center relative hover:bg-red-50 transition-colors"
-                  >
-                    <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">
-                      Popular
-                    </span>
-                    <p className="text-2xl font-black text-stone-900">$799</p>
-                    <p className="text-stone-500 text-xs">B{"á"}sica / a{"ñ"}o</p>
-                    <p className="text-green-600 text-[10px] font-medium">${dailyCost}/d{"í"}a</p>
-                  </Link>
-                  <Link
-                    href={`${CONTACT_WHATSAPP}?text=${encodeURIComponent(`Quiero Vitrina + Veci ($1,800/año) para ${place.name}`)}`}
-                    target="_blank"
-                    className="border border-po-border rounded-xl p-4 text-center hover:border-stone-400 transition-colors"
-                  >
-                    <p className="text-2xl font-black text-stone-900">$1,800</p>
-                    <p className="text-stone-500 text-xs">+ Veci / a{"ñ"}o</p>
-                  </Link>
-                </div>
-
-                <div className="flex justify-center gap-8 text-sm text-stone-400 pt-4 flex-wrap">
-                  <span>1. Escr{"í"}benos por WhatsApp</span>
-                  <span>2. Confirmamos tu perfil</span>
-                  <span>3. Activo en 24 horas</span>
-                </div>
+                <p className="text-stone-600 text-base">
+                  O textea VITRINA al {BOT_PHONE}.
+                </p>
               </>
             )}
           </div>

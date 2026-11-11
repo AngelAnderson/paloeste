@@ -238,14 +238,14 @@ export default async function HomePage() {
             ¿Tienes un negocio en el oeste?
           </h2>
           <p className="text-stone-600 max-w-lg mx-auto">
-            Aparece en nuestro directorio, en El Veci *{BOT_PHONE}, en Facebook, y
-            en el newsletter. Paquetes desde $299/año.
+            La Vitrina de CaboRojo.com: 1 publicación por semana en Facebook, ficha
+            completa en el directorio y una página hecha para que Google te encuentre.
           </p>
           <Link
-            href="/anuncia"
+            href="https://caborojo.com/vitrina"
             className="inline-block bg-red-600 hover:bg-red-700 text-white font-bold px-8 py-3 rounded-full transition-colors"
           >
-            Anuncia tu Negocio →
+            Ver La Vitrina →
           </Link>
         </div>
       </section>

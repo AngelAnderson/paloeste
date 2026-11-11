@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
-import { BOT_PHONE, CONTACT_WHATSAPP } from "@/lib/constants";
+import { CONTACT_WHATSAPP } from "@/lib/constants";
 
 export const metadata: Metadata = {
   title: "Nuestros Sponsors — Anunciantes Fundadores",
@@ -29,7 +29,6 @@ const FOUNDERS = [
 
 const BENEFITS = [
   { icon: "🌐", title: "Listing destacado en paloeste.com", desc: "Tu negocio con foto, contacto, y badge exclusivo" },
-  { icon: "🤖", title: "Recomendado por El Veci *7711", desc: "El Vecino Digital te menciona cuando la gente busca" },
   { icon: "📱", title: "Mención en Facebook", desc: "Posts de Orgullo Local en CaboRojo.com (15K+ seguidores)" },
   { icon: "📧", title: "Inclusión en Newsletter", desc: "2,400+ suscriptores reciben tu nombre cada semana" },
   { icon: "📊", title: "Dashboard de Analytics", desc: "Vistas, clicks, búsquedas — datos reales de tu negocio" },
@@ -122,15 +121,15 @@ export default function SponsorsPage() {
           ¿Quieres ser el próximo?
         </h2>
         <p className="text-stone-600">
-          Los badges de Fundador están cerrados, pero los paquetes Sponsor están abiertos.
-          Directorio + El Veci *{BOT_PHONE} + Facebook + newsletter. Desde $299/año.
+          Los badges de Fundador están cerrados. La Vitrina de CaboRojo.com sí está abierta:
+          1 publicación por semana en Facebook, ficha completa y una página hecha para que Google te encuentre.
         </p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <Link
-            href="/anuncia"
+            href="https://caborojo.com/vitrina"
             className="bg-red-600 hover:bg-red-700 text-white font-bold px-8 py-3 rounded-full transition-colors"
           >
-            Ver Paquetes →
+            Ver La Vitrina →
           </Link>
           <Link
             href={CONTACT_WHATSAPP}
