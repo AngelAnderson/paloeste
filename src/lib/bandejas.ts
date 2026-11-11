@@ -51,7 +51,7 @@ function dollars(cents: number) {
 
 function leadDraft(rel: OverdueRelationship): string {
   if (MONEY_SIGNAL.test(rel.next_action || '')) {
-    return 'Saludos, soy Angel de CaboRojo.com. Vi tu pregunta sobre la Vitrina y te quedé debiendo la respuesta. La prueba es $40 (una publicación esta semana + listing en el Veci) y el mes completo $150 (4 publicaciones, una por semana). Si te cuadra te mando el link de pago. Y si no, todo bien.'
+    return 'Saludos, soy Angel de CaboRojo.com. Vi tu pregunta sobre la Vitrina y te quedé debiendo la respuesta. Es 1 sola oferta al año: 1 publicación por semana, tu ficha completa con fotos y tu página en CaboRojo.com. Todo el detalle y el precio están en caborojo.com/vitrina. Si te cuadra, textea VITRINA al 787-417-7711 y te digo cómo se paga. Y si no, todo bien.'
   }
   return 'Saludos, soy Angel de CaboRojo.com y El Veci (787-417-7711). Vi tu mensaje y te quedé debiendo respuesta. Cuéntame, ¿en qué te puedo ayudar?'
 }
