@@ -1,11 +1,26 @@
 import type { Metadata } from "next";
 import { Buscador } from "./buscador";
 
+const DESCRIPCION =
+  "Escribe un nombre o un tema y mira el momento exacto del video donde lo dijeron. Noticias, vistas públicas y programas de Puerto Rico.";
+
 export const metadata: Metadata = {
   title: "¿Qué dijo? Busca lo que se dijo en video en Puerto Rico",
-  description:
-    "Escribe un nombre o un tema y mira el momento exacto del video donde lo dijeron. Noticias, vistas públicas y programas de Puerto Rico.",
+  description: DESCRIPCION,
   alternates: { canonical: "/que-dijo" },
+  openGraph: {
+    type: "website",
+    locale: "es_PR",
+    siteName: "¿Qué dijo?",
+    title: "¿Qué dijo? El minuto exacto del video donde lo dijeron",
+    description: DESCRIPCION,
+    url: "/que-dijo",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "¿Qué dijo? El minuto exacto del video donde lo dijeron",
+    description: DESCRIPCION,
+  },
 };
 
 export default function QueDijoPage() {
@@ -28,6 +43,7 @@ export default function QueDijoPage() {
           mira el video.
         </p>
         <p className="mt-3">Funciona mejor con nombres, apellidos, agencias y cifras. 3 búsquedas gratis al día.</p>
+        <p className="mt-3">Guardamos lo que se busca, sin tu nombre, para mejorar la página.</p>
       </section>
     </main>
   );
