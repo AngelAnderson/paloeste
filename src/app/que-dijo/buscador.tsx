@@ -2,10 +2,11 @@
 
 import { useCallback, useEffect, useState } from "react";
 
-type Fila = { titulo: string; canal: string; fecha: string; minuto: string; texto: string; enlace: string };
+type Fila = { titulo: string; canal: string; fecha: string; minuto: string; texto: string; enlace: string; mas?: number };
 type Estado = { pase: string | null; quedan: number };
 
 const EJEMPLOS = ["Roig renuncia", "LUMA aumento", "contrato del gas"];
+const EJEMPLOS_CR = ["ambulancia", "el faro", "Combate"];
 const MESES = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
 
 function fechaCorta(iso: string): string {
@@ -13,7 +14,26 @@ function fechaCorta(iso: string): string {
   return m ? `${Number(m[3])} ${MESES[Number(m[2]) - 1]} ${m[1]}` : iso;
 }
 
+// La cita llega con la palabra buscada entre [[ ]]; aquí se pinta en negrita sin meter HTML crudo.
+function Cita({ texto }: { texto: string }) {
+  const partes = texto.split(/\[\[|\]\]/);
+  return (
+    <>
+      {partes.map((p, i) =>
+        i % 2 === 1 ? (
+          <strong key={i} className="font-bold text-stone-950">
+            {p}
+          </strong>
+        ) : (
+          <span key={i}>{p}</span>
+        ),
+      )}
+    </>
+  );
+}
+
 export function Buscador() {
+  const [soloCr, setSoloCr] = useState(false);
   const [q, setQ] = useState("");
   const [filas, setFilas] = useState<Fila[] | null>(null);
   const [buscado, setBuscado] = useState("");
@@ -23,7 +43,7 @@ export function Buscador() {
   const [estado, setEstado] = useState<Estado | null>(null);
   const [aviso, setAviso] = useState("");
 
-  const buscar = useCallback(async (texto: string) => {
+  const buscar = useCallback(async (texto: string, cr: boolean) => {
     const limpio = texto.trim();
     if (limpio.length < 3) {
       setError("Escribe un nombre o un tema de 3 letras o más.");
@@ -33,7 +53,7 @@ export function Buscador() {
     setError("");
     setTope(false);
     try {
-      const r = await fetch(`/api/que-dijo?q=${encodeURIComponent(limpio)}`, { cache: "no-store" });
+      const r = await fetch(`/api/que-dijo?q=${encodeURIComponent(limpio)}${cr ? "&cr=1" : ""}`, { cache: "no-store" });
       const d = await r.json();
       if (d.error) {
         setError(d.error);
@@ -45,7 +65,7 @@ export function Buscador() {
         setFilas(d.resultados || []);
         setBuscado(limpio);
         if (typeof d.quedan === "number") setEstado((e) => ({ pase: e?.pase ?? null, quedan: d.quedan }));
-        window.history.replaceState(null, "", `/que-dijo?q=${encodeURIComponent(limpio)}`);
+        window.history.replaceState(null, "", `/que-dijo?q=${encodeURIComponent(limpio)}${cr ? "&cr=1" : ""}`);
       }
     } catch {
       setError("No se pudo buscar. Revisa tu conexión y prueba otra vez.");
@@ -64,10 +84,12 @@ export function Buscador() {
       .then((r) => r.json())
       .then((d) => setEstado({ pase: d.pase ?? null, quedan: Number(d.quedan) || 0 }))
       .catch(() => {});
+    const cr = p.get("cr") === "1";
+    if (cr) setSoloCr(true);
     const inicial = p.get("q");
     if (inicial) {
       setQ(inicial);
-      buscar(inicial);
+      buscar(inicial, cr);
     }
   }, [buscar]);
 
@@ -82,7 +104,7 @@ export function Buscador() {
       <form
         onSubmit={(e) => {
           e.preventDefault();
-          buscar(q);
+          buscar(q, soloCr);
         }}
         className="flex flex-col gap-3 sm:flex-row"
       >
@@ -107,15 +129,28 @@ export function Buscador() {
         </button>
       </form>
 
-      <div className="mt-4 flex flex-wrap items-center gap-2 text-[16px] text-stone-700">
+      <label className="mt-4 flex min-h-12 cursor-pointer items-center gap-3 text-[17px] font-medium text-stone-900">
+        <input
+          type="checkbox"
+          checked={soloCr}
+          onChange={(e) => {
+            setSoloCr(e.target.checked);
+            if (q.trim().length >= 3) buscar(q, e.target.checked);
+          }}
+          className="h-6 w-6 shrink-0 accent-[#1E3A5F]"
+        />
+        <span>Solo Cabo Rojo (videos de CaboRojo.com desde 2020)</span>
+      </label>
+
+      <div className="mt-2 flex flex-wrap items-center gap-2 text-[16px] text-stone-700">
         <span>Prueba con:</span>
-        {EJEMPLOS.map((e) => (
+        {(soloCr ? EJEMPLOS_CR : EJEMPLOS).map((e) => (
           <button
             key={e}
             type="button"
             onClick={() => {
               setQ(e);
-              buscar(e);
+              buscar(e, soloCr);
             }}
             className="min-h-12 rounded-full border border-stone-400 bg-white px-4 text-[16px] font-medium text-stone-900 hover:border-po-ocean hover:text-po-ocean focus:outline-none focus:ring-4 focus:ring-po-ocean/25"
           >
@@ -161,19 +196,26 @@ export function Buscador() {
           </h2>
           {!filas.length && (
             <p className="mt-3 text-[17px] leading-[1.6] text-stone-700">
-              Prueba con el apellido solo, o con la agencia. Esta búsqueda no gastó turno.
+              Prueba con el apellido solo, o con la agencia{soloCr ? ", o quita la marca de Solo Cabo Rojo" : ""}. Esta búsqueda no gastó turno.
             </p>
           )}
           <ol className="mt-5 space-y-5">
             {filas.map((f) => (
               <li key={f.enlace} className="rounded-xl border border-po-border bg-white p-5">
                 <p className="font-mono text-[16px] font-medium tabular-nums text-red-800">
-                  {fechaCorta(f.fecha)} · minuto {f.minuto}
+                  {fechaCorta(f.fecha)} · cerca del minuto {f.minuto}
                 </p>
                 <p className="mt-1 text-[16px] text-stone-700">
                   {f.canal} · {f.titulo}
                 </p>
-                <p className="mt-3 text-[19px] leading-[1.55] text-stone-900">“{f.texto}”</p>
+                <p className="mt-3 text-[19px] leading-[1.55] text-stone-800">
+                  “<Cita texto={f.texto} />”
+                </p>
+                {f.mas ? (
+                  <p className="mt-2 text-[16px] text-stone-700">
+                    {f.mas === 1 ? "Hay 1 momento más" : `Hay ${f.mas} momentos más`} en este video.
+                  </p>
+                ) : null}
                 <a
                   href={f.enlace}
                   target="_blank"

@@ -1,6 +1,6 @@
 import { GRATIS_AL_DIA, anotar, diaPR, firmar, paseHasta, ponerGalleta, usadasHoy } from "@/lib/que-dijo";
 
-// GET /api/que-dijo?q=<texto>  → resultados de buscar_memoria (por palabras).
+// GET /api/que-dijo?q=<texto>[&cr=1] → resultados de que_dijo_buscar (1 por video, cita con la palabra entre [[ ]]; cr=1 = solo CaboRojo.com).
 // GET /api/que-dijo?estado=1   → { pase, quedan } sin gastar búsqueda.
 // La llave de servicio se queda aquí; al navegador solo le llega la lista.
 export const runtime = "nodejs";
@@ -30,7 +30,7 @@ const json = (cuerpo: unknown, status = 200, galleta?: string) => {
   return new Response(JSON.stringify(cuerpo), { status, headers: h });
 };
 
-type Fila = { titulo: string; canal: string; fecha: string; minuto: string; texto: string; enlace: string };
+type Fila = { titulo: string; canal: string; fecha: string; minuto: string; texto: string; enlace: string; mas: number };
 
 export async function GET(req: Request) {
   const u = new URL(req.url);
@@ -47,6 +47,7 @@ export async function GET(req: Request) {
   const q = (u.searchParams.get("q") || "").replace(/\s+/g, " ").trim();
   if (q.length < 3 || q.length > 80) return json({ error: "Escribe un nombre o un tema de 3 a 80 letras." }, 400);
 
+  const soloCr = u.searchParams.get("cr") === "1";
   const clavIp = `${diaPR()}|${ip}`;
   if (!pase) {
     if (gratisIp.size > 20000) gratisIp.clear();
@@ -61,10 +62,10 @@ export async function GET(req: Request) {
 
   let filas: Fila[] = [];
   try {
-    const r = await fetch(`${url}/rest/v1/rpc/buscar_memoria`, {
+    const r = await fetch(`${url}/rest/v1/rpc/que_dijo_buscar`, {
       method: "POST",
       headers: { apikey: key, Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ q, p_n: 8, p_modo: "palabras" }),
+      body: JSON.stringify({ q, p_solo_cr: soloCr, p_n: 8 }),
       signal: AbortSignal.timeout(9000),
     });
     if (!r.ok) return json({ error: "El buscador no contestó. Prueba otra vez." }, 502);
@@ -76,14 +77,15 @@ export async function GET(req: Request) {
         canal: String(d.canal || "").slice(0, 80),
         fecha: String(d.fecha || "").slice(0, 10),
         minuto: String(d.minuto || "").slice(0, 8),
-        texto: String(d.texto || "").slice(0, 420),
+        texto: String(d.texto || "").slice(0, 700),
         enlace: d.enlace as string,
+        mas: Math.max(0, Math.min(99, Number(d.mas) || 0)),
       }));
   } catch {
     return json({ error: "El buscador tardó demasiado. Prueba con menos palabras." }, 504);
   }
 
-  await anotar("qd_busqueda", `${filas.length}|${q.toLowerCase().slice(0, 60)}`);
+  await anotar("qd_busqueda", `${filas.length}|${soloCr ? "cr:" : ""}${q.toLowerCase().slice(0, 60)}`);
 
   if (pase) return json({ resultados: filas, pase: true });
 
