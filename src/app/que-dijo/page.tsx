@@ -19,7 +19,7 @@ export default function QueDijoPage() {
       <section className="mt-14 border-t border-po-border pt-8 text-[17px] leading-[1.6] text-stone-700">
         <h2 className="font-heading text-[22px] font-bold text-stone-900">De dónde sale esto</h2>
         <p className="mt-3">
-          De más de 2,600 videos públicos (conteo del 18 de noviembre de 2026). De Cabo Rojo hay videos desde 2020. De las
+          De más de 2,600 videos públicos (conteo del 18 de noviembre de 2026). De Cabo Rojo hay videos desde 2023. De las
           noticias, vistas públicas y programas de la isla hay desde agosto de 2026. Cada resultado te lleva al video
           original en YouTube, cerca del momento exacto.
         </p>

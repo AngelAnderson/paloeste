@@ -45,7 +45,10 @@ export async function GET(req: Request) {
   if (limitado(ip)) return json({ error: "Demasiadas búsquedas seguidas. Espera unos minutos." }, 429);
 
   const q = (u.searchParams.get("q") || "").replace(/\s+/g, " ").trim();
-  if (q.length < 3 || q.length > 80) return json({ error: "Escribe un nombre o un tema de 3 a 80 letras." }, 400);
+  // tipo = lista de citas ya extraídas (promesas, fechas, cifras); ahí la palabra es opcional.
+  const TIPOS: Record<string, string> = { promesa: "promesa", fecha: "fecha_compromiso", cifra: "cifra" };
+  const tipo = TIPOS[u.searchParams.get("tipo") || ""] || null;
+  if (q.length > 80 || (!tipo && q.length < 3)) return json({ error: "Escribe un nombre o un tema de 3 a 80 letras." }, 400);
 
   const soloCr = u.searchParams.get("cr") === "1";
   const clavIp = `${diaPR()}|${ip}`;
@@ -62,10 +65,10 @@ export async function GET(req: Request) {
 
   let filas: Fila[] = [];
   try {
-    const r = await fetch(`${url}/rest/v1/rpc/que_dijo_buscar`, {
+    const r = await fetch(`${url}/rest/v1/rpc/${tipo ? "que_dijo_citas" : "que_dijo_buscar"}`, {
       method: "POST",
       headers: { apikey: key, Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ q, p_solo_cr: soloCr, p_n: 8 }),
+      body: JSON.stringify(tipo ? { p_tipo: tipo, q: q.length >= 3 ? q : null, p_solo_cr: soloCr, p_n: 8 } : { q, p_solo_cr: soloCr, p_n: 8 }),
       signal: AbortSignal.timeout(9000),
     });
     if (!r.ok) return json({ error: "El buscador no contestó. Prueba otra vez." }, 502);
@@ -85,7 +88,7 @@ export async function GET(req: Request) {
     return json({ error: "El buscador tardó demasiado. Prueba con menos palabras." }, 504);
   }
 
-  await anotar("qd_busqueda", `${filas.length}|${soloCr ? "cr:" : ""}${q.toLowerCase().slice(0, 60)}`);
+  await anotar("qd_busqueda", `${filas.length}|${soloCr ? "cr:" : ""}${tipo ? `${tipo}:` : ""}${q.toLowerCase().slice(0, 60)}`);
 
   if (pase) return json({ resultados: filas, pase: true });
 

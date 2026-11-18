@@ -7,6 +7,11 @@ type Estado = { pase: string | null; quedan: number };
 
 const EJEMPLOS = ["Roig renuncia", "LUMA aumento", "contrato del gas"];
 const EJEMPLOS_CR = ["ambulancia", "el faro", "Combate"];
+const TIPOS = [
+  { id: "promesa", boton: "Promesas", uno: "promesa", varios: "promesas" },
+  { id: "fecha", boton: "Fechas", uno: "compromiso con fecha", varios: "compromisos con fecha" },
+  { id: "cifra", boton: "Cifras", uno: "cifra", varios: "cifras" },
+];
 const MESES = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
 
 function fechaCorta(iso: string): string {
@@ -34,6 +39,7 @@ function Cita({ texto }: { texto: string }) {
 
 export function Buscador() {
   const [soloCr, setSoloCr] = useState(false);
+  const [tipo, setTipo] = useState("");
   const [q, setQ] = useState("");
   const [filas, setFilas] = useState<Fila[] | null>(null);
   const [buscado, setBuscado] = useState("");
@@ -43,9 +49,9 @@ export function Buscador() {
   const [estado, setEstado] = useState<Estado | null>(null);
   const [aviso, setAviso] = useState("");
 
-  const buscar = useCallback(async (texto: string, cr: boolean) => {
+  const buscar = useCallback(async (texto: string, cr: boolean, t = "") => {
     const limpio = texto.trim();
-    if (limpio.length < 3) {
+    if (!t && limpio.length < 3) {
       setError("Escribe un nombre o un tema de 3 letras o más.");
       return;
     }
@@ -53,7 +59,7 @@ export function Buscador() {
     setError("");
     setTope(false);
     try {
-      const r = await fetch(`/api/que-dijo?q=${encodeURIComponent(limpio)}${cr ? "&cr=1" : ""}`, { cache: "no-store" });
+      const r = await fetch(`/api/que-dijo?q=${encodeURIComponent(limpio)}${cr ? "&cr=1" : ""}${t ? `&tipo=${t}` : ""}`, { cache: "no-store" });
       const d = await r.json();
       if (d.error) {
         setError(d.error);
@@ -64,8 +70,9 @@ export function Buscador() {
       } else {
         setFilas(d.resultados || []);
         setBuscado(limpio);
+        setTipo(t);
         if (typeof d.quedan === "number") setEstado((e) => ({ pase: e?.pase ?? null, quedan: d.quedan }));
-        window.history.replaceState(null, "", `/que-dijo?q=${encodeURIComponent(limpio)}${cr ? "&cr=1" : ""}`);
+        window.history.replaceState(null, "", `/que-dijo?q=${encodeURIComponent(limpio)}${cr ? "&cr=1" : ""}${t ? `&tipo=${t}` : ""}`);
       }
     } catch {
       setError("No se pudo buscar. Revisa tu conexión y prueba otra vez.");
@@ -86,10 +93,11 @@ export function Buscador() {
       .catch(() => {});
     const cr = p.get("cr") === "1";
     if (cr) setSoloCr(true);
-    const inicial = p.get("q");
-    if (inicial) {
+    const inicial = p.get("q") || "";
+    const t = TIPOS.some((x) => x.id === p.get("tipo")) ? (p.get("tipo") as string) : "";
+    if (inicial || t) {
       setQ(inicial);
-      buscar(inicial, cr);
+      buscar(inicial, cr, t);
     }
   }, [buscar]);
 
@@ -135,14 +143,31 @@ export function Buscador() {
           checked={soloCr}
           onChange={(e) => {
             setSoloCr(e.target.checked);
-            if (q.trim().length >= 3) buscar(q, e.target.checked);
+            if (tipo || q.trim().length >= 3) buscar(q, e.target.checked, tipo);
           }}
           className="h-6 w-6 shrink-0 accent-[#1E3A5F]"
         />
-        <span>Solo Cabo Rojo (videos de CaboRojo.com desde 2020)</span>
+        <span>Solo Cabo Rojo (videos de CaboRojo.com desde 2023)</span>
       </label>
 
       <div className="mt-2 flex flex-wrap items-center gap-2 text-[16px] text-stone-700">
+        <span>O mira sin escribir:</span>
+        {TIPOS.map((t) => (
+          <button
+            key={t.id}
+            type="button"
+            aria-pressed={tipo === t.id}
+            onClick={() => buscar(q.trim().length >= 3 ? q : "", soloCr, t.id)}
+            className={`min-h-12 rounded-full border-2 px-5 text-[17px] font-bold focus:outline-none focus:ring-4 focus:ring-po-ocean/25 ${
+              tipo === t.id ? "border-po-ocean bg-po-ocean text-white" : "border-po-ocean bg-white text-po-ocean hover:bg-po-ocean hover:text-white"
+            }`}
+          >
+            {t.boton}
+          </button>
+        ))}
+      </div>
+
+      <div className="mt-3 flex flex-wrap items-center gap-2 text-[16px] text-stone-700">
         <span>Prueba con:</span>
         {(soloCr ? EJEMPLOS_CR : EJEMPLOS).map((e) => (
           <button
@@ -192,8 +217,22 @@ export function Buscador() {
       {filas && (
         <section className="mt-8" aria-live="polite">
           <h2 className="font-heading text-[22px] font-bold text-stone-900">
-            {filas.length ? `${filas.length} momentos para “${buscado}”` : `Nada para “${buscado}”`}
+            {(() => {
+              const t = TIPOS.find((x) => x.id === tipo);
+              if (!t) return filas.length ? `${filas.length} momentos para “${buscado}”` : `Nada para “${buscado}”`;
+              const de = buscado ? ` con “${buscado}”` : "";
+              const donde = soloCr ? " en videos de Cabo Rojo" : "";
+              return filas.length
+                ? `${filas.length} ${filas.length === 1 ? t.uno : t.varios}${de}${donde}, lo más reciente primero`
+                : `No hay ${t.varios}${de}${donde}`;
+            })()}
           </h2>
+          {tipo && filas.length > 0 && (
+            <p className="mt-2 text-[16px] leading-[1.5] text-stone-700">
+              Estas frases las escogió una máquina y a veces se equivoca de tipo. Son citas del video, no un juicio. Mira el
+              video antes de citar.
+            </p>
+          )}
           {!filas.length && (
             <p className="mt-3 text-[17px] leading-[1.6] text-stone-700">
               Prueba con el apellido solo, o con la agencia{soloCr ? ", o quita la marca de Solo Cabo Rojo" : ""}. Esta búsqueda no gastó turno.
@@ -203,7 +242,7 @@ export function Buscador() {
             {filas.map((f) => (
               <li key={f.enlace} className="rounded-xl border border-po-border bg-white p-5">
                 <p className="font-mono text-[16px] font-medium tabular-nums text-red-800">
-                  {fechaCorta(f.fecha)} · cerca del minuto {f.minuto}
+                  {fechaCorta(f.fecha)} · {tipo ? "minuto" : "cerca del minuto"} {f.minuto}
                 </p>
                 <p className="mt-1 text-[16px] text-stone-700">
                   {f.canal} · {f.titulo}
