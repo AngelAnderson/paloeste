@@ -1,0 +1,99 @@
+import { GRATIS_AL_DIA, anotar, diaPR, firmar, paseHasta, ponerGalleta, usadasHoy } from "@/lib/que-dijo";
+
+// GET /api/que-dijo?q=<texto>  → resultados de buscar_memoria (por palabras).
+// GET /api/que-dijo?estado=1   → { pase, quedan } sin gastar búsqueda.
+// La llave de servicio se queda aquí; al navegador solo le llega la lista.
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+const VENTANA_MS = 10 * 60_000;
+const MAX_VENTANA = 40;
+const MAX_GRATIS_IP_DIA = 12; // red de seguridad si borran la cookie (por instancia)
+const golpes = new Map<string, { n: number; desde: number }>();
+const gratisIp = new Map<string, number>();
+
+function limitado(ip: string): boolean {
+  const ahora = Date.now();
+  if (golpes.size > 5000) golpes.clear();
+  const g = golpes.get(ip);
+  if (!g || ahora - g.desde > VENTANA_MS) {
+    golpes.set(ip, { n: 1, desde: ahora });
+    return false;
+  }
+  g.n += 1;
+  return g.n > MAX_VENTANA;
+}
+
+const json = (cuerpo: unknown, status = 200, galleta?: string) => {
+  const h = new Headers({ "Content-Type": "application/json", "Cache-Control": "no-store" });
+  if (galleta) h.append("Set-Cookie", galleta);
+  return new Response(JSON.stringify(cuerpo), { status, headers: h });
+};
+
+type Fila = { titulo: string; canal: string; fecha: string; minuto: string; texto: string; enlace: string };
+
+export async function GET(req: Request) {
+  const u = new URL(req.url);
+  const pase = paseHasta(req);
+  const usadas = usadasHoy(req);
+
+  if (u.searchParams.get("estado")) {
+    return json({ pase: pase ? new Date(pase * 1000).toISOString().slice(0, 10) : null, quedan: Math.max(0, GRATIS_AL_DIA - usadas) });
+  }
+
+  const ip = (req.headers.get("x-forwarded-for") || "").split(",")[0].trim() || "desconocida";
+  if (limitado(ip)) return json({ error: "Demasiadas búsquedas seguidas. Espera unos minutos." }, 429);
+
+  const q = (u.searchParams.get("q") || "").replace(/\s+/g, " ").trim();
+  if (q.length < 3 || q.length > 80) return json({ error: "Escribe un nombre o un tema de 3 a 80 letras." }, 400);
+
+  const clavIp = `${diaPR()}|${ip}`;
+  if (!pase) {
+    if (gratisIp.size > 20000) gratisIp.clear();
+    if (usadas >= GRATIS_AL_DIA || (gratisIp.get(clavIp) || 0) >= MAX_GRATIS_IP_DIA) {
+      return json({ tope: true, quedan: 0 });
+    }
+  }
+
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !key) return json({ error: "El buscador no está disponible ahora mismo." }, 503);
+
+  let filas: Fila[] = [];
+  try {
+    const r = await fetch(`${url}/rest/v1/rpc/buscar_memoria`, {
+      method: "POST",
+      headers: { apikey: key, Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ q, p_n: 8, p_modo: "palabras" }),
+      signal: AbortSignal.timeout(9000),
+    });
+    if (!r.ok) return json({ error: "El buscador no contestó. Prueba otra vez." }, 502);
+    const datos = (await r.json()) as Record<string, unknown>[];
+    filas = (Array.isArray(datos) ? datos : [])
+      .filter((d) => typeof d.enlace === "string" && /^https:\/\/youtu\.be\/[\w-]{6,20}\?t=\d+$/.test(d.enlace as string))
+      .map((d) => ({
+        titulo: String(d.titulo || "").slice(0, 160),
+        canal: String(d.canal || "").slice(0, 80),
+        fecha: String(d.fecha || "").slice(0, 10),
+        minuto: String(d.minuto || "").slice(0, 8),
+        texto: String(d.texto || "").slice(0, 420),
+        enlace: d.enlace as string,
+      }));
+  } catch {
+    return json({ error: "El buscador tardó demasiado. Prueba con menos palabras." }, 504);
+  }
+
+  await anotar("qd_busqueda", `${filas.length}|${q.toLowerCase().slice(0, 60)}`);
+
+  if (pase) return json({ resultados: filas, pase: true });
+
+  // Una búsqueda sin resultados no gasta turno.
+  const nuevas = filas.length ? usadas + 1 : usadas;
+  if (filas.length) gratisIp.set(clavIp, (gratisIp.get(clavIp) || 0) + 1);
+  const firmada = firmar(`${diaPR()}|${nuevas}`);
+  return json(
+    { resultados: filas, quedan: Math.max(0, GRATIS_AL_DIA - nuevas) },
+    200,
+    firmada ? ponerGalleta("qd_n", firmada, 60 * 60 * 30) : undefined,
+  );
+}
