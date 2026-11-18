@@ -294,7 +294,7 @@ export function Buscador() {
           placeholder="Un nombre o un tema"
           autoComplete="off"
           enterKeyHint="search"
-          className="h-14 w-full flex-1 rounded-lg border-2 border-stone-400 bg-white px-4 text-[19px] text-stone-900 placeholder:text-stone-500 focus:border-po-ocean focus:outline-none focus:ring-4 focus:ring-po-ocean/25"
+          className="h-14 min-h-14 w-full shrink-0 rounded-lg border-2 border-stone-400 sm:flex-1 sm:shrink bg-white px-4 text-[19px] text-stone-900 placeholder:text-stone-500 focus:border-po-ocean focus:outline-none focus:ring-4 focus:ring-po-ocean/25"
         />
         <button
           type="submit"
